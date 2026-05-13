@@ -225,11 +225,66 @@
       display: grid; 
       grid-template-columns: 1fr 1fr; 
       gap: 16px; 
-      align-items: start; 
+      align-items: stretch;
       margin-bottom: 16px; 
     }
     .layout > div { display: flex; flex-direction: column; gap: 14px; }
+    .layout > div > .card-fixed { flex: 1 1 0; min-height: 200px; }
     .gantt-full-width { grid-column: 1 / -1; }
+    
+    /* Linha de atividades gêmeas: O que estamos fazendo + Próximos Passos */
+    .activity-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      align-items: stretch;
+      margin-bottom: 16px;
+    }
+    .activity-row > .card { display: flex; flex-direction: column; min-width: 0; }
+    
+    /* Card de altura controlada — title fixo, conteúdo cresce e ganha scroll interno */
+    .card-fixed { display: flex; flex-direction: column; }
+    .card-fixed .section-title { flex-shrink: 0; }
+    .card-fixed .next-steps-container,
+    .card-fixed .risk-list-container { flex: 1 1 auto; min-height: 0; }
+    
+    /* Seletor de limite no header do card */
+    .limit-select {
+      margin-left: 8px;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--primary);
+      background: white;
+      border: 1px solid var(--primary-200);
+      border-radius: 999px;
+      padding: 3px 22px 3px 10px;
+      cursor: pointer;
+      font-family: inherit;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%231A1F4E' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+      background-repeat: no-repeat;
+      background-position: right 6px center;
+      transition: all var(--tr-fast);
+    }
+    .limit-select:hover { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(26,31,78,.07); }
+    .limit-select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(26,31,78,.12); }
+    
+    /* Container de riscos com scroll igual ao de tarefas */
+    .risk-list-container {
+      max-height: 280px;
+      overflow-y: auto;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-xs);
+      background: var(--card-bg);
+    }
+    .risk-list-container::-webkit-scrollbar { width: 8px; }
+    .risk-list-container::-webkit-scrollbar-track { background: var(--bg); }
+    .risk-list-container::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
+    .risk-list-container::-webkit-scrollbar-thumb:hover { background: var(--text-faint); }
+    .risk-list-container ul.risk-list { margin: 0; padding: 0; list-style: none; }
     
     /* === CARDS PREMIUM === */
     .card { 
@@ -535,6 +590,8 @@
     .badge.blue .dot { background: var(--primary); }
     .badge.gray { background: #f1f5f9; color: #475569; }
     .badge.gray .dot { background: #94a3b8; }
+    .badge.purple { background: #f5f3ff; color: #6b21a8; border: 1px solid #d8b4fe; }
+    .badge.purple .dot { background: #a855f7; }
     /* === RISK LIST EXECUTIVO === */
     ul.risk-list { 
       margin: 0; 
@@ -639,14 +696,19 @@
       box-shadow: 0 2px 6px rgba(233, 78, 78, 0.25);
     }
     
-    /* === NEXT STEPS COM SCROLL === */
+    /* === NEXT STEPS COM SCROLL ===
+       Altura calculada com base na variável --limit-rows (default 5).
+       Cada linha de tabela ~36px + header 32px + bordas. */
     .next-steps-container { 
-      max-height: 220px; 
+      --limit-rows: 5;
+      max-height: calc(var(--limit-rows) * 38px + 40px);
       overflow-y: auto; 
       border: 1px solid var(--border); 
       border-radius: var(--radius-sm);
       box-shadow: var(--shadow-xs);
+      transition: max-height var(--tr-base);
     }
+    .next-steps-container.limit-all { max-height: 600px; }
     .next-steps-container table { margin-top: 0; border-radius: 0; }
     .next-steps-container thead { position: sticky; top: 0; z-index: 1; }
     .next-steps-container::-webkit-scrollbar { width: 8px; }
@@ -2311,6 +2373,7 @@
       </div>
     </div>
     <div id="validation-alerts"></div>
+    <!-- Linha 1: Resumo Executivo (esq) + Marcos / Riscos (dir empilhados) -->
     <div class="layout">
       <div>
         <div class="card">
@@ -2331,45 +2394,80 @@
             <div class="progress-bar"><div class="progress-bar-inner" id="progress"></div></div>
           </div>
         </div>
-        <div class="card">
+      </div>
+      <div>
+        <div class="card card-fixed">
           <div class="section-title">
-            <span class="emoji">🔨</span>O que estamos fazendo
-            <span class="items-counter" id="andamento-counter"></span>
+            <span class="emoji">📈</span>Marcos Principais
+            <span class="items-counter" id="marcos-counter"></span>
+            <select class="limit-select" id="marcos-limit" data-block="marcos" aria-label="Quantidade visível">
+              <option value="5" selected>5</option>
+              <option value="10">10</option>
+              <option value="15">15</option>
+              <option value="all">Todos</option>
+            </select>
           </div>
           <div class="next-steps-container">
             <table>
-              <thead><tr><th>História</th><th>Atividade</th><th>Data Prevista</th><th>Responsável</th><th>Status</th></tr></thead>
-              <tbody id="andamento-body"><tr><td colspan="5" style="text-align:center;color:var(--text-muted);">Aguardando dados...</td></tr></tbody>
+              <thead><tr><th>Data</th><th>Marco</th><th>Status</th></tr></thead>
+              <tbody id="marcos-body"><tr><td colspan="3" style="text-align:center;color:var(--text-muted);">Aguardando dados...</td></tr></tbody>
             </table>
           </div>
         </div>
-      </div>
-      <div>
-        <div class="card">
-          <div class="section-title"><span class="emoji">📈</span>Marcos Principais</div>
-          <table>
-            <thead><tr><th>Data</th><th>Marco</th><th>Status</th></tr></thead>
-            <tbody id="marcos-body"><tr><td colspan="3" style="text-align:center;color:var(--text-muted);">Aguardando dados...</td></tr></tbody>
-          </table>
-        </div>
-        <div class="card">
+        <div class="card card-fixed">
           <div class="section-title">
             <span class="emoji">⚠️</span>Riscos e Pendências Críticas
             <span class="riscos-counter" id="riscos-counter">0</span>
+            <select class="limit-select" id="riscos-limit" data-block="riscos" aria-label="Quantidade visível">
+              <option value="5" selected>5</option>
+              <option value="10">10</option>
+              <option value="15">15</option>
+              <option value="all">Todos</option>
+            </select>
           </div>
-          <ul class="risk-list" id="risk-list"><li>Aguardando dados...</li></ul>
+          <div class="risk-list-container">
+            <ul class="risk-list" id="risk-list"><li>Aguardando dados...</li></ul>
+          </div>
         </div>
-        <div class="card">
-          <div class="section-title">
-            <span class="emoji">➡️</span>Próximos Passos
-            <span class="items-counter" id="proximos-counter"></span>
-          </div>
-          <div class="next-steps-container">
-            <table>
-              <thead><tr><th>História</th><th>Atividade</th><th>Data Prevista</th><th>Responsável</th><th>Status</th></tr></thead>
-              <tbody id="next-steps-body"><tr><td colspan="5" style="text-align:center;color:var(--text-muted);">Aguardando dados...</td></tr></tbody>
-            </table>
-          </div>
+      </div>
+    </div>
+
+    <!-- Linha 2: Atividades lado a lado (gêmeos, mesma altura/largura) -->
+    <div class="activity-row">
+      <div class="card card-fixed">
+        <div class="section-title">
+          <span class="emoji">🔨</span>O que estamos fazendo
+          <span class="items-counter" id="andamento-counter"></span>
+          <select class="limit-select" id="andamento-limit" data-block="andamento" aria-label="Quantidade visível">
+            <option value="5" selected>5</option>
+            <option value="10">10</option>
+            <option value="15">15</option>
+            <option value="all">Todos</option>
+          </select>
+        </div>
+        <div class="next-steps-container">
+          <table>
+            <thead><tr><th>História</th><th>Atividade</th><th>Data Prevista</th><th>Responsável</th><th>Status</th></tr></thead>
+            <tbody id="andamento-body"><tr><td colspan="5" style="text-align:center;color:var(--text-muted);">Aguardando dados...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card card-fixed">
+        <div class="section-title">
+          <span class="emoji">➡️</span>Próximos Passos
+          <span class="items-counter" id="proximos-counter"></span>
+          <select class="limit-select" id="proximos-limit" data-block="proximos" aria-label="Quantidade visível">
+            <option value="5" selected>5</option>
+            <option value="10">10</option>
+            <option value="15">15</option>
+            <option value="all">Todos</option>
+          </select>
+        </div>
+        <div class="next-steps-container">
+          <table>
+            <thead><tr><th>História</th><th>Atividade</th><th>Data Prevista</th><th>Responsável</th><th>Status</th></tr></thead>
+            <tbody id="next-steps-body"><tr><td colspan="5" style="text-align:center;color:var(--text-muted);">Aguardando dados...</td></tr></tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -3781,75 +3879,126 @@
       }
       if (backdrop) backdrop.classList.remove('show');
     }
+    // === Estado global de limites por bloco ===
+    // Atualizado pelos seletores 'Mostrar: 5/10/15/Todos' no header de cada card.
+    const _blockLimits = { marcos: 5, riscos: 5, andamento: 5, proximos: 5 };
+    // Cache dos dados normalizados de cada bloco, para re-render sem re-parse quando o limite muda
+    const _blockCache = { marcos: null, riscos: null, andamento: null, proximos: null };
+    
+    function _getLimit(block) {
+      const v = _blockLimits[block];
+      return (v === 'all' || v == null) ? Infinity : Number(v);
+    }
+    
+    function _applyContainerHeight(container, limitValue) {
+      if (!container) return;
+      if (limitValue === 'all' || limitValue === Infinity) {
+        container.classList.add('limit-all');
+        container.style.removeProperty('--limit-rows');
+      } else {
+        container.classList.remove('limit-all');
+        container.style.setProperty('--limit-rows', String(limitValue));
+      }
+    }
+    
     function renderMarcos(marcos) {
+      _blockCache.marcos = Array.isArray(marcos) ? marcos.slice() : [];
+      _renderMarcosFromCache();
+    }
+    function _renderMarcosFromCache() {
       const tbody = document.getElementById('marcos-body');
+      const counter = document.getElementById('marcos-counter');
       if (!tbody) return;
-      if (!marcos || !marcos.length) { tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--text-muted);">Nenhum marco disponível</td></tr>'; return; }
+      const all = _blockCache.marcos || [];
+      const total = all.length;
+      const limit = _getLimit('marcos');
+      const visivel = Math.min(limit, total);
+      const rows = all.slice(0, visivel);
+      
+      const container = tbody.closest('.next-steps-container');
+      _applyContainerHeight(container, _blockLimits.marcos);
+      
+      if (counter) counter.textContent = total === 0 ? '0 itens' : (total > visivel ? visivel + ' de ' + total : total + ' itens');
+      
+      if (!total) {
+        tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--text-muted);">Nenhum marco disponível</td></tr>';
+        return;
+      }
       tbody.innerHTML = '';
-      marcos.forEach(m => {
+      rows.forEach(m => {
         const tr = document.createElement('tr');
         const badgeClass = mapColorClass(m.cor);
         tr.innerHTML = '<td><strong>' + (formatDate(m.data) || '') + '</strong></td><td>' + (m.marco || '') + '</td><td><span class="badge ' + badgeClass + '"><span class="dot"></span>' + (m.status || '') + '</span></td>';
         tbody.appendChild(tr);
       });
     }
+    
     function renderRiscos(riscos) {
+      _blockCache.riscos = Array.isArray(riscos) ? riscos.slice() : [];
+      _renderRiscosFromCache();
+    }
+    function _renderRiscosFromCache() {
       const ul = document.getElementById('risk-list');
       const counter = document.getElementById('riscos-counter');
       if (!ul) return;
+      const all = _blockCache.riscos || [];
+      const total = all.length;
+      const limit = _getLimit('riscos');
+      const visivel = Math.min(limit, total);
+      const rows = all.slice(0, visivel);
       
-      if (counter) counter.textContent = riscos ? riscos.length : 0;
-      
-      if (!riscos || !riscos.length) { 
-        ul.innerHTML = '<li style="background: #f0fdf4; border-left-color: #16a34a;"><strong style="color: #16a34a;">Nenhum risco identificado</strong></li>'; 
-        if (counter) counter.textContent = '0';
-        return; 
+      const container = ul.closest('.risk-list-container');
+      if (container) {
+        if (_blockLimits.riscos === 'all') {
+          container.style.maxHeight = '600px';
+        } else {
+          container.style.maxHeight = (Number(_blockLimits.riscos) * 60 + 20) + 'px';
+        }
       }
       
+      if (counter) counter.textContent = total === 0 ? '0' : (total > visivel ? visivel + '/' + total : String(total));
+      
+      if (!total) {
+        ul.innerHTML = '<li style="background: #f0fdf4; border-left-color: #16a34a;"><strong style="color: #16a34a;">Nenhum risco identificado</strong></li>';
+        return;
+      }
       ul.innerHTML = '';
-      riscos.forEach(r => {
+      rows.forEach(r => {
         const li = document.createElement('li');
-        
-        // Classificar severidade
         const severidade = (r.severidade || r.impacto || '').toLowerCase();
-        let classeRisco = 'risco-medio'; // default
-        if (severidade.includes('crític') || severidade.includes('critic') || severidade.includes('muito alto')) {
-          classeRisco = 'risco-critico';
-        } else if (severidade.includes('alto') || severidade.includes('high')) {
-          classeRisco = 'risco-alto';
-        } else if (severidade.includes('médio') || severidade.includes('medio') || severidade.includes('medium')) {
-          classeRisco = 'risco-medio';
-        } else if (severidade.includes('baixo') || severidade.includes('low')) {
-          classeRisco = 'risco-baixo';
-        }
-        
+        let classeRisco = 'risco-medio';
+        if (severidade.includes('crític') || severidade.includes('critic') || severidade.includes('muito alto')) classeRisco = 'risco-critico';
+        else if (severidade.includes('alto') || severidade.includes('high')) classeRisco = 'risco-alto';
+        else if (severidade.includes('médio') || severidade.includes('medio') || severidade.includes('medium')) classeRisco = 'risco-medio';
+        else if (severidade.includes('baixo') || severidade.includes('low')) classeRisco = 'risco-baixo';
         li.className = classeRisco;
         li.innerHTML = '<strong>' + (r.risco || '') + '</strong><div class="desc">' + (r.descricao || '') + (r.impacto ? ' • Impacto: ' + r.impacto : '') + (r.severidade ? ' • Severidade: ' + r.severidade : '') + '</div>';
         ul.appendChild(li);
       });
     }
+    
     function renderNextSteps(steps) {
       // Separar atividades em dois grupos:
       // - "O que estamos fazendo" → Em Andamento + Em Homologação
       // - "Próximos Passos" → apenas Backlog
       const all = Array.isArray(steps) ? steps : [];
-      const emAndamento = all.filter(s => s && (s.status === 'Em Andamento' || s.status === 'Em Homologação'));
-      const backlog     = all.filter(s => s && s.status !== 'Em Andamento' && s.status !== 'Em Homologação');
+      _blockCache.andamento = all.filter(s => s && (s.status === 'Em Andamento' || s.status === 'Em Homologação'));
+      _blockCache.proximos  = all.filter(s => s && s.status !== 'Em Andamento' && s.status !== 'Em Homologação');
+      _renderActivityFromCache('andamento');
+      _renderActivityFromCache('proximos');
+    }
+    
+    function _renderActivityFromCache(block) {
+      const tbodyId = block === 'andamento' ? 'andamento-body' : 'next-steps-body';
+      const counterId = block === 'andamento' ? 'andamento-counter' : 'proximos-counter';
+      const emptyMsg = block === 'andamento' ? 'Nenhuma atividade em andamento' : 'Nenhum próximo passo definido';
       
       _renderActivityTable({
-        tbody: document.getElementById('andamento-body'),
-        counter: document.getElementById('andamento-counter'),
-        rows: emAndamento,
-        emptyMsg: 'Nenhuma atividade em andamento',
-        limit: 5
-      });
-      
-      _renderActivityTable({
-        tbody: document.getElementById('next-steps-body'),
-        counter: document.getElementById('proximos-counter'),
-        rows: backlog,
-        emptyMsg: 'Nenhum próximo passo definido',
-        limit: 5
+        tbody: document.getElementById(tbodyId),
+        counter: document.getElementById(counterId),
+        rows: _blockCache[block] || [],
+        emptyMsg: emptyMsg,
+        limit: _blockLimits[block]
       });
     }
     
@@ -3858,18 +4007,22 @@
       const counter = opts.counter;
       if (!tbody) return;
       
-      const rows = opts.rows || [];
-      const total = rows.length;
-      const limit = opts.limit || 5;
-      const visivel = Math.min(limit, total);
+      const allRows = opts.rows || [];
+      const total = allRows.length;
+      const limitRaw = opts.limit;
+      const limitNum = (limitRaw === 'all' || limitRaw == null) ? Infinity : Number(limitRaw);
+      const visivel = Math.min(limitNum === Infinity ? total : limitNum, total);
+      const rows = allRows.slice(0, visivel);
+      
+      const container = tbody.closest('.next-steps-container');
+      _applyContainerHeight(container, limitRaw);
       
       if (counter) {
-        counter.textContent = total > limit ? visivel + ' de ' + total : total + ' itens';
+        counter.textContent = total === 0 ? '0 itens' : (total > visivel ? visivel + ' de ' + total : total + ' itens');
       }
       
       if (!total) { 
         tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);">' + (opts.emptyMsg || 'Nenhum item') + '</td></tr>'; 
-        if (counter) counter.textContent = '0 itens';
         return; 
       }
       
@@ -3896,6 +4049,28 @@
         tr.innerHTML = '<td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="' + (s.historia || '-') + '">' + (s.historia || '-') + '</td><td>' + (s.atividade || '') + '</td><td class="' + dateClass + '"><strong>' + (formatDate(s.data) || '-') + '</strong></td><td>' + (s.responsavel || '') + '</td><td><span class="badge ' + statusClass + '"><span class="dot"></span>' + (s.status || '') + '</span></td>';
         tbody.appendChild(tr);
       });
+    }
+    
+    // Wiring dos seletores de limite — re-renderiza o bloco correspondente
+    function _initLimitSelectors() {
+      document.querySelectorAll('.limit-select').forEach(sel => {
+        if (sel.dataset.limitWired) return;
+        sel.dataset.limitWired = '1';
+        sel.addEventListener('change', () => {
+          const block = sel.dataset.block;
+          const val = sel.value;
+          _blockLimits[block] = (val === 'all') ? 'all' : Number(val);
+          if (block === 'marcos')    _renderMarcosFromCache();
+          else if (block === 'riscos')   _renderRiscosFromCache();
+          else if (block === 'andamento' || block === 'proximos') _renderActivityFromCache(block);
+        });
+      });
+    }
+    // Inicializar quando o DOM carregar
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', _initLimitSelectors);
+    } else {
+      _initLimitSelectors();
     }
     function toISODateInput(value) {
       const d = toDate(value);
@@ -4555,7 +4730,7 @@
           if (ganttHeaderMonths) ganttHeaderMonths.innerHTML = '';
           
           // 7) Limpar conteúdos que serão preenchidos via JS no auto-init
-          const elementsToReset = ['#next-steps-body', '#andamento-body', '#risk-list', '#marcos-body', '#gantt-print-body', '#proximos-counter', '#andamento-counter', '#riscos-counter'];
+          const elementsToReset = ['#next-steps-body', '#andamento-body', '#risk-list', '#marcos-body', '#gantt-print-body', '#proximos-counter', '#andamento-counter', '#riscos-counter', '#marcos-counter'];
           elementsToReset.forEach(sel => {
             const el = clone.querySelector(sel);
             if (el) el.innerHTML = '';
