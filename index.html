@@ -1737,9 +1737,9 @@
     .ps-kpi-strip { background:white; border-bottom:1px solid var(--border); flex-shrink:0; }
     .ps-kpi-strip-inner { max-width:1280px; margin:0 auto; padding:0 32px; display:flex; overflow-x:auto; }
     .ps-kpi {
-      padding:18px 32px 18px 0; margin-right:32px;
+      padding:14px 24px 14px 0; margin-right:24px;
       border-right:1px solid var(--border);
-      display:flex; align-items:center; gap:14px;
+      display:flex; align-items:center; gap:12px;
       cursor:pointer; transition:all var(--tr-fast);
       position:relative; white-space:nowrap;
     }
@@ -1747,23 +1747,23 @@
     .ps-kpi::after { content:''; position:absolute; bottom:0; left:0; right:0; height:3px; background:var(--gradient-accent); transform:scaleX(0); transition:transform .2s ease; border-radius:3px 3px 0 0; }
     .ps-kpi.active::after { transform:scaleX(1); }
     .ps-kpi.active .ps-kpi-val { color:var(--accent); }
-    .ps-kpi-icon-wrap { width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
+    .ps-kpi-icon-wrap { width:36px; height:36px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; }
     .ps-kpi-icon-wrap.total     { background:#eef2ff; }
     .ps-kpi-icon-wrap.andamento { background:#eff6ff; }
     .ps-kpi-icon-wrap.concluido { background:#f0fdf4; }
     .ps-kpi-icon-wrap.bloqueado { background:#fffbeb; }
-    .ps-kpi-val { font-size:30px; font-weight:800; color:var(--primary); letter-spacing:-.05em; line-height:1; }
+    .ps-kpi-val { font-size:26px; font-weight:800; color:var(--primary); letter-spacing:-.04em; line-height:1; }
     .ps-kpi-label { font-size:10px; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:.06em; margin-top:3px; }
 
     /* ── Toolbar / filtros ── */
     .ps-toolbar {
       max-width:1280px; margin:0 auto;
-      padding:16px 32px 0;
-      display:flex; flex-direction:column; gap:12px;
+      padding:10px 32px 8px;
+      display:flex; flex-direction:column; gap:6px;
       flex-shrink:0;
     }
-    .ps-toolbar-row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
-    .ps-toolbar-divider { height:1px; background:var(--border); margin:0 0 4px; }
+    .ps-toolbar-row { display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
+    .ps-toolbar-divider { height:1px; background:var(--border); }
     .ps-toolbar-label { font-size:10px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:.08em; white-space:nowrap; }
     .ps-search-wrap { flex:1 1 280px; max-width:380px; position:relative; display:flex; align-items:center; }
     .ps-search-icon { position:absolute; left:12px; pointer-events:none; color:var(--text-muted); font-size:14px; }
@@ -1828,7 +1828,7 @@
     .ps-gantt-empty { text-align:center; padding:24px; color:var(--text-muted); font-size:13px; }
 
     /* ── Cards de projeto ── */
-    .ps-cards-section { padding:0 32px 40px; max-width:1280px; margin:0 auto; }
+    .ps-cards-section { padding:0 32px 28px; max-width:1280px; margin:0 auto; }
     .ps-cards-title { font-size:11px; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:.1em; margin-bottom:16px; display:flex; align-items:center; gap:8px; }
     .ps-list { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:16px; }
     .ps-card { background:white; border:1px solid var(--border); border-radius:12px; padding:16px; cursor:pointer; transition:all var(--tr-fast); position:relative; display:flex; flex-direction:column; gap:10px; text-align:left; font-family:inherit; }
@@ -2095,7 +2095,7 @@
     </div>
 
     <!-- Estado: loading -->
-    <div id="ps-loading" style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding:64px 20px; gap:0;">
+    <div id="ps-loading" style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding:32px 20px; gap:0;">
       <div style="background:white; border:1px solid var(--border); border-radius:16px; padding:32px 40px; box-shadow:var(--shadow-md); max-width:420px; width:100%; display:flex; flex-direction:column; align-items:center; gap:20px;">
         <div style="width:48px; height:48px; border-radius:12px; background:var(--gradient-primary-dark); display:flex; align-items:center; justify-content:center; font-size:22px;">📊</div>
         <div style="text-align:center;">
