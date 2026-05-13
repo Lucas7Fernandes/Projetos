@@ -5344,8 +5344,13 @@
         throw new Error('Claude proxy desabilitado — usando CORS proxies direto');
       }
 
+      // Encode seguro: não re-encoda % já existentes (evita double-encode do token)
+      function _safeEncode(url) {
+        return url.replace(/[^A-Za-z0-9\-._~:/?#\[\]@!$&'()*+,;=%]/g, c => encodeURIComponent(c));
+      }
+
       const FETCH_STRATEGIES = [
-        { name:'goobee-proxy', buildUrl: url => 'https://goobee-proxy.7lucasfernandes.workers.dev?url=' + encodeURIComponent(url), timeout: 45000 },
+        { name:'goobee-proxy', buildUrl: url => 'https://goobee-proxy.7lucasfernandes.workers.dev?url=' + _safeEncode(url), timeout: 45000 },
         { name:'corsproxy.io', buildUrl: url => 'https://corsproxy.io/?url=' + encodeURIComponent(url), timeout: 20000 },
         { name:'allorigins',   buildUrl: url => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url), timeout: 20000 },
       ];
@@ -6101,24 +6106,37 @@
       // ── Load ───────────────────────────────────────────────────────────────
       async function loadFromApi() {
         showState('loading');
+        // Limpar cache de proxy para forçar re-teste
+        try { localStorage.removeItem('goobee-fetch-strategy'); } catch(_) {}
+
         try {
-          updateLoadingMsg('Carregando projetos...');
-          // Chamadas paralelas para reduzir latência
-          const [itemsJson, projetosJson] = await Promise.allSettled([
-            fetchUrl(API_URL, 'Itens'),
-            fetchUrl(API_PROJETOS_URL, 'Projetos')
-          ]);
-
-          if (itemsJson.status === 'rejected') throw itemsJson.reason;
-          if (!Array.isArray(itemsJson.value)) throw new Error('Formato inesperado (não é array)');
-
-          allItems = itemsJson.value;
-
-          if (projetosJson.status === 'fulfilled') {
-            const raw = projetosJson.value;
-            const list = Array.isArray(raw) ? raw : Array.isArray(raw && raw.data) ? raw.data : Array.isArray(raw && raw.projetos) ? raw.projetos : [];
+          // 1) Carregar ListarProjetos primeiro (fonte principal de responsável/meta/status)
+          updateLoadingMsg('Carregando lista de projetos...');
+          let projetosOk = false;
+          try {
+            const raw = await fetchUrl(API_PROJETOS_URL, 'Projetos');
+            const list = Array.isArray(raw) ? raw
+              : Array.isArray(raw && raw.data) ? raw.data
+              : Array.isArray(raw && raw.projetos) ? raw.projetos : [];
             projectsApiList = list;
             buildProjectsExtraByName();
+            projetosOk = true;
+            console.log('[PS] ListarProjetos OK:', list.length, 'projetos');
+          } catch(e) {
+            console.error('[PS] ListarProjetos FALHOU — sem filtro de responsável:', e.message);
+            projectsApiList = [];
+          }
+
+          // 2) Carregar itens do quadro
+          updateLoadingMsg('Carregando itens do quadro...');
+          const raw = await fetchUrl(API_URL, 'Itens');
+          if (!Array.isArray(raw)) throw new Error('ExportarQuadroExcel não retornou array');
+          allItems = raw;
+          console.log('[PS] ExportarQuadroExcel OK:', allItems.length, 'itens');
+
+          if (!projetosOk) {
+            showError(new Error('Não foi possível carregar a lista de projetos (ListarProjetos falhou). Tente novamente.'));
+            return;
           }
 
           buildProjectsMap();
