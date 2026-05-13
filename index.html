@@ -225,12 +225,10 @@
       display: grid; 
       grid-template-columns: 1fr 1fr; 
       gap: 16px; 
-      align-items: stretch; 
+      align-items: start; 
       margin-bottom: 16px; 
     }
     .layout > div { display: flex; flex-direction: column; gap: 14px; }
-    .layout > div:first-child { display: flex; flex-direction: column; }
-    .layout > div:first-child > .card { flex: 1; display: flex; flex-direction: column; }
     .gantt-full-width { grid-column: 1 / -1; }
     
     /* === CARDS PREMIUM === */
@@ -374,9 +372,8 @@
     .project-description { 
       font-size: 13px; 
       margin: 12px 0; 
-      line-height: 1.65; 
+      line-height: 1.55; 
       color: var(--text-secondary); 
-      flex: 1; 
     }
     .project-description .label { 
       font-weight: 700; 
@@ -436,8 +433,6 @@
     
     /* === PROGRESS === */
     .progress-wrapper { 
-      margin-top: auto; 
-      padding-top: 16px;
       padding: 16px;
       background: linear-gradient(135deg, var(--primary-50) 0%, white 100%);
       border-radius: var(--radius-sm);
@@ -1713,9 +1708,7 @@
       position:fixed; inset:0; z-index:5000;
       background:var(--bg); overflow-y:auto; display:flex; flex-direction:column;
     }
-    .project-selector > #ps-loading,
-    .project-selector > #ps-error,
-    .project-selector > #ps-empty { position:fixed; }
+
     .project-selector.hidden { display:none; }
     body.has-project .project-selector { display:none; }
     body.legacy-flow .project-selector { display:none; }
@@ -1723,7 +1716,7 @@
     /* Hero */
     .ps-hero {
       background:var(--gradient-primary-dark);
-      padding:22px 32px 18px; position:relative; overflow:hidden; flex-shrink:0;
+      padding:18px 32px 16px; position:relative; overflow:hidden; flex-shrink:0;
     }
     .ps-hero::before { content:''; position:absolute; inset:0; background:var(--gradient-mesh); opacity:.6; pointer-events:none; }
     .ps-hero::after { content:''; position:absolute; top:0; right:0; width:320px; height:100%; background:radial-gradient(circle at 70% 30%,rgba(233,78,78,.22) 0%,transparent 60%); pointer-events:none; }
@@ -1738,11 +1731,11 @@
 
     /* ── KPI strip ── */
     .ps-kpi-strip { background:white; border-bottom:1px solid var(--border); flex-shrink:0; }
-    .ps-kpi-strip-inner { max-width:1280px; margin:0 auto; padding:0 32px; display:flex; overflow-x:auto; }
+    .ps-kpi-strip-inner { max-width:1280px; margin:0 auto; padding:0 32px; display:flex; overflow-x:auto; gap:0; }
     .ps-kpi {
-      padding:14px 24px 14px 0; margin-right:24px;
+      padding:10px 22px 10px 0; margin-right:22px;
       border-right:1px solid var(--border);
-      display:flex; align-items:center; gap:12px;
+      display:flex; align-items:center; gap:11px;
       cursor:pointer; transition:all var(--tr-fast);
       position:relative; white-space:nowrap;
     }
@@ -1760,15 +1753,22 @@
 
     /* ── Toolbar / filtros ── */
     .ps-toolbar {
-      max-width:1280px; margin:0 auto;
-      padding:10px 32px 8px;
-      display:flex; flex-direction:column; gap:6px;
+      max-width:1280px; margin:0 auto; width:100%;
+      padding:12px 32px 14px;
+      display:flex; flex-direction:column; gap:10px;
       flex-shrink:0;
+      box-sizing:border-box;
     }
-    .ps-toolbar-row { display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
+    .ps-toolbar-row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; min-height:32px; }
+    .ps-toolbar-row-primary { gap:14px; }
+    .ps-toolbar-row-secondary {
+      padding-top:10px;
+      border-top:1px dashed var(--border);
+    }
     .ps-toolbar-divider { height:1px; background:var(--border); }
-    .ps-toolbar-label { font-size:10px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:.08em; white-space:nowrap; }
-    .ps-search-wrap { flex:1 1 280px; max-width:380px; position:relative; display:flex; align-items:center; }
+    .ps-toolbar-divider-v { width:1px; height:18px; background:var(--border); margin:0 2px; flex-shrink:0; }
+    .ps-toolbar-label { font-size:10px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:.08em; white-space:nowrap; flex-shrink:0; }
+    .ps-search-wrap { flex:0 1 320px; min-width:220px; position:relative; display:flex; align-items:center; }
     .ps-search-icon { position:absolute; left:12px; pointer-events:none; color:var(--text-muted); font-size:14px; }
     .ps-search-input {
       width:100%; padding:9px 36px;
@@ -1796,7 +1796,13 @@
     .ps-filter-chip .ps-chip-count { font-size:9px; font-weight:800; background:rgba(255,255,255,.3); padding:1px 6px; border-radius:999px; min-width:16px; text-align:center; }
     .ps-filter-chip:not(.active) .ps-chip-count { background:#e2e8f0; color:#64748b; }
 
-    .ps-counter { font-size:12px; font-weight:600; color:var(--text-muted); white-space:nowrap; margin-left:auto; }
+    .ps-counter {
+      font-size:11px; font-weight:700; color:var(--primary);
+      background:var(--primary-50); border:1px solid var(--primary-100);
+      padding:5px 12px; border-radius:999px;
+      white-space:nowrap; margin-left:auto; flex-shrink:0;
+      letter-spacing:-.01em;
+    }
 
     /* Body */
     .project-selector-body { flex:1; overflow:hidden; }
@@ -2069,82 +2075,94 @@
 
     <!-- Toolbar -->
     <div class="ps-toolbar">
-      <div class="ps-search-wrap">
-        <span class="ps-search-icon">🔍</span>
-        <input type="text" id="ps-search" class="ps-search-input" placeholder="Buscar projeto..." autocomplete="off" />
-        <button type="button" class="ps-clear-btn" id="ps-clear-search" style="display:none;">×</button>
-      </div>
-
-      <!-- Filtro por responsável fixo -->
-      <div class="ps-filter-chips" id="ps-resp-chips">
-        <button type="button" class="ps-filter-chip active" data-resp="">Todos <span class="ps-chip-count" id="ps-chip-count-all">0</span></button>
-        <button type="button" class="ps-filter-chip" data-resp="Lucas Godoy Fernandes">Lucas G. <span class="ps-chip-count">0</span></button>
-        <button type="button" class="ps-filter-chip" data-resp="Lucas Norato de Souza Santos">Lucas N. <span class="ps-chip-count">0</span></button>
-        <button type="button" class="ps-filter-chip" data-resp="Luciano da Rocha Rafael">Luciano <span class="ps-chip-count">0</span></button>
-        <button type="button" class="ps-filter-chip" data-resp="Vinicius Nascimento">Vinicius <span class="ps-chip-count">0</span></button>
-      </div>
-
-      <!-- Filtro por Meta -->
-      <div class="ps-filter-chips" id="ps-meta-chips">
-        <button type="button" class="ps-filter-chip" id="ps-filter-meta" data-meta="">📌 Todas as metas</button>
-      </div>
-
-      <!-- Filtro por StatusProjeto — preenchido dinamicamente após carga da API -->
-      <div class="ps-filter-chips" id="ps-status-chips">
-        <button type="button" class="ps-filter-chip active" data-status="">🗂 Todos</button>
-      </div>
-
-      <div class="ps-counter" id="ps-counter">0 projetos</div>
-    </div>
-
-    <!-- Estado: loading -->
-    <div id="ps-loading" style="display:none; position:absolute; inset:0; z-index:10; flex-direction:column; align-items:center; justify-content:center; padding:32px 20px; gap:0; background:var(--bg);">
-      <div style="background:white; border:1px solid var(--border); border-radius:16px; padding:32px 40px; box-shadow:var(--shadow-md); max-width:420px; width:100%; display:flex; flex-direction:column; align-items:center; gap:20px;">
-        <div style="width:48px; height:48px; border-radius:12px; background:var(--gradient-primary-dark); display:flex; align-items:center; justify-content:center; font-size:22px;">📊</div>
-        <div style="text-align:center;">
-          <div style="font-size:15px; font-weight:700; color:var(--primary); margin-bottom:6px;">Carregando portfólio</div>
-          <div id="ps-loading-step" style="font-size:12px; color:var(--text-muted); min-height:18px;">Conectando à API Goobee...</div>
+      <!-- Linha 1: busca + filtro de responsável + contador -->
+      <div class="ps-toolbar-row ps-toolbar-row-primary">
+        <div class="ps-search-wrap">
+          <span class="ps-search-icon">🔍</span>
+          <input type="text" id="ps-search" class="ps-search-input" placeholder="Buscar projeto..." autocomplete="off" />
+          <button type="button" class="ps-clear-btn" id="ps-clear-search" style="display:none;">×</button>
         </div>
-        <div style="width:100%; background:var(--bg); border-radius:999px; height:4px; overflow:hidden; border:1px solid var(--border);">
-          <div id="ps-loading-bar" style="height:100%; width:30%; background:var(--gradient-primary); border-radius:999px; animation:ps-loading-anim 1.4s ease-in-out infinite;"></div>
+
+        <span class="ps-toolbar-label">Responsável</span>
+        <div class="ps-filter-chips" id="ps-resp-chips">
+          <button type="button" class="ps-filter-chip active" data-resp="">Todos <span class="ps-chip-count" id="ps-chip-count-all">0</span></button>
+          <button type="button" class="ps-filter-chip" data-resp="Lucas Godoy Fernandes">Lucas G. <span class="ps-chip-count">0</span></button>
+          <button type="button" class="ps-filter-chip" data-resp="Lucas Norato de Souza Santos">Lucas N. <span class="ps-chip-count">0</span></button>
+          <button type="button" class="ps-filter-chip" data-resp="Luciano da Rocha Rafael">Luciano <span class="ps-chip-count">0</span></button>
+          <button type="button" class="ps-filter-chip" data-resp="Vinicius Nascimento">Vinicius <span class="ps-chip-count">0</span></button>
         </div>
-        <div id="ps-loading-proxies" style="display:flex; gap:6px; flex-wrap:wrap; justify-content:center;"></div>
+
+        <div class="ps-counter" id="ps-counter">0 projetos</div>
+      </div>
+
+      <!-- Linha 2: filtros de meta e status -->
+      <div class="ps-toolbar-row ps-toolbar-row-secondary">
+        <span class="ps-toolbar-label">Meta</span>
+        <div class="ps-filter-chips" id="ps-meta-chips">
+          <button type="button" class="ps-filter-chip" id="ps-filter-meta" data-meta="">📌 Todas as metas</button>
+        </div>
+
+        <span class="ps-toolbar-divider-v"></span>
+
+        <span class="ps-toolbar-label">Status</span>
+        <!-- Filtro por StatusProjeto — preenchido dinamicamente após carga da API -->
+        <div class="ps-filter-chips" id="ps-status-chips">
+          <button type="button" class="ps-filter-chip active" data-status="">🗂 Todos</button>
+        </div>
       </div>
     </div>
 
-    <!-- Estado: erro -->
-    <div id="ps-error" style="display:none; position:absolute; inset:0; z-index:10; flex-direction:column; align-items:center; justify-content:center; padding:48px 20px; background:var(--bg);">
-      <div style="background:white; border:1px solid #fecaca; border-radius:16px; padding:28px 32px; box-shadow:var(--shadow-md); max-width:480px; width:100%; display:flex; flex-direction:column; gap:16px;">
-        <div style="display:flex; align-items:center; gap:12px;">
-          <div style="width:40px; height:40px; border-radius:10px; background:#fef2f2; display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0;">⚠️</div>
-          <div>
-            <div style="font-size:14px; font-weight:700; color:#dc2626; margin-bottom:2px;">Falha ao conectar</div>
-            <div style="font-size:12px; color:var(--text-muted);">Não foi possível acessar a API Goobee</div>
+    <!-- Área de conteúdo: loading / erro / vazio / lista -->
+    <div id="ps-content" style="display:none; flex:1; flex-direction:column;">
+
+      <!-- Loading -->
+      <div id="ps-loading" style="display:none; flex-direction:column; align-items:center; padding:32px 20px 40px;">
+        <div style="background:white; border:1px solid var(--border); border-radius:16px; padding:28px 36px; box-shadow:var(--shadow-md); max-width:380px; width:100%; display:flex; flex-direction:column; align-items:center; gap:18px;">
+          <div style="width:44px; height:44px; border-radius:12px; background:var(--gradient-primary-dark); display:flex; align-items:center; justify-content:center; font-size:20px;">📊</div>
+          <div style="text-align:center;">
+            <div style="font-size:14px; font-weight:700; color:var(--primary); margin-bottom:5px;">Carregando portfólio</div>
+            <div id="ps-loading-step" style="font-size:12px; color:var(--text-muted); min-height:16px;">Conectando...</div>
           </div>
+          <div style="width:100%; background:var(--bg); border-radius:999px; height:4px; overflow:hidden; border:1px solid var(--border);">
+            <div id="ps-loading-bar" style="height:100%; width:30%; background:var(--gradient-primary); border-radius:999px; animation:ps-loading-anim 1.4s ease-in-out infinite;"></div>
+          </div>
+          <div id="ps-loading-proxies" style="display:flex; gap:6px; flex-wrap:wrap; justify-content:center;"></div>
         </div>
-        <p id="ps-error-msg" style="font-size:13px; color:var(--text-secondary); margin:0; line-height:1.5;"></p>
-        <div style="display:flex; gap:8px; flex-wrap:wrap;">
-          <button type="button" class="ps-btn ps-btn-primary" id="ps-retry" style="flex:1; min-width:140px;">🔄 Tentar novamente</button>
-          <button type="button" class="ps-btn ps-btn-secondary" id="ps-use-excel-error" style="flex:1; min-width:140px;">📥 Usar planilha Excel</button>
+      </div>
+
+      <!-- Erro -->
+      <div id="ps-error" style="display:none; flex-direction:column; align-items:center; padding:24px 20px 40px;">
+        <div style="background:white; border:1px solid #fecaca; border-radius:16px; padding:24px 28px; box-shadow:var(--shadow-md); max-width:460px; width:100%; display:flex; flex-direction:column; gap:14px;">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <div style="width:38px; height:38px; border-radius:10px; background:#fef2f2; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0;">⚠️</div>
+            <div>
+              <div style="font-size:14px; font-weight:700; color:#dc2626; margin-bottom:1px;">Falha ao conectar</div>
+              <div style="font-size:11px; color:var(--text-muted);">Não foi possível acessar a API Goobee</div>
+            </div>
+          </div>
+          <p id="ps-error-msg" style="font-size:12px; color:var(--text-secondary); margin:0; line-height:1.5;"></p>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button type="button" class="ps-btn ps-btn-primary" id="ps-retry" style="flex:1; min-width:120px;">🔄 Tentar novamente</button>
+            <button type="button" class="ps-btn ps-btn-secondary" id="ps-use-excel-error" style="flex:1; min-width:120px;">📥 Usar planilha</button>
+          </div>
+          <details style="font-size:11px; color:var(--text-muted);">
+            <summary style="cursor:pointer;">Ver detalhes técnicos</summary>
+            <pre id="ps-error-stack" style="background:#fef2f2; color:#991b1b; padding:10px; border-radius:6px; font-size:10px; max-height:140px; overflow:auto; margin-top:8px; white-space:pre-wrap;"></pre>
+          </details>
         </div>
-        <details style="font-size:11px; color:var(--text-muted);">
-          <summary style="cursor:pointer; user-select:none;">Ver detalhes técnicos</summary>
-          <pre id="ps-error-stack" style="background:#fef2f2; color:#991b1b; padding:10px; border-radius:6px; font-size:10px; max-height:160px; overflow:auto; margin-top:8px; white-space:pre-wrap;"></pre>
-        </details>
       </div>
-    </div>
 
-    <!-- Estado: vazio -->
-    <div id="ps-empty" style="display:none; position:absolute; inset:0; z-index:10; flex-direction:column; align-items:center; justify-content:center; padding:64px 20px; background:var(--bg);">
-      <div style="background:white; border:1px solid var(--border); border-radius:16px; padding:28px 32px; box-shadow:var(--shadow-sm); max-width:380px; text-align:center; display:flex; flex-direction:column; gap:12px; align-items:center;">
-        <div style="font-size:36px;">🔭</div>
-        <div style="font-size:15px; font-weight:700; color:var(--primary);">Nenhum projeto encontrado</div>
-        <div style="font-size:12px; color:var(--text-muted);">Ajuste os filtros para ver mais resultados.</div>
+      <!-- Vazio -->
+      <div id="ps-empty" style="display:none; flex-direction:column; align-items:center; padding:24px 20px 40px;">
+        <div style="background:white; border:1px solid var(--border); border-radius:16px; padding:24px 28px; box-shadow:var(--shadow-sm); max-width:340px; text-align:center; display:flex; flex-direction:column; gap:10px; align-items:center;">
+          <div style="font-size:32px;">🔭</div>
+          <div style="font-size:14px; font-weight:700; color:var(--primary);">Nenhum projeto encontrado</div>
+          <div style="font-size:12px; color:var(--text-muted);">Ajuste os filtros para ver mais resultados.</div>
+        </div>
       </div>
-    </div>
 
-    <!-- Gantt + Cards (visíveis após carregar) -->
-    <div id="ps-content" style="display:none;">
+      <!-- Lista (gantt + cards) -->
+      <div id="ps-list-content">
       <!-- Gantt timeline -->
       <div class="ps-gantt-section">
         <!-- Filtros de período do Gantt -->
@@ -2179,9 +2197,10 @@
         </div>
         <div class="ps-list" id="ps-list"></div>
       </div>
-    </div>
+      </div><!-- /ps-list-content -->
+    </div><!-- /ps-content -->
 
-  </div>
+  </div><!-- /project-selector -->
 
   <!-- Overlay do relatório sobre o seletor -->
   <div id="ps-report-overlay" style="display:none; position:fixed; inset:0; z-index:4999; background:var(--bg); overflow-y:auto;">
@@ -2310,6 +2329,18 @@
           <div class="progress-wrapper">
             <div class="progress-label"><span>Progresso Geral do Projeto</span><span class="percentage" id="project-progress-percent">0%</span></div>
             <div class="progress-bar"><div class="progress-bar-inner" id="progress"></div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="section-title">
+            <span class="emoji">🔨</span>O que estamos fazendo
+            <span class="items-counter" id="andamento-counter"></span>
+          </div>
+          <div class="next-steps-container">
+            <table>
+              <thead><tr><th>História</th><th>Atividade</th><th>Data Prevista</th><th>Responsável</th><th>Status</th></tr></thead>
+              <tbody id="andamento-body"><tr><td colspan="5" style="text-align:center;color:var(--text-muted);">Aguardando dados...</td></tr></tbody>
+            </table>
           </div>
         </div>
       </div>
@@ -3798,18 +3829,46 @@
       });
     }
     function renderNextSteps(steps) {
-      const tbody = document.getElementById('next-steps-body');
-      const counter = document.getElementById('proximos-counter');
+      // Separar atividades em dois grupos:
+      // - "O que estamos fazendo" → Em Andamento + Em Homologação
+      // - "Próximos Passos" → apenas Backlog
+      const all = Array.isArray(steps) ? steps : [];
+      const emAndamento = all.filter(s => s && (s.status === 'Em Andamento' || s.status === 'Em Homologação'));
+      const backlog     = all.filter(s => s && s.status !== 'Em Andamento' && s.status !== 'Em Homologação');
+      
+      _renderActivityTable({
+        tbody: document.getElementById('andamento-body'),
+        counter: document.getElementById('andamento-counter'),
+        rows: emAndamento,
+        emptyMsg: 'Nenhuma atividade em andamento',
+        limit: 5
+      });
+      
+      _renderActivityTable({
+        tbody: document.getElementById('next-steps-body'),
+        counter: document.getElementById('proximos-counter'),
+        rows: backlog,
+        emptyMsg: 'Nenhum próximo passo definido',
+        limit: 5
+      });
+    }
+    
+    function _renderActivityTable(opts) {
+      const tbody = opts.tbody;
+      const counter = opts.counter;
       if (!tbody) return;
       
+      const rows = opts.rows || [];
+      const total = rows.length;
+      const limit = opts.limit || 5;
+      const visivel = Math.min(limit, total);
+      
       if (counter) {
-        const total = steps ? steps.length : 0;
-        const visivel = Math.min(5, total);
-        counter.textContent = total > 5 ? visivel + ' de ' + total : total + ' itens';
+        counter.textContent = total > limit ? visivel + ' de ' + total : total + ' itens';
       }
       
-      if (!steps || !steps.length) { 
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);">Nenhum próximo passo definido</td></tr>'; 
+      if (!total) { 
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);">' + (opts.emptyMsg || 'Nenhum item') + '</td></tr>'; 
         if (counter) counter.textContent = '0 itens';
         return; 
       }
@@ -3818,9 +3877,11 @@
       hoje.setHours(0, 0, 0, 0);
       
       tbody.innerHTML = '';
-      steps.forEach(s => {
+      rows.forEach(s => {
         const tr = document.createElement('tr');
-        const statusClass = s.status === 'Em Andamento' ? 'blue' : (s.status === 'Em Homologação' ? 'purple' : 'yellow');
+        const statusClass = s.status === 'Em Andamento' ? 'blue'
+                          : (s.status === 'Em Homologação' ? 'purple'
+                          : (s.status === 'Backlog' ? 'gray' : 'yellow'));
         
         // Verificar se está atrasado
         const dataItem = toDate(s.data);
@@ -4494,7 +4555,7 @@
           if (ganttHeaderMonths) ganttHeaderMonths.innerHTML = '';
           
           // 7) Limpar conteúdos que serão preenchidos via JS no auto-init
-          const elementsToReset = ['#next-steps-body', '#risk-list', '#marcos-body', '#gantt-print-body', '#proximos-counter', '#riscos-counter'];
+          const elementsToReset = ['#next-steps-body', '#andamento-body', '#risk-list', '#marcos-body', '#gantt-print-body', '#proximos-counter', '#andamento-counter', '#riscos-counter'];
           elementsToReset.forEach(sel => {
             const el = clone.querySelector(sel);
             if (el) el.innerHTML = '';
@@ -5460,17 +5521,26 @@
       }
 
       function showState(state) {
-        document.getElementById('ps-loading').style.display  = state === 'loading' ? 'flex' : 'none';
-        document.getElementById('ps-error').style.display    = state === 'error'   ? 'flex' : 'none';
-        document.getElementById('ps-empty').style.display    = state === 'empty'   ? 'flex' : 'none';
-        document.getElementById('ps-content').style.display  = state === 'list'    ? 'block': 'none';
-        // Garantir que toolbar e KPIs ficam visíveis durante loading
-        const toolbar = document.querySelector('.ps-toolbar');
-        const kpi = document.querySelector('.ps-kpi-strip');
-        if (toolbar) toolbar.style.visibility = state === 'loading' ? 'hidden' : 'visible';
-        if (kpi) kpi.style.visibility = state === 'loading' ? 'hidden' : 'visible';
+        // ps-content é sempre visível — controla os filhos
+        const content = document.getElementById('ps-content');
+        if (content) content.style.display = 'flex';
+
+        const loading   = document.getElementById('ps-loading');
+        const error     = document.getElementById('ps-error');
+        const empty     = document.getElementById('ps-empty');
+        const listContent = document.getElementById('ps-list-content');
+
+        if (loading)     loading.style.display     = state === 'loading' ? 'flex' : 'none';
+        if (error)       error.style.display       = state === 'error'   ? 'flex' : 'none';
+        if (empty)       empty.style.display       = state === 'empty'   ? 'flex' : 'none';
+        if (listContent) listContent.style.display = state === 'list'    ? 'block': 'none';
+
         // Resetar dots ao recarregar
-        if (state === 'loading') { Object.keys(_proxyDots).forEach(k => delete _proxyDots[k]); const c = document.getElementById('ps-loading-proxies'); if (c) c.innerHTML = ''; }
+        if (state === 'loading') {
+          Object.keys(_proxyDots).forEach(k => delete _proxyDots[k]);
+          const c = document.getElementById('ps-loading-proxies');
+          if (c) c.innerHTML = '';
+        }
       }
 
       function showError(err) {
