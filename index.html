@@ -4,17 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Status Report - Projeto</title>
-  <!--
-  ╔══════════════════════════════════════════════════════════════════╗
-  ║  CONFIGURAÇÃO DA CHAVE ANTHROPIC                                 ║
-  ║  ─────────────────────────────────────────────────────────────   ║
-  ║  1. Acesse https://console.anthropic.com                         ║
-  ║  2. Crie uma API Key                                             ║
-  ║  3. Substitua SUA_CHAVE_AQUI abaixo pela chave (sk-ant-...)      ║
-  ║  4. Salve e suba no GitHub — os projetos vão carregar!           ║
-  ╚══════════════════════════════════════════════════════════════════╝
-  -->
-  <meta name="anthropic-key" content="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">
   <style>
     /* === DESIGN SYSTEM EXECUTIVO === */
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
@@ -1753,8 +1742,8 @@
     .ps-kpi.active::after { transform:scaleX(1); }
     .ps-kpi.active .ps-kpi-val { color:var(--accent); }
     .ps-kpi-icon { font-size:17px; }
-    .ps-kpi-val { font-size:21px; font-weight:800; color:var(--primary); letter-spacing:-.03em; line-height:1.1; }
-    .ps-kpi-label { font-size:9px; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:.05em; }
+    .ps-kpi-val { font-size:26px; font-weight:800; color:var(--primary); letter-spacing:-.04em; line-height:1; }
+    .ps-kpi-label { font-size:9px; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:.06em; margin-top:2px; }
 
     /* Toolbar */
     .ps-toolbar { max-width:1280px; margin:0 auto; padding:14px 32px; display:flex; gap:10px; flex-wrap:wrap; align-items:center; flex-shrink:0; }
@@ -1807,16 +1796,16 @@
     .ps-gantt-header-months { display:flex; min-width:400px; position:relative; overflow:visible; }
     .ps-gantt-header-month { flex:1; min-width:48px; text-align:center; border-left:1px solid rgba(255,255,255,.1); font-size:9px; padding:0 2px; color:rgba(255,255,255,.85); }
     .ps-gantt-header-month:first-child { border-left:none; }
-    .ps-gantt-row { display:grid; grid-template-columns:260px 1fr; min-height:48px; border-top:1px solid var(--border); align-items:center; transition:background var(--tr-fast); }
+    .ps-gantt-row { display:grid; grid-template-columns:260px 1fr; min-height:52px; border-top:1px solid var(--border); align-items:center; transition:background var(--tr-fast); }
     .ps-gantt-row:first-child { border-top:none; }
     .ps-gantt-row:hover { background:var(--primary-50); }
     .ps-gantt-row-left { padding:10px 14px; border-right:1px solid var(--border); cursor:pointer; }
     .ps-gantt-row-right { padding:6px 10px; position:relative; min-width:400px; }
-    .ps-gantt-name { font-size:12px; font-weight:700; color:var(--text-main); margin-bottom:3px; display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden; }
+    .ps-gantt-name { font-size:12px; font-weight:700; color:var(--text-main); margin-bottom:4px; display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden; letter-spacing:-.1px; }
     .ps-gantt-meta { display:flex; align-items:center; gap:8px; }
     .ps-gantt-resp { font-size:10px; color:var(--text-muted); font-weight:500; }
-    .ps-gantt-lane { position:relative; width:100%; height:22px; background:var(--bg); border-radius:4px; overflow:visible; }
-    .ps-gantt-bar { position:absolute; height:18px; top:2px; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:9px; color:white; font-weight:700; padding:0 8px; box-shadow:var(--shadow-sm); cursor:pointer; overflow:hidden; transition:all var(--tr-fast); min-width:4px; }
+    .ps-gantt-lane { position:relative; width:100%; height:24px; background:var(--bg); border-radius:4px; overflow:visible; }
+    .ps-gantt-bar { position:absolute; height:20px; top:1px; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:9px; color:white; font-weight:700; padding:0 8px; box-shadow:var(--shadow-sm); cursor:pointer; overflow:hidden; transition:all var(--tr-fast); min-width:4px; }
     .ps-gantt-bar:hover { transform:scaleY(1.15); box-shadow:var(--shadow-md); z-index:5; }
     .ps-gantt-bar::before { content:''; position:absolute; inset:0; background:linear-gradient(180deg,rgba(255,255,255,.18) 0%,transparent 50%); pointer-events:none; }
     .ps-gantt-bar.b-concluido { background:linear-gradient(135deg,var(--green) 0%,#4ade80 100%); }
@@ -1831,37 +1820,15 @@
 
     /* Cards de projeto */
     .ps-cards-section { padding:0 32px 32px; max-width:1280px; margin:0 auto; }
-    .ps-cards-title { font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:.06em; margin-bottom:12px; display:flex; align-items:center; gap:8px; }
-    .ps-list { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:12px; }
+    .ps-cards-title { font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:.06em; margin-bottom:14px; display:flex; align-items:center; gap:8px; padding-bottom:10px; border-bottom:1px solid var(--border); }
+    .ps-list { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:14px; }
     .ps-card { background:white; border:1px solid var(--border); border-radius:12px; padding:16px; cursor:pointer; transition:all var(--tr-fast); position:relative; display:flex; flex-direction:column; gap:10px; text-align:left; font-family:inherit; }
     .ps-card:hover { border-color:var(--primary-200); box-shadow:var(--shadow-md); transform:translateY(-2px); }
     .ps-card-header { display:flex; align-items:flex-start; justify-content:space-between; gap:8px; }
     .ps-card-title { font-size:13px; font-weight:700; color:var(--text-main); line-height:1.3; letter-spacing:-.2px; flex:1; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
-    .ps-card-farol { width:8px; height:8px; border-radius:50%; flex-shrink:0; margin-top:4px; }
-    .ps-card-farol-green { background:var(--green); box-shadow:0 0 0 3px rgba(22,163,74,.18); }
-    .ps-card-farol-yellow { background:var(--yellow); box-shadow:0 0 0 3px rgba(217,119,6,.18); }
-    .ps-card-farol-red { background:var(--red); box-shadow:0 0 0 3px rgba(220,38,38,.18); }
     .ps-card-desc { font-size:11px; color:var(--text-muted); line-height:1.45; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
-    .ps-card-progress { display:flex; flex-direction:column; gap:4px; }
-    .ps-card-progress-row { display:flex; justify-content:space-between; align-items:baseline; }
-    .ps-card-prog-label { font-size:10px; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:.04em; }
-    .ps-card-prog-val { font-size:16px; font-weight:800; color:var(--primary); letter-spacing:-.02em; }
     .ps-card-bar { height:4px; background:var(--bg); border-radius:999px; overflow:hidden; }
     .ps-card-bar-fill { height:100%; background:linear-gradient(90deg,var(--primary) 0%,var(--primary-light) 100%); border-radius:999px; }
-    .ps-card-stats { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
-    .ps-card-stat { display:flex; align-items:center; gap:4px; font-size:10px; font-weight:600; color:var(--text-muted); }
-    .ps-card-stat strong { color:var(--primary); font-weight:800; font-size:12px; }
-    .ps-card-pills { display:flex; gap:5px; flex-wrap:wrap; }
-    .ps-card-pill { display:inline-flex; align-items:center; gap:3px; padding:2px 7px; font-size:9px; font-weight:700; border-radius:999px; border:1px solid; text-transform:uppercase; letter-spacing:.4px; }
-    .ps-card-pill-green { background:#f0fdf4; color:#15803d; border-color:#bbf7d0; }
-    .ps-card-pill-yellow { background:#fffbeb; color:#b45309; border-color:#fde68a; }
-    .ps-card-pill-red { background:#fef2f2; color:#dc2626; border-color:#fecaca; }
-    .ps-card-pill-blue { background:var(--primary-50); color:var(--primary); border-color:var(--primary-200); }
-    .ps-card-pill-gray { background:var(--bg); color:var(--text-muted); border-color:var(--border); }
-    .ps-card-footer { display:flex; align-items:center; gap:8px; padding-top:6px; border-top:1px solid var(--border); }
-    .ps-card-avatar { width:22px; height:22px; border-radius:50%; background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 100%); color:white; font-size:9px; font-weight:700; display:flex; align-items:center; justify-content:center; text-transform:uppercase; flex-shrink:0; }
-    .ps-card-resp-name { font-size:11px; font-weight:600; color:var(--text-secondary); flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-    .ps-card-cta { margin-left:auto; font-size:10px; font-weight:700; color:var(--primary); background:var(--primary-50); border:1px solid var(--primary-200); border-radius:6px; padding:3px 8px; white-space:nowrap; }
 
     /* Estados loading/error/empty */
     .ps-loading, .ps-error, .ps-empty { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:60px 20px; text-align:center; }
@@ -2003,7 +1970,6 @@
     .ps-card-desc { font-size:11px; color:var(--text-muted); line-height:1.45; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
     .ps-card-prog-wrap { display:flex; flex-direction:column; gap:5px; }
     .ps-card-prog-top { display:flex; justify-content:space-between; align-items:baseline; }
-    .ps-card-prog-label { font-size:10px; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:.04em; }
     .ps-card-prog-pct { font-size:18px; font-weight:800; color:var(--primary); letter-spacing:-.03em; }
     .ps-card-bar { height:5px; background:var(--bg); border-radius:999px; overflow:hidden; border:1px solid var(--border); }
     .ps-card-bar-fill { height:100%; background:linear-gradient(90deg,var(--primary) 0%,var(--primary-light) 100%); border-radius:999px; transition:width .6s ease; }
@@ -2013,18 +1979,6 @@
     .ps-card-bottom {
       border-top:1px solid var(--border); padding:10px 16px;
       display:flex; align-items:center; gap:8px; background:var(--bg);
-    }
-    .ps-card-avatar {
-      width:26px; height:26px; border-radius:50%; flex-shrink:0;
-      background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 100%);
-      color:white; font-size:10px; font-weight:700;
-      display:flex; align-items:center; justify-content:center;
-    }
-    .ps-card-resp-name { font-size:11px; font-weight:600; color:var(--text-secondary); flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-    .ps-card-cta {
-      font-size:10px; font-weight:700; color:white;
-      background:var(--primary); border-radius:6px; padding:4px 10px; white-space:nowrap;
-      transition:background var(--tr-fast);
     }
     .ps-card:hover .ps-card-cta { background:var(--primary-light); }
     /* Farol lateral */
@@ -2036,6 +1990,7 @@
     .ps-card-farol-strip.red    { background: var(--red); }
     .ps-card-farol-strip.gray   { background: var(--border); }
 
+    #ps-back-btn:hover { background:var(--primary-50) !important; border-color:var(--primary-200) !important; transform:translateX(-2px); }
     @keyframes ps-loading-anim {
       0%   { transform:translateX(-100%); }
       50%  { transform:translateX(200%); }
@@ -2204,7 +2159,7 @@
       <!-- Cards -->
       <div class="ps-cards-section">
         <div class="ps-cards-title">
-          <span>📋</span> Projetos · clique para gerar o Status Report
+          <span>📋</span> Projetos · clique em um card para gerar o Status Report
         </div>
         <div class="ps-list" id="ps-list"></div>
       </div>
@@ -2215,7 +2170,7 @@
   <!-- Overlay do relatório sobre o seletor -->
   <div id="ps-report-overlay" style="display:none; position:fixed; inset:0; z-index:4999; background:var(--bg); overflow-y:auto;">
     <div style="max-width:1280px; margin:0 auto; padding:12px 16px 0; display:flex; align-items:center; gap:10px; position:sticky; top:0; background:var(--bg); z-index:10; border-bottom:1px solid var(--border); box-shadow:var(--shadow-xs);">
-      <button type="button" id="ps-back-btn" style="display:flex; align-items:center; gap:6px; padding:7px 14px; background:white; border:1px solid var(--border); border-radius:8px; font-size:12px; font-weight:700; color:var(--primary); cursor:pointer; font-family:inherit; transition:all .15s;">
+      <button type="button" id="ps-back-btn" style="display:flex; align-items:center; gap:6px; padding:8px 16px; background:white; border:1px solid var(--border); border-radius:8px; font-size:12px; font-weight:700; color:var(--primary); cursor:pointer; font-family:inherit; transition:all .15s; box-shadow:0 1px 3px rgba(0,0,0,.06);">
         ← Voltar ao portfólio
       </button>
       <span id="ps-back-project-name" style="font-size:13px; font-weight:600; color:var(--text-secondary);"></span>
@@ -5350,20 +5305,7 @@
 
       // =======================================================================
       // CONFIGURAÇÃO DO PROXY
-      // Chave Anthropic lida do meta tag <meta name="anthropic-key" content="sk-ant-...">
       // =======================================================================
-      const ANTHROPIC_API_KEY = (function() {
-        const meta = document.querySelector('meta[name="anthropic-key"]');
-        if (meta && meta.content && meta.content.startsWith('sk-')) return meta.content;
-        return '';
-      })();
-
-      // Claude web_search não faz fetch autenticado para URLs externas.
-      // Solução: tentar proxies CORS em paralelo (mais rápido que em cascata).
-      async function fetchViaClaudeProxy(targetUrl, contextLabel) {
-        // Não usado mais — mantido para compatibilidade
-        throw new Error('Claude proxy desabilitado — usando CORS proxies direto');
-      }
 
       // Encode padrão — o Worker lê tudo após ?url= corretamente
       function _safeEncode(url) {
@@ -5529,13 +5471,6 @@
       function _normName(s) {
         if (!s) return '';
         return String(s).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/\s+/g,' ').trim();
-      }
-      function _pickField(obj, aliases) {
-        if (!obj) return null;
-        const lm = {};
-        Object.keys(obj).forEach(k => { lm[k.toLowerCase()] = k; });
-        for (const a of aliases) { const k = lm[a.toLowerCase()]; if (k != null && obj[k] != null && obj[k] !== '') return obj[k]; }
-        return null;
       }
       function _parsePtDate(s) {
         if (!s || typeof s !== 'string') return null;
@@ -6192,7 +6127,7 @@
 
           if (cachedItens && cachedProjetos && !forceRefresh) {
             console.log('[PS] Cache hit — carregando do localStorage');
-            updateLoadingMsg('Carregando do cache...');
+            updateLoadingMsg('⚡ Carregando do cache local...');
             allItems        = cachedItens;
             projectsApiList = cachedProjetos;
             buildProjectsExtraByName();
@@ -6311,8 +6246,6 @@
 
         document.getElementById('project-meta-modal').classList.add('show');
       }
-
-      function _normalizeApiStatus2(v) { return _normalizeApiStatus(v); }
 
       function closeMetaModal() {
         document.getElementById('project-meta-modal').classList.remove('show');
