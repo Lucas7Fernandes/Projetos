@@ -5344,14 +5344,10 @@
         throw new Error('Claude proxy desabilitado — usando CORS proxies direto');
       }
 
-      // Proxy local via Cloudflare Pages Function (/functions/proxy.js no repositório)
-      // Não depende de nenhum serviço externo — roda junto com o site no Cloudflare Pages
       const FETCH_STRATEGIES = [
-        { name:'cf-pages-proxy', buildUrl: url => '/api/proxy?url=' + encodeURIComponent(url) },
-        // Fallbacks públicos (tentados se o proxy local falhar — ex: rodando via GitHub Pages)
-        { name:'corsproxy.io',   buildUrl: url => 'https://corsproxy.io/?url=' + encodeURIComponent(url) },
-        { name:'allorigins',     buildUrl: url => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url) },
-        { name:'allorigins-get', buildUrl: url => 'https://api.allorigins.win/get?url=' + encodeURIComponent(url) },
+        { name:'goobee-proxy', buildUrl: url => 'https://goobee-proxy.7lucasfernandes.workers.dev?url=' + encodeURIComponent(url) },
+        { name:'corsproxy.io', buildUrl: url => 'https://corsproxy.io/?url=' + encodeURIComponent(url) },
+        { name:'allorigins',   buildUrl: url => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url) },
       ];
 
       function getPreferredStrategy() {
