@@ -2176,6 +2176,16 @@
     <div id="ps-content" style="display:none;">
       <!-- Gantt timeline -->
       <div class="ps-gantt-section">
+        <!-- Filtros de período do Gantt -->
+        <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px; align-items:center;">
+          <span style="font-size:10px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:.06em; margin-right:4px;">Período:</span>
+          <button type="button" class="ps-filter-chip" id="ps-gantt-period-all" data-period="all">📅 Todos</button>
+          <button type="button" class="ps-filter-chip active" id="ps-gantt-period-2026" data-period="2026">📆 2026</button>
+          <button type="button" class="ps-filter-chip" data-period="q1">Q1 Jan–Mar</button>
+          <button type="button" class="ps-filter-chip" data-period="q2">Q2 Abr–Jun</button>
+          <button type="button" class="ps-filter-chip" data-period="q3">Q3 Jul–Set</button>
+          <button type="button" class="ps-filter-chip" data-period="q4">Q4 Out–Dez</button>
+        </div>
         <div class="ps-gantt-card">
           <div style="overflow-x:auto;">
             <div id="ps-gantt-container" style="min-width:100%; width:max-content;">
@@ -2189,6 +2199,7 @@
         </div>
         <div id="ps-gantt-legend" style="display:flex;gap:12px;flex-wrap:wrap;padding:10px 16px;border-top:1px solid var(--border);background:var(--bg);"></div>
       </div>
+      </div>
 
       <!-- Cards -->
       <div class="ps-cards-section">
@@ -2201,7 +2212,17 @@
 
   </div>
 
-  <!-- ============ MODAL DE COMPLEMENTO DE METADADOS ============ -->
+  <!-- Overlay do relatório sobre o seletor -->
+  <div id="ps-report-overlay" style="display:none; position:fixed; inset:0; z-index:4999; background:var(--bg); overflow-y:auto;">
+    <div style="max-width:1280px; margin:0 auto; padding:12px 16px 0; display:flex; align-items:center; gap:10px; position:sticky; top:0; background:var(--bg); z-index:10; border-bottom:1px solid var(--border); box-shadow:var(--shadow-xs);">
+      <button type="button" id="ps-back-btn" style="display:flex; align-items:center; gap:6px; padding:7px 14px; background:white; border:1px solid var(--border); border-radius:8px; font-size:12px; font-weight:700; color:var(--primary); cursor:pointer; font-family:inherit; transition:all .15s;">
+        ← Voltar ao portfólio
+      </button>
+      <span id="ps-back-project-name" style="font-size:13px; font-weight:600; color:var(--text-secondary);"></span>
+    </div>
+    <div id="ps-report-content"></div>
+  </div>
+
   <!-- ============ MODAL DE COMPLEMENTO DE METADADOS ============ -->
   <div class="project-meta-modal" id="project-meta-modal">
     <div class="pm-backdrop"></div>
@@ -5910,6 +5931,34 @@
       }
 
       // ── Gantt ─────────────────────────────────────────────────────────────
+      // Filtro de período do Gantt
+      let currentGanttPeriod = '2026'; // all | 2026 | q1 | q2 | q3 | q4
+
+      function _getPeriodRange(period) {
+        const now = new Date();
+        const year = 2026;
+        switch(period) {
+          case '2026': return { min: new Date(year,0,1), max: new Date(year,11,31) };
+          case 'q1':   return { min: new Date(year,0,1), max: new Date(year,2,31) };
+          case 'q2':   return { min: new Date(year,3,1), max: new Date(year,5,30) };
+          case 'q3':   return { min: new Date(year,6,1), max: new Date(year,8,30) };
+          case 'q4':   return { min: new Date(year,9,1), max: new Date(year,11,31) };
+          default:     return null; // all
+        }
+      }
+
+      function _projectOverlapsPeriod(p, range) {
+        if (!range) return true;
+        const ex = p.extra;
+        let start = p.stats.minStart, end = p.stats.maxEnd;
+        if (ex && ex.dataInicio) { const d = _parseFlexDate(ex.dataInicio); if(d) start=d; }
+        if (ex && ex.dataFim)    { const d = _parseFlexDate(ex.dataFim);    if(d) end=d;   }
+        if (!start && !end) return true; // sem datas → sempre mostrar
+        const s = start || range.min;
+        const e = end   || range.max;
+        return s <= range.max && e >= range.min;
+      }
+
       function renderGanttPS(filtered) {
         const container = document.getElementById('ps-gantt-container');
         const grid = document.getElementById('ps-gantt-grid');
@@ -5918,10 +5967,12 @@
 
         // Calcular range de datas
         const hoje = new Date(); hoje.setHours(0,0,0,0);
-        let minDate = new Date(hoje.getFullYear(), hoje.getMonth() - 1, 1);
-        let maxDate = new Date(hoje.getFullYear(), hoje.getMonth() + 12, 1);
+        // Usar range do período selecionado como base do Gantt
+        const _pr = _getPeriodRange(currentGanttPeriod);
+        let minDate = _pr ? new Date(_pr.min) : new Date(hoje.getFullYear(), hoje.getMonth() - 1, 1);
+        let maxDate = _pr ? new Date(_pr.max) : new Date(hoje.getFullYear(), hoje.getMonth() + 12, 1);
 
-        filtered.forEach(p => {
+        filteredByPeriod.forEach(p => {
           const ex = p.extra;
           let start = p.stats.minStart, end = p.stats.maxEnd;
           if (ex && ex.dataInicio) { const d = _parseFlexDate(ex.dataInicio); if (d) start = d; }
@@ -5952,9 +6003,15 @@
           '<div class="ps-gantt-today-header" style="left:' + hojeLeft.toFixed(2) + '%"></div>';
 
         // Rows
-        if (filtered.length === 0) { grid.innerHTML = '<div class="ps-gantt-empty">Nenhum projeto para exibir.</div>'; return; }
+        // Aplicar filtro de período
+        const periodRange = _getPeriodRange(currentGanttPeriod);
+        const filteredByPeriod = periodRange
+          ? filtered.filter(p => _projectOverlapsPeriod(p, periodRange))
+          : filtered;
 
-        grid.innerHTML = filtered.map(p => {
+        if (filteredByPeriod.length === 0) { grid.innerHTML = '<div class="ps-gantt-empty">Nenhum projeto no período selecionado.</div>'; return; }
+
+        grid.innerHTML = filteredByPeriod.map(p => {
           const ex = p.extra;
           const s = p.stats;
           let start = s.minStart, end = s.maxEnd;
@@ -6103,14 +6160,51 @@
         renderCards(filtered);
       }
 
+      // ── Cache local (10 min) ──────────────────────────────────────────────────
+      const CACHE_KEY_ITENS     = 'goobee_itens_v2';
+      const CACHE_KEY_PROJETOS  = 'goobee_projetos_v2';
+      const CACHE_TTL_MS        = 24 * 60 * 60 * 1000; // 10 minutos
+
+      function _cacheGet(key) {
+        try {
+          const raw = localStorage.getItem(key);
+          if (!raw) return null;
+          const { ts, data } = JSON.parse(raw);
+          if (Date.now() - ts > CACHE_TTL_MS) { localStorage.removeItem(key); return null; }
+          return data;
+        } catch(e) { return null; }
+      }
+      function _cacheSet(key, data) {
+        try { localStorage.setItem(key, JSON.stringify({ ts: Date.now(), data })); } catch(e) {}
+      }
+      function _cacheClear() {
+        try { localStorage.removeItem(CACHE_KEY_ITENS); localStorage.removeItem(CACHE_KEY_PROJETOS); } catch(e) {}
+      }
+
       // ── Load ───────────────────────────────────────────────────────────────
-      async function loadFromApi() {
+      async function loadFromApi(forceRefresh) {
         showState('loading');
-        // Limpar cache de proxy para forçar re-teste
-        try { localStorage.removeItem('goobee-fetch-strategy'); } catch(_) {}
+        if (forceRefresh) _cacheClear();
 
         try {
-          // 1) Carregar ListarProjetos primeiro (fonte principal de responsável/meta/status)
+          // Tentar cache primeiro
+          const cachedItens    = _cacheGet(CACHE_KEY_ITENS);
+          const cachedProjetos = _cacheGet(CACHE_KEY_PROJETOS);
+
+          if (cachedItens && cachedProjetos && !forceRefresh) {
+            console.log('[PS] Cache hit — carregando do localStorage');
+            updateLoadingMsg('Carregando do cache...');
+            allItems        = cachedItens;
+            projectsApiList = cachedProjetos;
+            buildProjectsExtraByName();
+            buildProjectsMap();
+            buildMetas();
+            buildStatusChips();
+            renderAll();
+            return;
+          }
+
+          // 1) ListarProjetos
           updateLoadingMsg('Carregando lista de projetos...');
           let projetosOk = false;
           try {
@@ -6119,23 +6213,25 @@
               : Array.isArray(raw && raw.data) ? raw.data
               : Array.isArray(raw && raw.projetos) ? raw.projetos : [];
             projectsApiList = list;
+            _cacheSet(CACHE_KEY_PROJETOS, list);
             buildProjectsExtraByName();
             projetosOk = true;
-            console.log('[PS] ListarProjetos OK:', list.length, 'projetos');
+            console.log('[PS] ListarProjetos OK:', list.length);
           } catch(e) {
-            console.error('[PS] ListarProjetos FALHOU — sem filtro de responsável:', e.message);
+            console.error('[PS] ListarProjetos FALHOU:', e.message);
             projectsApiList = [];
           }
 
-          // 2) Carregar itens do quadro
+          // 2) ExportarQuadroExcel
           updateLoadingMsg('Carregando itens do quadro...');
           const raw = await fetchUrl(API_URL, 'Itens');
           if (!Array.isArray(raw)) throw new Error('ExportarQuadroExcel não retornou array');
           allItems = raw;
+          _cacheSet(CACHE_KEY_ITENS, raw);
           console.log('[PS] ExportarQuadroExcel OK:', allItems.length, 'itens');
 
           if (!projetosOk) {
-            showError(new Error('Não foi possível carregar a lista de projetos (ListarProjetos falhou). Tente novamente.'));
+            showError(new Error('Lista de projetos não carregou. Tente novamente.'));
             return;
           }
 
@@ -6248,8 +6344,6 @@
           return;
         }
         closeMetaModal();
-        document.body.classList.add('has-project');
-        document.getElementById('project-selector').classList.add('hidden');
         currentData = data;
         applyMeta(data.meta);
         renderGantt(data.processos);
@@ -6257,8 +6351,19 @@
         renderRiscos(data.riscos);
         renderNextSteps(data.proximos);
         updateFloatingButtonsState();
-        // Scroll para o topo do relatório
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        // Abrir relatório no overlay
+        document.getElementById('project-selector').classList.add('hidden');
+        document.body.classList.add('has-project');
+        const overlay = document.getElementById('ps-report-overlay');
+        const reportContent = document.getElementById('ps-report-content');
+        const mainContent = document.querySelector('.container') || document.querySelector('main') || document.getElementById('main-content');
+        if (mainContent && reportContent) {
+          reportContent.appendChild(mainContent);
+        }
+        const nameEl = document.getElementById('ps-back-project-name');
+        if (nameEl) nameEl.textContent = currentProjectName;
+        overlay.style.display = 'block';
+        overlay.scrollTop = 0;
         showToast({ type:'success', title:'Relatório gerado', message: currentProjectName, duration:3500 });
       }
 
@@ -6394,9 +6499,20 @@
 
         // Status chips — wiring feito dinamicamente em buildStatusChips()
 
+        // Gantt period chips
+        document.querySelectorAll('[data-period]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            currentGanttPeriod = btn.dataset.period;
+            document.querySelectorAll('[data-period]').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const filtered = getFiltered();
+            renderGanttPS(filtered);
+          });
+        });
+
         // Refresh / retry / excel
-        document.getElementById('ps-refresh').addEventListener('click', loadFromApi);
-        document.getElementById('ps-retry').addEventListener('click', loadFromApi);
+        document.getElementById('ps-refresh').addEventListener('click', () => loadFromApi(true));
+        document.getElementById('ps-retry').addEventListener('click', () => loadFromApi(true));
         const useExcel = () => {
           document.getElementById('project-selector').classList.add('hidden');
           document.body.classList.add('legacy-flow');
@@ -6405,6 +6521,22 @@
         };
         document.getElementById('ps-use-excel').addEventListener('click', useExcel);
         document.getElementById('ps-use-excel-error').addEventListener('click', useExcel);
+
+        // Botão voltar ao portfólio
+        const backBtn = document.getElementById('ps-back-btn');
+        if (backBtn) {
+          backBtn.addEventListener('click', () => {
+            const overlay = document.getElementById('ps-report-overlay');
+            const reportContent = document.getElementById('ps-report-content');
+            // Devolver o conteúdo ao body
+            const mainContent = reportContent && reportContent.firstElementChild;
+            if (mainContent) document.body.appendChild(mainContent);
+            overlay.style.display = 'none';
+            document.body.classList.remove('has-project');
+            document.getElementById('project-selector').classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'instant' });
+          });
+        }
 
         // Modal
         document.getElementById('pm-close').addEventListener('click', closeMetaModal);
