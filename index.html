@@ -5344,26 +5344,9 @@
         throw new Error('Claude proxy desabilitado — usando CORS proxies direto');
       }
 
-      // Encode seguro para passar URL como parâmetro para o proxy
-      // Estratégia: decodificar tokens %xx já existentes, depois encodar tudo
+      // Encode padrão — o Worker lê tudo após ?url= corretamente
       function _safeEncode(url) {
-        // Separar o base da query string para não encodar & e = da query
-        const qIdx = url.indexOf('?');
-        if (qIdx === -1) return encodeURIComponent(url);
-        const base = url.substring(0, qIdx);
-        const query = url.substring(qIdx + 1);
-        // Encodar cada valor de parâmetro individualmente
-        const encodedQuery = query.split('&').map(part => {
-          const eqIdx = part.indexOf('=');
-          if (eqIdx === -1) return encodeURIComponent(part);
-          const key = part.substring(0, eqIdx);
-          const val = part.substring(eqIdx + 1);
-          // Decodificar primeiro (para não double-encode) depois re-encodar
-          let decodedVal;
-          try { decodedVal = decodeURIComponent(val); } catch(e) { decodedVal = val; }
-          return encodeURIComponent(key) + '=' + encodeURIComponent(decodedVal);
-        }).join('&');
-        return encodeURIComponent(base) + '%3F' + encodedQuery;
+        return encodeURIComponent(url);
       }
 
       const FETCH_STRATEGIES = [
