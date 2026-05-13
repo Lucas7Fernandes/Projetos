@@ -5965,9 +5965,16 @@
         const monthsEl = document.getElementById('ps-gantt-months');
         if (!grid || !monthsEl) return;
 
+        // Aplicar filtro de período ANTES de qualquer uso de filteredByPeriod
+        const periodRange = _getPeriodRange(currentGanttPeriod);
+        const filteredByPeriod = periodRange
+          ? filtered.filter(p => _projectOverlapsPeriod(p, periodRange))
+          : filtered;
+
+        if (filteredByPeriod.length === 0) { grid.innerHTML = '<div class="ps-gantt-empty">Nenhum projeto no período selecionado.</div>'; return; }
+
         // Calcular range de datas
         const hoje = new Date(); hoje.setHours(0,0,0,0);
-        // Usar range do período selecionado como base do Gantt
         const _pr = _getPeriodRange(currentGanttPeriod);
         let minDate = _pr ? new Date(_pr.min) : new Date(hoje.getFullYear(), hoje.getMonth() - 1, 1);
         let maxDate = _pr ? new Date(_pr.max) : new Date(hoje.getFullYear(), hoje.getMonth() + 12, 1);
@@ -5977,11 +5984,11 @@
           let start = p.stats.minStart, end = p.stats.maxEnd;
           if (ex && ex.dataInicio) { const d = _parseFlexDate(ex.dataInicio); if (d) start = d; }
           if (ex && ex.dataFim)    { const d = _parseFlexDate(ex.dataFim);    if (d) end = d;   }
-          if (start && start < minDate) minDate = new Date(start.getFullYear(), start.getMonth(), 1);
-          if (end   && end   > maxDate) maxDate = new Date(end.getFullYear(), end.getMonth() + 1, 1);
+          if (!_pr) {
+            if (start && start < minDate) minDate = new Date(start.getFullYear(), start.getMonth(), 1);
+            if (end   && end   > maxDate) maxDate = new Date(end.getFullYear(), end.getMonth() + 1, 1);
+          }
         });
-
-        // Gerar meses
         const months = [];
         let cur = new Date(minDate.getFullYear(), minDate.getMonth(), 1);
         while (cur <= maxDate) {
@@ -6003,14 +6010,6 @@
           '<div class="ps-gantt-today-header" style="left:' + hojeLeft.toFixed(2) + '%"></div>';
 
         // Rows
-        // Aplicar filtro de período
-        const periodRange = _getPeriodRange(currentGanttPeriod);
-        const filteredByPeriod = periodRange
-          ? filtered.filter(p => _projectOverlapsPeriod(p, periodRange))
-          : filtered;
-
-        if (filteredByPeriod.length === 0) { grid.innerHTML = '<div class="ps-gantt-empty">Nenhum projeto no período selecionado.</div>'; return; }
-
         grid.innerHTML = filteredByPeriod.map(p => {
           const ex = p.extra;
           const s = p.stats;
@@ -6163,7 +6162,7 @@
       // ── Cache local (10 min) ──────────────────────────────────────────────────
       const CACHE_KEY_ITENS     = 'goobee_itens_v2';
       const CACHE_KEY_PROJETOS  = 'goobee_projetos_v2';
-      const CACHE_TTL_MS        = 24 * 60 * 60 * 1000; // 10 minutos
+      const CACHE_TTL_MS        = 10 * 60 * 1000; // 10 minutos
 
       function _cacheGet(key) {
         try {
