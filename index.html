@@ -1733,60 +1733,69 @@
     .ps-hero-btn { background:rgba(255,255,255,.12); backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,.18); border-radius:8px; padding:8px 14px; color:rgba(255,255,255,.9); font-size:12px; font-weight:600; cursor:pointer; font-family:inherit; transition:all var(--tr-fast); }
     .ps-hero-btn:hover { background:rgba(255,255,255,.2); color:#fff; }
 
-    /* KPI strip */
+    /* ── KPI strip ── */
     .ps-kpi-strip { background:white; border-bottom:1px solid var(--border); flex-shrink:0; }
-    .ps-kpi-strip-inner { max-width:1280px; margin:0 auto; padding:0 32px; display:flex; gap:0; align-items:stretch; overflow-x:auto; }
-    .ps-kpi { padding:12px 24px 12px 0; margin-right:24px; border-right:1px solid var(--border); display:flex; align-items:center; gap:10px; cursor:pointer; transition:all var(--tr-fast); position:relative; white-space:nowrap; }
+    .ps-kpi-strip-inner { max-width:1280px; margin:0 auto; padding:0 32px; display:flex; overflow-x:auto; }
+    .ps-kpi {
+      padding:18px 32px 18px 0; margin-right:32px;
+      border-right:1px solid var(--border);
+      display:flex; align-items:center; gap:14px;
+      cursor:pointer; transition:all var(--tr-fast);
+      position:relative; white-space:nowrap;
+    }
     .ps-kpi:last-child { border-right:none; margin-right:0; }
-    .ps-kpi::after { content:''; position:absolute; bottom:0; left:0; right:0; height:2px; background:var(--gradient-accent); transform:scaleX(0); transition:transform var(--tr-fast); border-radius:2px 2px 0 0; }
+    .ps-kpi::after { content:''; position:absolute; bottom:0; left:0; right:0; height:3px; background:var(--gradient-accent); transform:scaleX(0); transition:transform .2s ease; border-radius:3px 3px 0 0; }
     .ps-kpi.active::after { transform:scaleX(1); }
     .ps-kpi.active .ps-kpi-val { color:var(--accent); }
-    .ps-kpi-icon { font-size:17px; }
-    .ps-kpi-val { font-size:26px; font-weight:800; color:var(--primary); letter-spacing:-.04em; line-height:1; }
-    .ps-kpi-label { font-size:9px; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:.06em; margin-top:2px; }
+    .ps-kpi-icon-wrap { width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
+    .ps-kpi-icon-wrap.total     { background:#eef2ff; }
+    .ps-kpi-icon-wrap.andamento { background:#eff6ff; }
+    .ps-kpi-icon-wrap.concluido { background:#f0fdf4; }
+    .ps-kpi-icon-wrap.bloqueado { background:#fffbeb; }
+    .ps-kpi-val { font-size:30px; font-weight:800; color:var(--primary); letter-spacing:-.05em; line-height:1; }
+    .ps-kpi-label { font-size:10px; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:.06em; margin-top:3px; }
 
-    /* Toolbar */
-    .ps-toolbar { max-width:1280px; margin:0 auto; padding:14px 32px; display:flex; gap:10px; flex-wrap:wrap; align-items:center; flex-shrink:0; }
-    .ps-search-wrap { flex:1 1 240px; position:relative; display:flex; align-items:center; }
+    /* ── Toolbar / filtros ── */
+    .ps-toolbar {
+      max-width:1280px; margin:0 auto;
+      padding:16px 32px 0;
+      display:flex; flex-direction:column; gap:12px;
+      flex-shrink:0;
+    }
+    .ps-toolbar-row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+    .ps-toolbar-divider { height:1px; background:var(--border); margin:0 0 4px; }
+    .ps-toolbar-label { font-size:10px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:.08em; white-space:nowrap; }
+    .ps-search-wrap { flex:1 1 280px; max-width:380px; position:relative; display:flex; align-items:center; }
     .ps-search-icon { position:absolute; left:12px; pointer-events:none; color:var(--text-muted); font-size:14px; }
-    .ps-search-input { width:100%; padding:10px 36px; border:1px solid var(--border); border-radius:8px; font-size:13px; font-family:inherit; background:white; color:var(--text-main); transition:all var(--tr-fast); box-sizing:border-box; }
-    .ps-search-input:focus { outline:none; border-color:var(--primary); box-shadow:0 0 0 3px rgba(26,31,78,.08); }
-    .ps-clear-btn { position:absolute; right:8px; width:24px; height:24px; background:var(--border); border:none; border-radius:50%; color:var(--text-muted); cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center; }
-    .ps-clear-btn:hover { background:var(--text-muted); color:white; }
+    .ps-search-input {
+      width:100%; padding:9px 36px;
+      border:1.5px solid var(--border); border-radius:10px;
+      font-size:13px; font-family:inherit;
+      background:white; color:var(--text-main);
+      transition:all var(--tr-fast); box-sizing:border-box;
+    }
+    .ps-search-input:focus { outline:none; border-color:var(--primary); box-shadow:0 0 0 3px rgba(26,31,78,.07); }
+    .ps-clear-btn { position:absolute; right:8px; width:22px; height:22px; background:var(--border); border:none; border-radius:50%; color:var(--text-muted); cursor:pointer; font-size:14px; display:flex; align-items:center; justify-content:center; transition:all var(--tr-fast); }
+    .ps-clear-btn:hover { background:#94a3b8; color:white; }
 
-    /* Filter chips */
-    .ps-filter-chips { display:flex; gap:4px; flex-wrap:wrap; align-items:center; }
-    .ps-filter-chip { display:inline-flex; align-items:center; gap:6px; padding:6px 12px; border:1px solid var(--border); border-radius:999px; background:white; font-size:11px; font-weight:600; color:var(--text-muted); cursor:pointer; font-family:inherit; transition:all var(--tr-fast); }
-    .ps-filter-chip:hover { border-color:var(--primary-200); color:var(--primary); background:var(--primary-50); }
-    .ps-filter-chip.active { background:var(--primary); color:white; border-color:var(--primary); box-shadow:var(--shadow-sm); }
-    .ps-filter-chip .ps-chip-count { font-size:9px; font-weight:700; background:rgba(255,255,255,.25); padding:1px 5px; border-radius:999px; }
-    .ps-filter-chip:not(.active) .ps-chip-count { background:var(--border); color:var(--text-muted); }
+    /* chips */
+    .ps-filter-chips { display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
+    .ps-filter-chip {
+      display:inline-flex; align-items:center; gap:5px;
+      padding:5px 12px;
+      border:1.5px solid var(--border); border-radius:999px;
+      background:white; font-size:11px; font-weight:600;
+      color:var(--text-secondary); cursor:pointer; font-family:inherit;
+      transition:all var(--tr-fast); white-space:nowrap;
+    }
+    .ps-filter-chip:hover { border-color:var(--primary); color:var(--primary); background:var(--primary-50); }
+    .ps-filter-chip.active { background:var(--primary); color:white; border-color:var(--primary); box-shadow:0 2px 8px rgba(26,31,78,.25); }
+    .ps-filter-chip .ps-chip-count { font-size:9px; font-weight:800; background:rgba(255,255,255,.3); padding:1px 6px; border-radius:999px; min-width:16px; text-align:center; }
+    .ps-filter-chip:not(.active) .ps-chip-count { background:#e2e8f0; color:#64748b; }
 
-    /* Responsável dropdown */
-    .ps-resp-wrap { position:relative; }
-    .ps-resp-toggle { display:flex; align-items:center; gap:8px; padding:10px 14px; background:white; border:1px solid var(--border); border-radius:8px; font-size:13px; font-weight:600; color:var(--text-main); cursor:pointer; font-family:inherit; transition:all var(--tr-fast); }
-    .ps-resp-toggle:hover { background:var(--primary-50); border-color:var(--primary-200); }
-    .ps-resp-toggle.has-selection { border-color:var(--primary); background:var(--primary-50); color:var(--primary); }
-    .ps-resp-count { background:var(--primary); color:white; font-size:10px; font-weight:700; padding:2px 7px; border-radius:999px; }
-    .ps-resp-arrow { font-size:10px; color:var(--text-muted); }
-    .ps-resp-dropdown { position:absolute; top:calc(100% + 6px); right:0; width:300px; background:white; border:1px solid var(--border); border-radius:10px; box-shadow:var(--shadow-lg); z-index:10; display:none; max-height:380px; overflow:hidden; flex-direction:column; }
-    .ps-resp-dropdown.show { display:flex; }
-    .ps-resp-search-wrap { padding:10px; border-bottom:1px solid var(--border); }
-    .ps-resp-search { width:100%; padding:8px 10px; border:1px solid var(--border); border-radius:6px; font-size:12px; font-family:inherit; box-sizing:border-box; }
-    .ps-resp-search:focus { outline:none; border-color:var(--primary); }
-    .ps-resp-actions { display:flex; gap:6px; padding:8px 10px; border-bottom:1px solid var(--border); }
-    .ps-resp-action { flex:1; padding:6px 8px; background:var(--bg); border:1px solid var(--border); border-radius:6px; font-size:11px; font-weight:600; color:var(--text-secondary); cursor:pointer; font-family:inherit; }
-    .ps-resp-action:hover { background:var(--primary-50); color:var(--primary); }
-    .ps-resp-list { flex:1; overflow-y:auto; padding:6px; }
-    .ps-resp-item { display:flex; align-items:center; gap:8px; padding:8px 10px; border-radius:6px; cursor:pointer; font-size:12px; color:var(--text-main); transition:background var(--tr-fast); }
-    .ps-resp-item:hover { background:var(--primary-50); }
-    .ps-resp-item input[type="checkbox"] { width:14px; height:14px; accent-color:var(--primary); cursor:pointer; margin:0; }
-    .ps-resp-item-name { flex:1; }
-    .ps-resp-item-count { font-size:10px; color:var(--text-muted); background:var(--bg); padding:2px 6px; border-radius:4px; }
+    .ps-counter { font-size:12px; font-weight:600; color:var(--text-muted); white-space:nowrap; margin-left:auto; }
 
-    .ps-counter { font-size:12px; font-weight:600; color:var(--text-muted); padding:8px 12px; background:var(--primary-50); border-radius:8px; white-space:nowrap; margin-left:auto; }
-
-    /* Body / content area */
+    /* Body */
     .project-selector-body { flex:1; overflow:hidden; }
 
     /* === GANTT DA TELA INICIAL === */
@@ -1818,10 +1827,10 @@
     .ps-gantt-today-label { position:absolute; top:-18px; left:50%; transform:translateX(-50%); background:var(--accent); color:white; font-size:8px; font-weight:700; padding:2px 5px; border-radius:3px; white-space:nowrap; }
     .ps-gantt-empty { text-align:center; padding:24px; color:var(--text-muted); font-size:13px; }
 
-    /* Cards de projeto */
-    .ps-cards-section { padding:0 32px 32px; max-width:1280px; margin:0 auto; }
-    .ps-cards-title { font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:.06em; margin-bottom:14px; display:flex; align-items:center; gap:8px; padding-bottom:10px; border-bottom:1px solid var(--border); }
-    .ps-list { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:14px; }
+    /* ── Cards de projeto ── */
+    .ps-cards-section { padding:0 32px 40px; max-width:1280px; margin:0 auto; }
+    .ps-cards-title { font-size:11px; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:.1em; margin-bottom:16px; display:flex; align-items:center; gap:8px; }
+    .ps-list { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:16px; }
     .ps-card { background:white; border:1px solid var(--border); border-radius:12px; padding:16px; cursor:pointer; transition:all var(--tr-fast); position:relative; display:flex; flex-direction:column; gap:10px; text-align:left; font-family:inherit; }
     .ps-card:hover { border-color:var(--primary-200); box-shadow:var(--shadow-md); transform:translateY(-2px); }
     .ps-card-header { display:flex; align-items:flex-start; justify-content:space-between; gap:8px; }
@@ -1930,19 +1939,19 @@
     /* Legenda do Gantt */
     .ps-gantt-leg {
       display:inline-flex; align-items:center; gap:6px;
-      font-size:11px; color:var(--text-secondary); font-weight:600;
+      font-size:11px; color:#475569; font-weight:600;
     }
     .ps-gantt-leg::before {
-      content:''; display:inline-block; width:20px; height:8px;
-      border-radius:3px; flex-shrink:0;
+      content:''; display:inline-block; width:24px; height:8px;
+      border-radius:4px; flex-shrink:0;
     }
-    .ps-gantt-leg.b-andamento::before   { background: var(--gradient-primary); }
-    .ps-gantt-leg.b-concluido::before   { background: var(--green); }
-    .ps-gantt-leg.b-backlog::before     { background: var(--yellow); }
-    .ps-gantt-leg.b-aguardando::before  { background: #94a3b8; }
+    .ps-gantt-leg.b-andamento::before  { background:#1e40af; }
+    .ps-gantt-leg.b-concluido::before  { background:#16a34a; }
+    .ps-gantt-leg.b-backlog::before    { background:#d97706; }
+    .ps-gantt-leg.b-aguardando::before { background:#64748b; }
     .ps-gantt-leg-today {
       display:inline-flex; align-items:center; gap:6px;
-      font-size:11px; color:var(--accent); font-weight:700;
+      font-size:11px; color:#e11d48; font-weight:700;
     }
 
     /* Cards redesenhados */
@@ -2022,10 +2031,14 @@
             <p class="ps-hero-sub">Portfólio de Projetos</p>
           </div>
         </div>
+        <div style="display:flex; align-items:center; gap:12px; flex-shrink:0;">
+          <div id="ps-cache-info" style="font-size:11px; color:rgba(255,255,255,.5); display:none;">
+            <span id="ps-cache-time"></span>
+          </div>
         <div class="ps-hero-actions">
           <button type="button" class="ps-hero-btn" id="ps-refresh">🔄 Atualizar</button>
           <button type="button" class="ps-hero-btn" id="ps-use-excel">📥 Planilha Excel</button>
-        </div>
+        </div></div>
       </div>
     </div>
 
@@ -2033,20 +2046,20 @@
     <div class="ps-kpi-strip">
       <div class="ps-kpi-strip-inner" id="ps-kpi-strip">
         <div class="ps-kpi" id="ps-kpi-total" data-resp="">
-          <span class="ps-kpi-icon">📁</span>
+          <div class="ps-kpi-icon-wrap total">📁</div>
           <div><div class="ps-kpi-val" id="ps-kpi-n-total">–</div><div class="ps-kpi-label">Total</div></div>
         </div>
         <div class="ps-kpi" id="ps-kpi-andamento" data-resp="">
-          <span class="ps-kpi-icon">▶</span>
+          <div class="ps-kpi-icon-wrap andamento">▶</div>
           <div><div class="ps-kpi-val" id="ps-kpi-n-andamento">–</div><div class="ps-kpi-label">Em andamento</div></div>
         </div>
         <div class="ps-kpi" id="ps-kpi-concluido" data-resp="">
-          <span class="ps-kpi-icon">✅</span>
+          <div class="ps-kpi-icon-wrap concluido">✅</div>
           <div><div class="ps-kpi-val" id="ps-kpi-n-concluido">–</div><div class="ps-kpi-label">Concluídos</div></div>
         </div>
         <div class="ps-kpi" id="ps-kpi-bloqueado" data-resp="">
-          <span class="ps-kpi-icon">⚠️</span>
-          <div><div class="ps-kpi-val" id="ps-kpi-n-bloqueado">–</div><div class="ps-kpi-label">Bloqueados</div></div>
+          <div class="ps-kpi-icon-wrap bloqueado">⏸</div>
+          <div><div class="ps-kpi-val" id="ps-kpi-n-bloqueado">–</div><div class="ps-kpi-label">Aguardando</div></div>
         </div>
       </div>
     </div>
@@ -2145,7 +2158,7 @@
           <div style="overflow-x:auto;">
             <div id="ps-gantt-container" style="min-width:100%; width:max-content;">
               <div class="ps-gantt-header" id="ps-gantt-header">
-                <div style="padding:0 14px;display:flex;align-items:center;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.9);">PROJETO</div>
+                <div class="ps-gantt-header-label">PROJETO</div>
                 <div class="ps-gantt-header-months" id="ps-gantt-months"></div>
               </div>
               <div id="ps-gantt-grid"></div>
@@ -6064,7 +6077,7 @@
                   '<span class="ps-card-prog-label">Progresso</span>' +
                   '<span class="ps-card-prog-pct">'+prog+'%</span>' +
                 '</div>' +
-                '<div class="ps-card-bar"><div class="ps-card-bar-fill" style="width:'+prog+'%;"></div></div>' +
+                '<div class="ps-card-bar"><div class="ps-card-bar-fill ' + (prog>=70 ? 'pct-high' : prog>=30 ? 'pct-mid' : 'pct-low') + '" style="width:'+prog+'%;"></div></div>' +
               '</div>' +
               '<div class="ps-card-info-row">' +
                 '<span class="ps-card-info"><span class="ps-card-info-icon">📅</span>'+escapeText(dataIni)+' → '+escapeText(dataFim)+'</span>' +
@@ -6085,6 +6098,19 @@
       }
 
       function renderAll() {
+        // Mostrar info de último update no hero
+        try {
+          const cached = localStorage.getItem('goobee_itens_v2');
+          if (cached) {
+            const { ts } = JSON.parse(cached);
+            const diff = Math.round((Date.now() - ts) / 60000);
+            const label = diff < 1 ? 'agora mesmo' : diff < 60 ? diff + 'min atrás' : Math.round(diff/60) + 'h atrás';
+            const el = document.getElementById('ps-cache-time');
+            const wrap = document.getElementById('ps-cache-info');
+            if (el) el.textContent = '⚡ Cache: ' + label;
+            if (wrap) wrap.style.display = 'block';
+          }
+        } catch(e) {}
         const filtered = getFiltered();
         updateKpis(filtered);
         updateRespChipCounts();
