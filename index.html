@@ -5345,9 +5345,9 @@
       }
 
       const FETCH_STRATEGIES = [
-        { name:'goobee-proxy', buildUrl: url => 'https://goobee-proxy.7lucasfernandes.workers.dev?url=' + encodeURIComponent(url) },
-        { name:'corsproxy.io', buildUrl: url => 'https://corsproxy.io/?url=' + encodeURIComponent(url) },
-        { name:'allorigins',   buildUrl: url => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url) },
+        { name:'goobee-proxy', buildUrl: url => 'https://goobee-proxy.7lucasfernandes.workers.dev?url=' + encodeURIComponent(url), timeout: 45000 },
+        { name:'corsproxy.io', buildUrl: url => 'https://corsproxy.io/?url=' + encodeURIComponent(url), timeout: 20000 },
+        { name:'allorigins',   buildUrl: url => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url), timeout: 20000 },
       ];
 
       function getPreferredStrategy() {
@@ -5357,8 +5357,9 @@
       function savePreferredStrategy(name) { try { localStorage.setItem('goobee-fetch-strategy', name); } catch(e) {} }
 
       async function tryOneProxy(strat, targetUrl, timeoutMs) {
+        const timeout = strat.timeout || timeoutMs || 20000;
         const ctrl = new AbortController();
-        const t = setTimeout(() => ctrl.abort(), timeoutMs || 18000);
+        const t = setTimeout(() => ctrl.abort(), timeout);
         try {
           const r = await fetch(strat.buildUrl(targetUrl), {
             method: 'GET', signal: ctrl.signal,
