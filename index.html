@@ -1054,7 +1054,7 @@
       height: 100vh;
       background: white;
       box-shadow: -4px 0 24px rgba(15, 23, 42, 0.12);
-      z-index: 1400;
+      z-index: 5110;
       display: flex;
       flex-direction: column;
       transition: right 0.3s ease;
@@ -1145,7 +1145,7 @@
       position: fixed;
       inset: 0;
       background: rgba(15, 23, 42, 0.3);
-      z-index: 1399;
+      z-index: 5100;
       display: none;
     }
     .gantt-detail-backdrop.show { display: block; }
@@ -1244,7 +1244,7 @@
       display: flex; 
       flex-direction: column; 
       gap: 10px; 
-      z-index: 5100;  /* acima do ps-report-overlay (4999) */
+      z-index: 5500;  /* acima do ps-report-overlay (4999), modais (5200-5400), abaixo de toasts e PM modal */
       align-items: flex-end; 
     }
     
@@ -1404,7 +1404,7 @@
       display: none; 
       align-items: center; 
       justify-content: center; 
-      z-index: 1200;
+      z-index: 5300;  /* acima do ps-report-overlay (4999) */
       animation: fadeIn var(--tr-base);
     }
     .email-panel { 
@@ -1631,7 +1631,7 @@
       font-size: 13px; 
       font-weight: 600; 
       box-shadow: var(--shadow-xl);
-      z-index: 1300; 
+      z-index: 5800; 
       display: none;
       letter-spacing: -0.005em;
     }
@@ -1650,7 +1650,7 @@
       display: none;
       align-items: center;
       justify-content: center;
-      z-index: 1500;
+      z-index: 5700;
       flex-direction: column;
       gap: 12px;
     }
@@ -1677,7 +1677,7 @@
       position: fixed;
       top: 20px;
       right: 20px;
-      z-index: 1600;
+      z-index: 5600;
       display: flex;
       flex-direction: column;
       gap: 8px;
@@ -1726,7 +1726,7 @@
       to { opacity: 0; transform: translateX(20px); }
     }
     /* Editor Modal */
-    .editor-backdrop { position: fixed; inset: 0; background: rgba(26, 31, 78, 0.5); display: none; align-items: center; justify-content: center; z-index: 1100; }
+    .editor-backdrop { position: fixed; inset: 0; background: rgba(26, 31, 78, 0.5); display: none; align-items: center; justify-content: center; z-index: 5200; }
     .editor-panel { background: white; border-radius: 8px; box-shadow: 0 20px 60px rgba(26, 31, 78, 0.3); max-width: 960px; width: 95%; max-height: 90vh; display: flex; flex-direction: column; padding: 16px 18px; }
     .editor-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 2px solid var(--accent); }
     .editor-header h3 { font-size: 16px; font-weight: 700; color: var(--primary); }
@@ -3642,10 +3642,18 @@
       }
       
       grid.innerHTML = '';
-      processos.forEach(p => {
+      // Ordenar épicos por data de início (mais antigos primeiro); sem data vão ao fim.
+      // Histórias dentro de cada épico também são ordenadas por data de início.
+      const _ganttSortKey = (x) => {
+        const d = toDate(x.dataInicio);
+        return d ? d.getTime() : Number.POSITIVE_INFINITY;
+      };
+      const sortedProcessos = processos.slice().sort((a, b) => _ganttSortKey(a) - _ganttSortKey(b));
+      sortedProcessos.forEach(p => {
         renderGanttRow(p, ganttStart, totalDays, grid, false, null, timelineWidth);
         if (p.historias && p.historias.length > 0) {
-          p.historias.forEach(h => renderGanttRow(h, ganttStart, totalDays, grid, true, p.id, timelineWidth));
+          const sortedHist = p.historias.slice().sort((a, b) => _ganttSortKey(a) - _ganttSortKey(b));
+          sortedHist.forEach(h => renderGanttRow(h, ganttStart, totalDays, grid, true, p.id, timelineWidth));
         }
       });
       
@@ -3661,15 +3669,18 @@
       const printBody = document.getElementById('gantt-print-body');
       if (printBody) {
         printBody.innerHTML = '';
-        processos.forEach(p => {
+        sortedProcessos.forEach(p => {
           const tr = document.createElement('tr');
           tr.innerHTML = '<td><strong>' + (p.nome || '') + '</strong></td><td>' + formatDate(p.dataInicio) + ' – ' + formatDate(p.dataFim) + '</td><td>' + (p.status || '') + '</td><td>' + (p.progresso != null ? p.progresso + '%' : '') + '</td>';
           printBody.appendChild(tr);
-          if (p.historias && p.historias.length > 0) p.historias.forEach(h => {
-            const htr = document.createElement('tr');
-            htr.innerHTML = '<td style="padding-left:20px;">└ ' + (h.nome || '') + '</td><td>' + formatDate(h.dataInicio) + ' – ' + formatDate(h.dataFim) + '</td><td>' + (h.status || '') + '</td><td>-</td>';
-            printBody.appendChild(htr);
-          });
+          if (p.historias && p.historias.length > 0) {
+            const sortedHist = p.historias.slice().sort((a, b) => _ganttSortKey(a) - _ganttSortKey(b));
+            sortedHist.forEach(h => {
+              const htr = document.createElement('tr');
+              htr.innerHTML = '<td style="padding-left:20px;">└ ' + (h.nome || '') + '</td><td>' + formatDate(h.dataInicio) + ' – ' + formatDate(h.dataFim) + '</td><td>' + (h.status || '') + '</td><td>-</td>';
+              printBody.appendChild(htr);
+            });
+          }
         });
       }
     }
@@ -3814,12 +3825,8 @@
       iconSpan.textContent = icon;
       barDiv.appendChild(iconSpan);
       
-      // Mostrar % apenas em Épicos, não em Histórias
-      if (!isHistoria && item.progresso != null) {
-        const pctSpan = document.createElement('span');
-        pctSpan.textContent = item.progresso + '%';
-        barDiv.appendChild(pctSpan);
-      }
+      // % do progresso é informado apenas via tooltip (mais limpo visualmente).
+      // Mantém apenas o ícone de status no início da barra.
       
       // GANTT 2.0: click na barra abre painel lateral
       barDiv.addEventListener('click', function(ev) {
@@ -6265,8 +6272,17 @@
         monthsEl.innerHTML = months.map(m => '<div class="ps-gantt-header-month">' + m.toLocaleDateString('pt-BR',{month:'short',year:'2-digit'}).replace(' de ','\'') + '</div>').join('') +
           '<div class="ps-gantt-today-header" style="left:' + hojeLeft.toFixed(2) + '%"></div>';
 
+        // Ordenar por data de início (mais antigo primeiro); projetos sem data vão ao fim
+        const _startOf = (p) => {
+          const ex = p.extra;
+          let start = p.stats.minStart;
+          if (ex && ex.dataInicio) { const d = _parseFlexDate(ex.dataInicio); if (d) start = d; }
+          return start ? start.getTime() : Number.POSITIVE_INFINITY;
+        };
+        const sortedByPeriod = filteredByPeriod.slice().sort((a, b) => _startOf(a) - _startOf(b));
+
         // Rows
-        grid.innerHTML = filteredByPeriod.map(p => {
+        grid.innerHTML = sortedByPeriod.map(p => {
           const ex = p.extra;
           const s = p.stats;
           let start = s.minStart, end = s.maxEnd;
