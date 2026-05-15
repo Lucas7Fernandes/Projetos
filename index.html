@@ -6726,9 +6726,9 @@
           else if (its.some(i => (i.momento||'').toUpperCase().includes('BLOQUEADO'))) status = 'Aguardando';
           let minStart = null, maxEnd = null;
           its.forEach(i => {
-            if (i.dataInicio)   { const d = new Date(i.dataInicio);   if (!isNaN(d) && (!minStart||d<minStart)) minStart=d; }
+            if (i.dataInicio)   { const d = _parseFlexDate(i.dataInicio);   if (d && (!minStart||d<minStart)) minStart=d; }
             const ef = i.dataPrevista || i.dataEntrega;
-            if (ef) { const d = new Date(ef); if (!isNaN(d) && (!maxEnd||d>maxEnd)) maxEnd=d; }
+            if (ef) { const d = _parseFlexDate(ef); if (d && (!maxEnd||d>maxEnd)) maxEnd=d; }
           });
           const progresso = naoCancelados > 0 ? Math.round((finalizados / naoCancelados) * 100) : 0;
           const respCount = {};
