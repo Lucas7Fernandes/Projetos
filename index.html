@@ -2630,13 +2630,6 @@
       <button class="floating-btn floating-btn-share" id="share-button">📤 Compartilhar</button>
       <div class="share-dropdown" id="share-dropdown">
         <div class="share-dropdown-header">Compartilhar relatório</div>
-        <button class="share-option" id="share-email">
-          <span class="share-option-icon">📧</span>
-          <div class="share-option-text">
-            <div class="share-option-label">Enviar por e-mail</div>
-            <div class="share-option-desc">Preview customizável • Outlook, Gmail</div>
-          </div>
-        </button>
         <button class="share-option" id="share-download">
           <span class="share-option-icon">💾</span>
           <div class="share-option-text">
@@ -2645,10 +2638,10 @@
           </div>
         </button>
         <button class="share-option" id="share-slide">
-          <span class="share-option-icon">🖥️</span>
+          <span class="share-option-icon">🖨️</span>
           <div class="share-option-text">
-            <div class="share-option-label">Slide para PowerPoint</div>
-            <div class="share-option-desc">Layout com Gantt visual • copiar como imagem</div>
+            <div class="share-option-label">Imprimir</div>
+            <div class="share-option-desc">E-mail Outlook ou PowerPoint • copiar como imagem</div>
           </div>
         </button>
       </div>
@@ -2749,11 +2742,24 @@
   <div class="slide-modal" id="slide-modal" style="display:none;">
     <div class="slide-panel">
       <div class="email-header">
-        <h3>🖥️ Slide para PowerPoint</h3>
+        <h3>🖨️ Imprimir Status Report</h3>
         <button type="button" class="email-close-btn" id="slide-close">&times;</button>
       </div>
       <div class="share-layout">
         <div class="share-controls">
+          <div class="share-control-group">
+            <span class="share-control-label">Destino</span>
+            <div class="share-radio-group">
+              <label class="share-radio">
+                <input type="radio" name="slide-target" value="powerpoint" checked />
+                <span>🖥️ PowerPoint (960px)</span>
+              </label>
+              <label class="share-radio">
+                <input type="radio" name="slide-target" value="email" />
+                <span>📧 E-mail Outlook (600px)</span>
+              </label>
+            </div>
+          </div>
           <div class="share-control-group">
             <span class="share-control-label">Seções incluídas</span>
             <label class="share-checkbox">
@@ -2805,7 +2811,7 @@
         </div>
       </div>
       <div class="email-footer">
-        <div class="email-footer-info">💡 Preview escalado — clique "Copiar como imagem" e cole no PowerPoint com Ctrl+V</div>
+        <div class="email-footer-info">💡 Selecione o destino (PowerPoint ou E-mail) e as seções — depois clique "Copiar como imagem"</div>
         <div class="email-footer-actions">
           <button type="button" class="email-btn email-btn-secondary" id="slide-cancel">Fechar</button>
           <button type="button" class="email-btn email-btn-primary" id="slide-copy-img" style="min-width:200px;">📸 Copiar como imagem</button>
@@ -5732,7 +5738,10 @@
     }
 
     function getSlideOptions() {
+      const target = (document.querySelector('input[name="slide-target"]:checked') || {}).value || 'powerpoint';
       return {
+        target:          target,
+        width:           target === 'email' ? 600 : 960,
         includeKpis:     document.getElementById('slide-section-kpis')?.checked !== false,
         includeStatus:   document.getElementById('slide-section-status')?.checked !== false,
         includeGantt:    document.getElementById('slide-section-gantt')?.checked !== false,
@@ -5753,8 +5762,10 @@
       if (!slideEl) { _resetCopyBtn(btn); return; }
 
       // Renderiza em container off-screen em tamanho real (sem scale transform)
+      const opts = getSlideOptions();
+      const imgWidth = opts.width || 960;
       const tmp = document.createElement('div');
-      tmp.style.cssText = 'position:fixed;left:-9999px;top:0;width:960px;z-index:-1;background:white;';
+      tmp.style.cssText = `position:fixed;left:-9999px;top:0;width:${imgWidth}px;z-index:-1;background:white;`;
       tmp.innerHTML = slideEl.innerHTML;
       document.body.appendChild(tmp);
 
@@ -5770,7 +5781,7 @@
 
       html2canvas(tmp, {
         scale: 2, useCORS: true, allowTaint: true,
-        backgroundColor: '#ffffff', width: 960, logging: false
+        backgroundColor: '#ffffff', width: imgWidth, logging: false
       }).then(canvas => {
         document.body.removeChild(tmp);
         if (btn) { btn.textContent = '📸 Copiar como imagem'; btn.disabled = false; }
@@ -5844,40 +5855,19 @@
       };
       const badge = s => `<span style="display:inline-block;padding:2px 8px;border-radius:3px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;${statusCss(s)}">${escapeHtml(s||'—')}</span>`;
 
-      // ── KPIs ──────────────────────────────────────────────────────────────────
+      // ── Status badge + barra de progresso (sem cards) ───────────────────────
       let kpisHTML = '';
       if (opts.includeKpis) {
         const p = kpis.progresso;
         kpisHTML = `
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px;">
-          <div style="background:white;border:1px solid #e5e8ef;border-radius:6px;padding:10px 12px;border-top:3px solid #1a1f4e;">
-            <div style="font-size:8px;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">Progresso</div>
-            <div style="font-size:22px;font-weight:700;color:#1a1f4e;line-height:1;">${p}%</div>
-            <div style="margin-top:6px;height:5px;background:#e8eaf3;border-radius:3px;overflow:hidden;">
-              <div style="height:100%;width:${p}%;background:linear-gradient(90deg,#1a1f4e,#2d3a8c);border-radius:3px;"></div>
-            </div>
-          </div>
-          <div style="background:white;border:1px solid #e5e8ef;border-radius:6px;padding:10px 12px;border-top:3px solid #1a1f4e;">
-            <div style="font-size:8px;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">Épicos</div>
-            <div style="font-size:22px;font-weight:700;color:#1a1f4e;line-height:1;">${kpis.epicosConcluidos}<span style="font-size:14px;color:#94a3b8;">/${kpis.totalEpicos}</span></div>
-            <div style="margin-top:6px;font-size:9px;color:#64748b;">${kpis.totalEpicos > 0 ? Math.round((kpis.epicosConcluidos/kpis.totalEpicos)*100) : 0}% concluídos</div>
-          </div>
-          <div style="background:white;border:1px solid #e5e8ef;border-radius:6px;padding:10px 12px;border-top:3px solid ${kpis.riscosAtivos > 0 ? '#dc2626' : '#16a34a'};">
-            <div style="font-size:8px;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">Riscos</div>
-            <div style="font-size:22px;font-weight:700;color:${kpis.riscosAtivos > 0 ? '#dc2626' : '#16a34a'};line-height:1;">${kpis.riscosAtivos}</div>
-            <div style="margin-top:6px;font-size:9px;color:#64748b;">${kpis.riscosAtivos === 0 ? 'Sem riscos ativos' : 'ativo(s)'}</div>
-          </div>
-          <div style="background:white;border:1px solid #e5e8ef;border-radius:6px;padding:10px 12px;border-top:3px solid ${kpis.diasRestantesColor};">
-            <div style="font-size:8px;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">Prazo</div>
-            <div style="font-size:20px;font-weight:700;color:${kpis.diasRestantesColor};line-height:1;">${kpis.diasRestantes}</div>
-            <div style="margin-top:6px;font-size:9px;color:#64748b;">Término: ${fmtDate(meta.DataFimPrevista)}</div>
-          </div>
-        </div>
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding:10px 14px;background:#f6f7fb;border-radius:6px;border:1px solid #e5e8ef;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding:9px 14px;background:#f6f7fb;border-radius:6px;border:1px solid #e5e8ef;">
           <span style="display:inline-flex;align-items:center;gap:5px;background:${sem.semaforoBg};color:${sem.semaforoCor};border:1px solid ${sem.semaforoBorder};padding:4px 12px;border-radius:4px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;">${sem.semaforoLabel} ${escapeHtml(normalizeStatus(meta.StatusGeral||'')||sem.semaforoTexto)}</span>
-          <div style="font-size:11px;color:#64748b;">Progresso geral: <strong style="color:#1a1f4e;font-size:14px;">${p}%</strong></div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:11px;color:#64748b;">Progresso geral:</span>
+            <strong style="color:#1a1f4e;font-size:15px;font-weight:700;">${p}%</strong>
+          </div>
         </div>
-        <div style="height:6px;background:#e8eaf3;border-radius:3px;overflow:hidden;margin-bottom:16px;">
+        <div style="height:6px;background:#e8eaf3;border-radius:3px;overflow:hidden;margin-bottom:14px;">
           <div style="height:100%;width:${p}%;background:linear-gradient(90deg,#1a1f4e,#2d3a8c);border-radius:3px;"></div>
         </div>`;
       }
@@ -6028,7 +6018,7 @@
         : `<div>${statusHTML}${ganttHTML}${doingHTML}${proximosHTML}${riscosHTML}</div>`;
 
       return `
-<div style="background:white;max-width:960px;margin:0 auto;font-family:'Inter',Arial,sans-serif;color:#0f172a;border:1px solid #e5e8ef;border-radius:8px;overflow:hidden;">
+<div style="background:white;max-width:${opts.width}px;margin:0 auto;font-family:'Inter',Arial,sans-serif;color:#0f172a;border:1px solid #e5e8ef;border-radius:8px;overflow:hidden;">
   <div style="background:linear-gradient(135deg,#0f1336 0%,#1a1f4e 60%,#2d3a8c 100%);padding:18px 24px;">
     <div style="display:flex;justify-content:space-between;align-items:center;">
       <div>
