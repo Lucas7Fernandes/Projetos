@@ -6349,11 +6349,11 @@
       function _normalizeApiCor(v) {
         if (v == null) return null;
         const n = String(v).trim();
-        // Semaforo numérico da Goobee: 0=sem status, 1=verde, 2=amarelo, 3=vermelho
-        if (n === '0') return null;
-        if (n === '1') return 'verde';
-        if (n === '2') return 'amarelo';
-        if (n === '3') return 'vermelho';
+        // Semaforo numérico da Goobee: 0=vermelho, 1=amarelo, 2=verde
+        if (n === '0') return 'vermelho';
+        if (n === '1') return 'amarelo';
+        if (n === '2') return 'verde';
+        if (n === '3') return null;
         // Fallback texto
         const nl = n.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
         if (nl.includes('verm') || nl.includes('red'))    return 'vermelho';
