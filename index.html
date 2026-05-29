@@ -6452,7 +6452,7 @@
                 meta:       isMeta ? 'Meta' : 'Não Meta',
                 tags,
                 times:      proj['Times'] || '',
-                cliente:    proj['Cliente'] || proj['cliente'] || '',
+                diretoria:  proj['Diretoria'] || proj['diretoria'] || '',
                 _raw:       proj
               }
             };
@@ -6662,20 +6662,23 @@
       // ── Populate Diretoria chips (campo "Times" da API) ──────────────────────
       function populateDiretoriaChips() {
         const diretSet = new Set();
+        let temBranco = false;
         Object.values(projectsMap).forEach(p => {
-          const t = p.extra ? (p.extra.cliente || '') : '';
-          if (t && String(t).trim()) diretSet.add(String(t).trim());
+          const t = String((p.extra && p.extra.diretoria) || '').trim();
+          if (t) diretSet.add(t);
+          else temBranco = true;
         });
         allDiretorias = Array.from(diretSet).sort();
         const container = document.getElementById('ps-diretoria-chips');
         if (!container) return;
         container.innerHTML = '';
-        ['', ...allDiretorias].forEach(val => {
+        const opcoes = ['', ...allDiretorias, ...(temBranco ? ['__branco__'] : [])];
+        opcoes.forEach(val => {
           const btn = document.createElement('button');
           btn.type = 'button';
           btn.className = 'ps-filter-chip' + (currentDiretoriaFilter === val ? ' active' : '');
           btn.dataset.diretoria = val;
-          btn.textContent = val === '' ? '🏢 Todas' : val;
+          btn.textContent = val === '' ? '🏢 Todas' : val === '__branco__' ? '— Sem diretoria' : val;
           btn.addEventListener('click', () => {
             currentDiretoriaFilter = val;
             container.querySelectorAll('.ps-filter-chip').forEach(b => b.classList.remove('active'));
@@ -6724,8 +6727,9 @@
       }
       function _matchesDiretoria(p) {
         if (!currentDiretoriaFilter) return true;
-        const t = p.extra ? (p.extra.cliente || '') : '';
-        return String(t).trim() === currentDiretoriaFilter;
+        const t = String((p.extra && p.extra.diretoria) || '').trim();
+        if (currentDiretoriaFilter === '__branco__') return t === '';
+        return t === currentDiretoriaFilter;
       }
       function getFiltered() {
         return Object.values(projectsMap)
