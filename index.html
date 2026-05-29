@@ -1978,7 +1978,8 @@
     .ps-gantt-bar.b-homologacao { background:linear-gradient(135deg,var(--purple) 0%,#a78bfa 100%); }
     .ps-gantt-bar.b-cancelado { background:linear-gradient(135deg,#6b7280 0%,#9ca3af 100%); opacity:.5; }
     .ps-gantt-bar.b-risco    { background:linear-gradient(135deg,#dc2626 0%,#f87171 100%); }
-    .ps-gantt-bar.b-aguardando { background:linear-gradient(135deg,#94a3b8 0%,#cbd5e1 100%); }
+    .ps-gantt-bar.b-aguardando   { background:linear-gradient(135deg,#94a3b8 0%,#cbd5e1 100%); }
+    .ps-gantt-bar.b-nao-iniciado { background:linear-gradient(135deg,#9ca3af 0%,#d1d5db 100%); }
     .ps-gantt-today { position:absolute; top:-2px; bottom:-2px; width:1.5px; background:var(--accent); opacity:.7; z-index:4; pointer-events:none; }
     .ps-gantt-today-label { position:absolute; top:-18px; left:50%; transform:translateX(-50%); background:var(--accent); color:white; font-size:8px; font-weight:700; padding:2px 5px; border-radius:3px; white-space:nowrap; }
     .ps-gantt-empty { text-align:center; padding:24px; color:var(--text-muted); font-size:13px; }
@@ -2243,10 +2244,10 @@
           </div>
         </div>
         <div class="ps-kpi ps-kpi-bloqueado" id="ps-kpi-bloqueado" data-resp="">
-          <div class="ps-kpi-icon-wrap bloqueado">⏸</div>
+          <div class="ps-kpi-icon-wrap bloqueado">○</div>
           <div>
             <div class="ps-kpi-val" id="ps-kpi-n-bloqueado">–</div>
-            <div class="ps-kpi-label">Aguardando</div>
+            <div class="ps-kpi-label">Não iniciado</div>
           </div>
         </div>
       </div>
@@ -6369,6 +6370,7 @@
         if (n.includes('conclu') || n.includes('finaliz') || n.includes('done') || n === 'entregue') return 'Concluído';
         if (n === 'backlog' || n.includes('planej') || n.includes('nao inic') || n.includes('não inic')) return 'Backlog';
         if (n.includes('aguard') || n.includes('wait') || n.includes('parado') || n.includes('suspen')) return 'Aguardando';
+        if (n.includes('aprovado') || n.includes('approved') || n.includes('nao inic') || n.includes('não inic')) return 'Não iniciado';
         if (n.includes('homolog')) return 'Homologação';
         if (n.includes('cancel')) return 'Cancelado';
         return null;
@@ -6756,8 +6758,8 @@
         filtered.forEach(p => {
           const st = _projetoStatusNorm(p);
           if (st === 'Concluído')     concluido++;
-          else if (st === 'Aguardando' || st === 'Backlog') backlog++;
-          else andamento++; // Em andamento, Homologação, etc
+          else if (st === 'Não iniciado' || st === 'Backlog') backlog++;
+          else andamento++; // Em andamento, Homologação, Aguardando, etc
         });
         document.getElementById('ps-kpi-n-total').textContent = filtered.length;
         document.getElementById('ps-kpi-n-andamento').textContent = andamento;
@@ -6882,7 +6884,10 @@
           const naoCancelados = s.total - s.cancelado;
           if (s.progresso >= 100 || (s.finalizado === naoCancelados && naoCancelados > 0)) { barClass='b-concluido'; statusLabel='Concluído'; }
           else if (s.bloqueado > 0) { barClass='b-backlog'; statusLabel='Bloqueado'; }
-          else if (ex && ex.status) { const ns = _normalizeApiStatus(ex.status); if (ns) statusLabel=ns; }
+          else if (ex && ex.status) {
+            const ns = _normalizeApiStatus(ex.status);
+            if (ns) { statusLabel=ns; if (ns === 'Não iniciado') barClass='b-nao-iniciado'; }
+          }
           { const sc = _computeSemaforoCalc(p); if (sc==='vermelho' && barClass!=='b-concluido') barClass='b-risco'; else if (sc==='amarelo' && barClass!=='b-concluido') barClass='b-backlog'; }
 
           const left = (start && end) ? pct(start) : 0;
@@ -6914,6 +6919,7 @@
           '<span class="ps-gantt-leg b-andamento">Em andamento</span>' +
           '<span class="ps-gantt-leg b-concluido">Concluído</span>' +
           '<span class="ps-gantt-leg b-backlog">Bloqueado / Backlog</span>' +
+          '<span class="ps-gantt-leg b-nao-iniciado">Não iniciado</span>' +
           '<span class="ps-gantt-leg b-aguardando">Aguardando</span>' +
           '<span class="ps-gantt-leg-today">⬤ Hoje</span>';
 
@@ -6947,6 +6953,7 @@
             'Em andamento':  ['blue',   '▶ Em andamento'],
             'Backlog':       ['gray',   '📋 Backlog'],
             'Aguardando':    ['yellow', '⏸ Aguardando'],
+            'Não iniciado':  ['gray',   '○ Não iniciado'],
             'Homologação':   ['yellow', '🔍 Homologação'],
             'Cancelado':     ['gray',   '✕ Cancelado'],
           };
