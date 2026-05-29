@@ -1977,6 +1977,7 @@
     .ps-gantt-bar.b-backlog { background:linear-gradient(135deg,var(--yellow) 0%,#fbbf24 100%); }
     .ps-gantt-bar.b-homologacao { background:linear-gradient(135deg,var(--purple) 0%,#a78bfa 100%); }
     .ps-gantt-bar.b-cancelado { background:linear-gradient(135deg,#6b7280 0%,#9ca3af 100%); opacity:.5; }
+    .ps-gantt-bar.b-risco    { background:linear-gradient(135deg,#dc2626 0%,#f87171 100%); }
     .ps-gantt-bar.b-aguardando { background:linear-gradient(135deg,#94a3b8 0%,#cbd5e1 100%); }
     .ps-gantt-today { position:absolute; top:-2px; bottom:-2px; width:1.5px; background:var(--accent); opacity:.7; z-index:4; pointer-events:none; }
     .ps-gantt-today-label { position:absolute; top:-18px; left:50%; transform:translateX(-50%); background:var(--accent); color:white; font-size:8px; font-weight:700; padding:2px 5px; border-radius:3px; white-space:nowrap; }
@@ -6848,7 +6849,7 @@
           if (s.progresso >= 100 || (s.finalizado === naoCancelados && naoCancelados > 0)) { barClass='b-concluido'; statusLabel='Concluído'; }
           else if (s.bloqueado > 0) { barClass='b-backlog'; statusLabel='Bloqueado'; }
           else if (ex && ex.status) { const ns = _normalizeApiStatus(ex.status); if (ns) statusLabel=ns; }
-          if (ex && ex.cor) { const c = _normalizeApiCor(ex.cor); if (c==='vermelho') barClass='b-backlog'; else if (c==='verde' && barClass!=='b-concluido') barClass='b-andamento'; }
+          if (ex && ex.cor) { const c = _normalizeApiCor(ex.cor); if (c==='vermelho') barClass='b-risco'; else if (c==='amarelo' && barClass!=='b-concluido') barClass='b-backlog'; else if (c==='verde' && barClass!=='b-concluido') barClass='b-andamento'; }
 
           const left = (start && end) ? pct(start) : 0;
           const right = (start && end) ? pct(end) : 0;
