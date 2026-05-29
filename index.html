@@ -6629,6 +6629,36 @@
         });
       }
 
+      // ── Semáforo calculado por atraso (ignora campo Semaforo da API) ──────────
+      function _computeSemaforoCalc(p) {
+        const today = new Date(); today.setHours(0,0,0,0);
+        const ex = p.extra || {};
+
+        // Projeto concluído → sempre verde
+        const statusNorm = _normalizeApiStatus(ex.status || '');
+        if (statusNorm === 'Concluído') return 'verde';
+
+        // Projeto atrasado → vermelho
+        const dataFimProj = _parsePtDate(ex.dataFim) || _parseFlexDate(ex.dataFim);
+        if (dataFimProj) {
+          const df = new Date(dataFimProj); df.setHours(0,0,0,0);
+          if (df < today) return 'vermelho';
+        }
+
+        // Algum item atrasado e não concluído/cancelado → amarelo
+        const itens = p.itens || [];
+        const temAtrasado = itens.some(it => {
+          const m = String(it.momento || '').toUpperCase().replace(/\s+/g,'');
+          if (m.includes('FINALIZ') || m.includes('CONCLU') || m.includes('CANCEL') || m.includes('DONE')) return false;
+          const dataEntrega = _parsePtDate(it.dataEntregaPrevista) || _parseFlexDate(it.dataEntregaPrevista);
+          if (!dataEntrega) return false;
+          const de = new Date(dataEntrega); de.setHours(0,0,0,0);
+          return de < today;
+        });
+
+        return temAtrasado ? 'amarelo' : 'verde';
+      }
+
       // ── Populate Diretoria chips (campo "Times" da API) ──────────────────────
       function populateDiretoriaChips() {
         const diretSet = new Set();
@@ -6849,7 +6879,7 @@
           if (s.progresso >= 100 || (s.finalizado === naoCancelados && naoCancelados > 0)) { barClass='b-concluido'; statusLabel='Concluído'; }
           else if (s.bloqueado > 0) { barClass='b-backlog'; statusLabel='Bloqueado'; }
           else if (ex && ex.status) { const ns = _normalizeApiStatus(ex.status); if (ns) statusLabel=ns; }
-          if (ex && ex.cor) { const c = _normalizeApiCor(ex.cor); if (c==='vermelho') barClass='b-risco'; else if (c==='amarelo' && barClass!=='b-concluido') barClass='b-backlog'; else if (c==='verde' && barClass!=='b-concluido') barClass='b-andamento'; }
+          { const sc = _computeSemaforoCalc(p); if (sc==='vermelho' && barClass!=='b-concluido') barClass='b-risco'; else if (sc==='amarelo' && barClass!=='b-concluido') barClass='b-backlog'; }
 
           const left = (start && end) ? pct(start) : 0;
           const right = (start && end) ? pct(end) : 0;
@@ -6901,14 +6931,9 @@
           const resp = (ex && ex.responsavel) ? String(ex.responsavel).trim() : s.responsavelPrincipal;
           const iniciais = _avatarIniciais(resp);
 
-          // Farol: cor da API (Semaforo)
-          let farolColor = 'gray';
-          if (ex && ex.cor) {
-            const c = _normalizeApiCor(ex.cor);
-            if (c === 'verde')   farolColor = 'green';
-            if (c === 'amarelo') farolColor = 'yellow';
-            if (c === 'vermelho') farolColor = 'red';
-          }
+          // Farol: calculado por atraso (não usa campo Semaforo da API)
+          const _semCalc = _computeSemaforoCalc(p);
+          const farolColor = _semCalc === 'verde' ? 'green' : _semCalc === 'amarelo' ? 'yellow' : _semCalc === 'vermelho' ? 'red' : 'gray';
 
           // Status badge
           const statusApi = ex ? (ex.status || '') : '';
