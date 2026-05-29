@@ -6451,6 +6451,7 @@
                 meta:       isMeta ? 'Meta' : 'Não Meta',
                 tags,
                 times:      proj['Times'] || '',
+                cliente:    proj['Cliente'] || proj['cliente'] || '',
                 _raw:       proj
               }
             };
@@ -6631,7 +6632,7 @@
       function populateDiretoriaChips() {
         const diretSet = new Set();
         Object.values(projectsMap).forEach(p => {
-          const t = p.extra ? (p.extra.times || p.extra.diretoria || '') : '';
+          const t = p.extra ? (p.extra.cliente || '') : '';
           if (t && String(t).trim()) diretSet.add(String(t).trim());
         });
         allDiretorias = Array.from(diretSet).sort();
@@ -6692,7 +6693,7 @@
       }
       function _matchesDiretoria(p) {
         if (!currentDiretoriaFilter) return true;
-        const t = p.extra ? (p.extra.times || p.extra.diretoria || '') : '';
+        const t = p.extra ? (p.extra.cliente || '') : '';
         return String(t).trim() === currentDiretoriaFilter;
       }
       function getFiltered() {
