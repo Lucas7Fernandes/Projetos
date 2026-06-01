@@ -6964,7 +6964,7 @@
 
         // Click em row do gantt → abrir modal
         grid.querySelectorAll('.ps-gantt-row').forEach(row => {
-          row.addEventListener('click', () => openMetaModal(row.dataset.projeto));
+          row.addEventListener('click', () => generateDirectFromProject(row.dataset.projeto));
         });
       }
 
@@ -7049,7 +7049,7 @@
         }).join('');
 
         listEl.querySelectorAll('.ps-card').forEach(card => {
-          card.addEventListener('click', () => openMetaModal(card.dataset.projeto));
+          card.addEventListener('click', () => generateDirectFromProject(card.dataset.projeto));
         });
       }
 
@@ -7178,6 +7178,51 @@
 
       // ── Modal de metadados ─────────────────────────────────────────────────
       let currentProjectName = null;
+
+      // Gera o report diretamente com dados da API, sem abrir o modal
+      function generateDirectFromProject(projetoNome) {
+        if (!projetoNome) return;
+        const p = projectsMap[projetoNome];
+        if (!p) { console.error('[PS] generateDirectFromProject: projeto não encontrado:', projetoNome); return; }
+        const ex = p.extra || {};
+        // Montar metaInput com os dados que já vêm da API (mesma lógica que openMetaModal preenche)
+        const metaInput = {
+          descricao:   ex.descricao  || '',
+          ganhos:      ex.ganhos     || '',
+          dataInicio:  ex.dataInicio ? (function(d){ const dt=_parseFlexDate(d); return dt?dt.toISOString().split('T')[0]:''; })(ex.dataInicio) : '',
+          dataFim:     ex.dataFim    ? (function(d){ const dt=_parseFlexDate(d); return dt?dt.toISOString().split('T')[0]:''; })(ex.dataFim)    : '',
+          status:      ex.status     || '',
+          cor:         ex.cor        || '',
+          responsavel: ex.responsavel|| '',
+          owner:       ex.owner      || '',
+          progresso:   ex.progresso  || ''
+        };
+        let data;
+        try {
+          data = apiProjectToDashboardData(p, metaInput);
+          autocorrectImportedData(data);
+        } catch(e) {
+          console.error('[PS] Erro ao gerar dashboard data:', e);
+          return;
+        }
+        currentData = data;
+        applyMeta(data.meta);
+        renderGantt(data.processos);
+        renderMarcos(data.marcos);
+        renderRiscos(data.riscos);
+        renderNextSteps(data.proximos);
+        updateFloatingButtonsState();
+        document.getElementById('project-selector').classList.add('hidden');
+        document.body.classList.add('has-project');
+        const overlay       = document.getElementById('ps-report-overlay');
+        const reportContent = document.getElementById('ps-report-content');
+        const mainContent   = document.querySelector('.container') || document.querySelector('main') || document.getElementById('main-content');
+        if (mainContent && reportContent) reportContent.appendChild(mainContent);
+        const nameEl = document.getElementById('ps-back-project-name');
+        if (nameEl) nameEl.textContent = projetoNome;
+        overlay.style.display = 'block';
+        overlay.scrollTop = 0;
+      }
 
       function openMetaModal(projetoNome) {
         currentProjectName = projetoNome;
