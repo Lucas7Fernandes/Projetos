@@ -2531,7 +2531,7 @@
           <div class="status-pill" id="status-pill"><span class="status-dot" id="status-geral-dot"></span><span id="status-geral-text">Aguardando importação...</span></div>
           <div class="project-description">
             <span class="label">Descrição do Projeto:</span>
-            <span id="project-description-text">Clique em "Atualizar" e carregue a planilha extraída do sistema.</span>
+            <span id="project-description-text" style="white-space:pre-line;">Clique em "Atualizar" e carregue a planilha extraída do sistema.</span>
             <span class="ganhos-title" id="ganhos-title" style="display:none;">Ganhos do Projeto:</span>
             <span id="project-ganhos-text"></span>
           </div>
@@ -2559,7 +2559,7 @@
           </div>
           <div class="next-steps-container">
             <table>
-              <thead><tr><th>Data</th><th>Marco</th><th>Status</th></tr></thead>
+              <thead><tr><th>Data</th><th>Épico</th><th>Status</th></tr></thead>
               <tbody id="marcos-body"><tr><td colspan="3" style="text-align:center;color:var(--text-muted);">Aguardando dados...</td></tr></tbody>
             </table>
           </div>
@@ -2597,7 +2597,7 @@
         </div>
         <div class="next-steps-container">
           <table>
-            <thead><tr><th>História</th><th>Atividade</th><th>Data Prevista</th><th>Responsável</th><th>Status</th></tr></thead>
+            <thead><tr><th>Épico</th><th>Atividade</th><th>Data Prevista</th><th>Responsável</th><th>Status</th></tr></thead>
             <tbody id="andamento-body"><tr><td colspan="5" style="text-align:center;color:var(--text-muted);">Aguardando dados...</td></tr></tbody>
           </table>
         </div>
@@ -2615,7 +2615,7 @@
         </div>
         <div class="next-steps-container">
           <table>
-            <thead><tr><th>História</th><th>Atividade</th><th>Data Prevista</th><th>Responsável</th><th>Status</th></tr></thead>
+            <thead><tr><th>Épico</th><th>Atividade</th><th>Data Prevista</th><th>Responsável</th><th>Status</th></tr></thead>
             <tbody id="next-steps-body"><tr><td colspan="5" style="text-align:center;color:var(--text-muted);">Aguardando dados...</td></tr></tbody>
           </table>
         </div>
@@ -3409,142 +3409,71 @@
         
         data.processos.push({ id: 'E' + (index + 1), nome: epico.nome, status: statusMapeado, dataInicio: dataInicio, dataFim: dataFim, progresso: progresso, ordem: index + 1, historias: historias });
       });
-      // MARCOS
-      data.epicos.forEach((epico, index) => {
-        if (epico.progresso >= 100 || String(epico.status).toUpperCase().includes('FINALIZADO')) {
-          const itensDoEpico = data.itens.filter(item => item.epico && item.epico.includes(epico.nomeOriginal));
-          let dataMarco = epico.dataFim;
-          if (!dataMarco && itensDoEpico.length > 0) {
-            const datasEntrega = itensDoEpico.map(i => i.dataEntrega || i.dataPrevista).filter(d => d).map(d => toDate(d)).filter(d => d);
-            if (datasEntrega.length > 0) dataMarco = new Date(Math.max(...datasEntrega));
-          }
-          if (dataMarco) data.marcos.push({ data: dataMarco, marco: 'Conclusão: ' + epico.nome, status: 'Concluído', cor: 'verde', ordem: index + 1 });
-        }
-      });
-      // RISCOS - Itens bloqueados
-      data.itens.filter(item => item.momento && String(item.momento).toUpperCase().includes('BLOQUEADO')).forEach((item, index) => {
-        data.riscos.push({ risco: 'Bloqueio: ' + item.item, descricao: 'Item ' + item.id + ' está bloqueado. Épico: ' + (item.epico || 'N/A'), impacto: 'Alto', severidade: 'Crítica', ordem: index + 1 });
-      });
-      // PRÓXIMOS PASSOS - Apenas TAREFAS (não épicos/histórias), com história pai
-      const tarefas = data.itens.filter(item => {
-        const tipo = item.tipo ? String(item.tipo).toLowerCase().trim() : '';
-        const momento = item.momento ? String(item.momento).toUpperCase().replace(/\s+/g, '') : '';
-        const isTarefa = tipo === 'tarefa';
-        const isEmAndamentoOuBacklog = momento.includes('EMANDAMENTO') || momento.includes('BACKLOG') || momento.includes('HOMOLOGAÇÃO') || momento.includes('HOMOLOGACAO') || momento.includes('EMHOMOLOGAÇÃO') || momento.includes('EMHOMOLOGACAO');
-        return isTarefa && isEmAndamentoOuBacklog;
-      });
-      // Encontrar a história pai de cada tarefa
-      const tarefasComHistoria = tarefas.map(tarefa => {
-        let historiaPaiNome = '-';
-        
-        // 1. Primeiro, verificar se já temos a história diretamente na coluna
-        if (tarefa.historia && String(tarefa.historia).trim()) {
-          historiaPaiNome = String(tarefa.historia).trim();
-        } else {
-          // QA-C05: Buscar história pai pelo padrão de ID hierárquico, preservando string completa
-          let historiaPai = null;
-          
-          if (tarefa.id) {
-            const tarefaIdStr = String(tarefa.id).trim();
-            const historiasMesmoEpico = data.itens.filter(item => {
-              const tipo = item.tipo ? String(item.tipo).toLowerCase().trim() : '';
-              return (tipo === 'historia' || tipo === 'história') && item.epico === tarefa.epico;
-            });
-            
-            // Estratégia 1: prefix match preservando string completa (ex: PROJ-1.2 vs PROJ-1.2.3)
-            // Ordena por tamanho do ID descendente para pegar o match mais específico
-            const candidatos = historiasMesmoEpico
-              .filter(h => h.id)
-              .map(h => ({ item: h, idStr: String(h.id).trim() }))
-              .filter(h => tarefaIdStr.startsWith(h.idStr + '.') || tarefaIdStr.startsWith(h.idStr + '-'))
-              .sort((a, b) => b.idStr.length - a.idStr.length);
-            
-            if (candidatos.length > 0) {
-              historiaPai = candidatos[0].item;
-            }
-            
-            // Estratégia 2 (fallback): comparar parte numérica final, mas APENAS se IDs forem
-            // do mesmo formato (mesmo prefixo não-numérico)
-            if (!historiaPai && historiasMesmoEpico.length > 0) {
-              const extractParts = (id) => {
-                const s = String(id).trim();
-                const prefix = s.replace(/[\d.\-]+$/, '');
-                const numPart = s.substring(prefix.length);
-                const numbers = numPart.split(/[.\-]/).map(n => parseInt(n, 10)).filter(n => !isNaN(n));
-                return { prefix, numbers };
-              };
-              
-              const tarefaParts = extractParts(tarefaIdStr);
-              
-              const historiasOrdenadas = historiasMesmoEpico
-                .filter(h => h.id)
-                .map(h => ({ item: h, parts: extractParts(h.id) }))
-                .filter(h => h.parts.prefix === tarefaParts.prefix && h.parts.numbers.length > 0)
-                .sort((a, b) => {
-                  // Comparação lexicográfica numérica
-                  for (let i = 0; i < Math.max(a.parts.numbers.length, b.parts.numbers.length); i++) {
-                    const av = a.parts.numbers[i] || 0;
-                    const bv = b.parts.numbers[i] || 0;
-                    if (av !== bv) return av - bv;
-                  }
-                  return 0;
-                });
-              
-              // Buscar a última história cujo "primeiro número" seja <= primeiro número da tarefa
-              if (tarefaParts.numbers.length > 0 && historiasOrdenadas.length > 0) {
-                const tarefaFirstNum = tarefaParts.numbers[0];
-                for (let i = historiasOrdenadas.length - 1; i >= 0; i--) {
-                  const histFirstNum = historiasOrdenadas[i].parts.numbers[0] || 0;
-                  if (histFirstNum <= tarefaFirstNum) {
-                    historiaPai = historiasOrdenadas[i].item;
-                    break;
-                  }
-                }
-              }
-            }
-          }
-          
-          if (historiaPai) {
-            historiaPaiNome = historiaPai.item || '-';
-          }
-        }
-        
-        const momento = tarefa.momento ? String(tarefa.momento).toUpperCase().replace(/\s+/g, '') : '';
-        let status = 'Backlog';
-        if (momento.includes('EMANDAMENTO')) status = 'Em Andamento';
-        else if (momento.includes('HOMOLOGAÇÃO') || momento.includes('HOMOLOGACAO') || momento.includes('EMHOMOLOGAÇÃO') || momento.includes('EMHOMOLOGACAO')) status = 'Em Homologação';
-        
-        return {
-          atividade: tarefa.item,
-          historia: historiaPaiNome,
-          data: tarefa.dataPrevista || tarefa.dataEntrega || null,
-          responsavel: tarefa.responsavel || 'A definir',
-          status: status,
-          dataObj: toDate(tarefa.dataPrevista || tarefa.dataEntrega)
-        };
-      });
-      // Ordenar: primeiro por status (Em Andamento primeiro, depois Em Homologação, depois Backlog), depois por data
-      tarefasComHistoria.sort((a, b) => {
-        const statusOrder = { 'Em Andamento': 0, 'Em Homologação': 1, 'Backlog': 2 };
-        const orderA = statusOrder[a.status] !== undefined ? statusOrder[a.status] : 3;
-        const orderB = statusOrder[b.status] !== undefined ? statusOrder[b.status] : 3;
-        if (orderA !== orderB) return orderA - orderB;
-        
-        if (a.dataObj && b.dataObj) return a.dataObj - b.dataObj;
-        if (a.dataObj && !b.dataObj) return -1;
-        if (!a.dataObj && b.dataObj) return 1;
-        return 0;
-      });
-      // Adicionar TODOS os itens (scroll cuida da visualização)
-      tarefasComHistoria.forEach((tarefa, index) => {
-        data.proximos.push({
-          historia: tarefa.historia,
-          atividade: tarefa.atividade,
-          data: tarefa.data,
-          responsavel: tarefa.responsavel,
-          status: tarefa.status,
-          ordem: index + 1
+      // MARCOS — todos os épicos (fonte: data.processos já populado acima)
+      data.processos.forEach((proc, index) => {
+        const cor = proc.status === 'Concluído' ? 'verde'
+                  : proc.status === 'Em Andamento' || proc.status === 'Em Homologação' ? 'amarelo'
+                  : 'cinza';
+        data.marcos.push({
+          data:   proc.dataFim   || proc.dataInicio || null,
+          marco:  proc.nome,
+          status: proc.status    || '–',
+          cor:    cor,
+          ordem:  index + 1
         });
+      });
+      // RISCOS — histórias ou tarefas bloqueadas
+      data.itens.filter(item => {
+        const tipo    = String(item.tipo || '').toLowerCase().trim();
+        const momento = String(item.momento || '').toUpperCase();
+        const isHistoria = tipo === 'historia' || tipo === 'história' || tipo === 'story';
+        const isTarefa   = tipo === 'tarefa'   || tipo === 'task';
+        return (isHistoria || isTarefa) && momento.includes('BLOQUEADO');
+      }).forEach((item, index) => {
+        data.riscos.push({
+          risco:      'Bloqueio: ' + item.item,
+          descricao:  'Épico: ' + (item.epico || 'N/A') + (item.tipo ? ' • Tipo: ' + item.tipo : ''),
+          impacto:    'Alto',
+          severidade: 'Crítica',
+          ordem:      index + 1
+        });
+      });
+      // PRÓXIMOS PASSOS — histórias (Em Andamento, Homologação, Backlog)
+      // campo 'historia' armazena o épico pai (renomeado na UI para "Épico")
+      const historias = data.itens.filter(item => {
+        const tipo    = String(item.tipo || '').toLowerCase().trim();
+        const momento = String(item.momento || '').toUpperCase().replace(/\s+/g, '');
+        const isHistoria = tipo === 'historia' || tipo === 'história' || tipo === 'story';
+        const isAtivo = momento.includes('EMANDAMENTO') || momento.includes('BACKLOG')
+                     || momento.includes('HOMOLOGAÇÃO')  || momento.includes('HOMOLOGACAO')
+                     || momento.includes('EMHOMOLOGAÇÃO') || momento.includes('EMHOMOLOGACAO');
+        return isHistoria && isAtivo;
+      });
+
+      const historiasOrdenadas = historias.map(h => {
+        const momento = String(h.momento || '').toUpperCase().replace(/\s+/g, '');
+        let status = 'Backlog';
+        if (momento.includes('EMANDAMENTO'))                                                                  status = 'Em Andamento';
+        else if (momento.includes('HOMOLOGAÇÃO') || momento.includes('HOMOLOGACAO') ||
+                 momento.includes('EMHOMOLOGAÇÃO') || momento.includes('EMHOMOLOGACAO'))                      status = 'Em Homologação';
+        return {
+          atividade: h.item,
+          historia:  (h.epico || '-'),   // campo reutilizado para guardar o épico pai
+          data:      h.dataPrevista || h.dataEntrega || null,
+          responsavel: h.responsavel || 'A definir',
+          status,
+          dataObj:   toDate(h.dataPrevista || h.dataEntrega)
+        };
+      }).sort((a, b) => {
+        const ord = { 'Em Andamento': 0, 'Em Homologação': 1, 'Backlog': 2 };
+        const oa = ord[a.status] ?? 3, ob = ord[b.status] ?? 3;
+        if (oa !== ob) return oa - ob;
+        if (a.dataObj && b.dataObj) return a.dataObj - b.dataObj;
+        return a.dataObj ? -1 : b.dataObj ? 1 : 0;
+      });
+
+      historiasOrdenadas.forEach((h, index) => {
+        data.proximos.push({ historia: h.historia, atividade: h.atividade, data: h.data, responsavel: h.responsavel, status: h.status, ordem: index + 1 });
       });
     }
     // Constrói tooltip do semáforo de forma dinâmica baseada nos dados reais.
@@ -6056,7 +5985,7 @@
           ${list.length === 0
             ? '<div style="font-size:10px;color:#94a3b8;font-style:italic;">Nenhuma atividade em andamento</div>'
             : '<table style="width:100%;border-collapse:collapse;font-size:10px;">'
-              + '<thead><tr style="background:#f6f7fb;"><th style="text-align:left;padding:5px 8px;font-size:8px;font-weight:700;color:#64748b;text-transform:uppercase;border-bottom:1px solid #e5e8ef;">História / Sprint</th><th style="text-align:left;padding:5px 8px;font-size:8px;font-weight:700;color:#64748b;text-transform:uppercase;border-bottom:1px solid #e5e8ef;">Atividade</th><th style="text-align:center;padding:5px 8px;font-size:8px;font-weight:700;color:#64748b;text-transform:uppercase;border-bottom:1px solid #e5e8ef;width:70px;">Data</th></tr></thead>'
+              + '<thead><tr style="background:#f6f7fb;"><th style="text-align:left;padding:5px 8px;font-size:8px;font-weight:700;color:#64748b;text-transform:uppercase;border-bottom:1px solid #e5e8ef;">Épico</th><th style="text-align:left;padding:5px 8px;font-size:8px;font-weight:700;color:#64748b;text-transform:uppercase;border-bottom:1px solid #e5e8ef;">Atividade</th><th style="text-align:center;padding:5px 8px;font-size:8px;font-weight:700;color:#64748b;text-transform:uppercase;border-bottom:1px solid #e5e8ef;width:70px;">Data</th></tr></thead>'
               + '<tbody>'
               + list.map((p,i) => `<tr style="${i%2===1?'background:#f9fafb;':''}"><td style="padding:5px 8px;color:#64748b;font-size:9px;border-bottom:1px solid #f1f3f9;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(p.historia||'—')}</td><td style="padding:5px 8px;color:#0f172a;font-weight:500;border-bottom:1px solid #f1f3f9;">${escapeHtml(p.atividade||'—')}</td><td style="padding:5px 8px;text-align:center;color:#1a1f4e;font-weight:700;border-bottom:1px solid #f1f3f9;white-space:nowrap;">${fmtShort(p.data)}</td></tr>`).join('')
               + '</tbody></table>'
@@ -6077,7 +6006,7 @@
           ${list.length === 0
             ? '<div style="font-size:10px;color:#94a3b8;font-style:italic;">Nenhum próximo passo definido</div>'
             : '<table style="width:100%;border-collapse:collapse;font-size:10px;">'
-              + '<thead><tr style="background:#f6f7fb;"><th style="text-align:left;padding:5px 8px;font-size:8px;font-weight:700;color:#64748b;text-transform:uppercase;border-bottom:1px solid #e5e8ef;">História / Sprint</th><th style="text-align:left;padding:5px 8px;font-size:8px;font-weight:700;color:#64748b;text-transform:uppercase;border-bottom:1px solid #e5e8ef;">Atividade</th><th style="text-align:center;padding:5px 8px;font-size:8px;font-weight:700;color:#64748b;text-transform:uppercase;border-bottom:1px solid #e5e8ef;width:70px;">Data</th><th style="text-align:center;padding:5px 8px;font-size:8px;font-weight:700;color:#64748b;text-transform:uppercase;border-bottom:1px solid #e5e8ef;width:90px;">Status</th></tr></thead>'
+              + '<thead><tr style="background:#f6f7fb;"><th style="text-align:left;padding:5px 8px;font-size:8px;font-weight:700;color:#64748b;text-transform:uppercase;border-bottom:1px solid #e5e8ef;">Épico</th><th style="text-align:left;padding:5px 8px;font-size:8px;font-weight:700;color:#64748b;text-transform:uppercase;border-bottom:1px solid #e5e8ef;">Atividade</th><th style="text-align:center;padding:5px 8px;font-size:8px;font-weight:700;color:#64748b;text-transform:uppercase;border-bottom:1px solid #e5e8ef;width:70px;">Data</th><th style="text-align:center;padding:5px 8px;font-size:8px;font-weight:700;color:#64748b;text-transform:uppercase;border-bottom:1px solid #e5e8ef;width:90px;">Status</th></tr></thead>'
               + '<tbody>'
               + list.map((p,i) => `<tr style="${i%2===1?'background:#f9fafb;':''}"><td style="padding:5px 8px;color:#64748b;font-size:9px;border-bottom:1px solid #f1f3f9;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(p.historia||'—')}</td><td style="padding:5px 8px;color:#0f172a;font-weight:500;border-bottom:1px solid #f1f3f9;">${escapeHtml(p.atividade||'—')}</td><td style="padding:5px 8px;text-align:center;color:#1a1f4e;font-weight:700;border-bottom:1px solid #f1f3f9;white-space:nowrap;">${fmtShort(p.data)}</td><td style="padding:5px 8px;text-align:center;border-bottom:1px solid #f1f3f9;">${badge(p.status)}</td></tr>`).join('')
               + '</tbody></table>'
