@@ -6236,6 +6236,7 @@
       let projectsExtraByName = {};
       let projectsMap = {};
       let currentRespFilter = '';  // '' = todos, ou nome do responsável
+      let currentKpiFilter = '';       // '' = todos | 'Em andamento' | 'Concluído' | 'Não iniciado'
       let currentMetaFilter = '';      // '' = todas as metas
       let currentStatusFilter = '';     // '' = todos os status
       let currentDiretoriaFilter = '';  // '' = todas as diretorias
@@ -6727,6 +6728,10 @@
         const st = p.extra ? (p.extra.status || '') : '';
         return st.trim() === currentStatusFilter;
       }
+      function _matchesKpi(p) {
+        if (!currentKpiFilter) return true;
+        return _projetoStatusNorm(p) === currentKpiFilter;
+      }
       function _matchesDiretoria(p) {
         if (!currentDiretoriaFilter) return true;
         const t = String((p.extra && p.extra.diretoria) || '').trim();
@@ -6735,7 +6740,7 @@
       }
       function getFiltered() {
         return Object.values(projectsMap)
-          .filter(p => _matchesResp(p) && _matchesMeta(p) && _matchesSearch(p) && _matchesStatus(p) && _matchesDiretoria(p))
+          .filter(p => _matchesResp(p) && _matchesMeta(p) && _matchesSearch(p) && _matchesStatus(p) && _matchesDiretoria(p) && _matchesKpi(p))
           .sort((a,b) => a.nome.localeCompare(b.nome,'pt-BR'));
       }
 
@@ -6754,18 +6759,41 @@
       }
 
       function updateKpis(filtered) {
-        let andamento=0, concluido=0, bloqueado=0, backlog=0;
-        filtered.forEach(p => {
+        let andamento=0, concluido=0, backlog=0;
+        // Contar sobre TODOS os projetos filtrados pelos outros filtros (exceto kpi)
+        const allExceptKpi = Object.values(projectsMap)
+          .filter(p => _matchesResp(p) && _matchesMeta(p) && _matchesSearch(p) && _matchesStatus(p) && _matchesDiretoria(p));
+        allExceptKpi.forEach(p => {
           const st = _projetoStatusNorm(p);
-          if (st === 'Concluído')     concluido++;
+          if (st === 'Concluído')                            concluido++;
           else if (st === 'Não iniciado' || st === 'Backlog') backlog++;
-          else andamento++; // Em andamento, Homologação, Aguardando, etc
+          else                                               andamento++;
         });
-        document.getElementById('ps-kpi-n-total').textContent = filtered.length;
+        document.getElementById('ps-kpi-n-total').textContent    = allExceptKpi.length;
         document.getElementById('ps-kpi-n-andamento').textContent = andamento;
         document.getElementById('ps-kpi-n-concluido').textContent = concluido;
         document.getElementById('ps-kpi-n-bloqueado').textContent = backlog;
         document.getElementById('ps-counter').textContent = filtered.length + ' projeto' + (filtered.length===1?'':'s');
+        // Refletir filtro ativo nos cards
+        const map = { 'ps-kpi-total':'', 'ps-kpi-andamento':'Em andamento', 'ps-kpi-concluido':'Concluído', 'ps-kpi-bloqueado':'Não iniciado' };
+        Object.entries(map).forEach(([id, val]) => {
+          const el = document.getElementById(id);
+          if (el) el.classList.toggle('active', currentKpiFilter === val);
+        });
+      }
+
+      function _wireKpiFilters() {
+        const map = { 'ps-kpi-total':'', 'ps-kpi-andamento':'Em andamento', 'ps-kpi-concluido':'Concluído', 'ps-kpi-bloqueado':'Não iniciado' };
+        Object.entries(map).forEach(([id, val]) => {
+          const el = document.getElementById(id);
+          if (!el) return;
+          el.style.cursor = 'pointer';
+          el.addEventListener('click', () => {
+            // Toggle: clica no mesmo → limpa filtro
+            currentKpiFilter = (currentKpiFilter === val) ? '' : val;
+            renderAll();
+          });
+        });
       }
 
       // Update resp chip counts (contagem considera todos os outros filtros ativos)
@@ -7103,6 +7131,7 @@
             buildMetas();
             buildStatusChips();
             populateDiretoriaChips();
+            _wireKpiFilters();
             renderAll();
             return;
           }
@@ -7139,6 +7168,7 @@
           buildMetas();
           buildStatusChips();
           populateDiretoriaChips();
+          _wireKpiFilters();
           renderAll();
         } catch(err) {
           console.error('[PS] Erro:', err);
