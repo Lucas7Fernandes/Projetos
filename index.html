@@ -921,8 +921,7 @@
     }
     .gantt-header-right { display: flex; min-width: 600px; }
     .gantt-header-month { 
-      flex: 1; 
-      min-width: 70px; 
+      flex: 0 0 auto;
       padding: 12px 4px; 
       text-align: center; 
       font-size: 10px; 
@@ -931,6 +930,9 @@
       font-weight: 600; 
       border-left: 1px solid rgba(255,255,255,0.1);
       color: rgba(255,255,255,0.9);
+      box-sizing: border-box;
+      overflow: hidden;
+      white-space: nowrap;
     }
     .gantt-header-month:first-child { border-left: none; }
     .gantt-header-month.zoom-quarter,
@@ -3727,25 +3729,45 @@
       const zoomCfg = getZoomConfig(ganttZoomLevel);
       const timelineWidth = Math.max(600, totalDays * zoomCfg.pxPerDay);
       
-      // Renderizar cabeçalho de meses com largura responsiva ao zoom
+      // Renderizar cabeçalho de meses com largura exata por célula
       if (headerMonths) {
         headerMonths.innerHTML = '';
+        headerMonths.style.width    = timelineWidth + 'px';
         headerMonths.style.minWidth = timelineWidth + 'px';
-        headerMonths.style.width = timelineWidth + 'px';
+        headerMonths.style.display  = 'flex';
+
+        // Contar quantos meses entram no range
         let d = new Date(ganttStart.getFullYear(), ganttStart.getMonth(), 1);
         const endMonth = new Date(ganttEnd.getFullYear(), ganttEnd.getMonth(), 1);
+        const monthList = [];
         while (d <= endMonth) {
-          const div = document.createElement('div');
-          div.className = 'gantt-header-month zoom-' + ganttZoomLevel;
-          // No zoom 'year', mostra só ano nos meses pares
-          if (ganttZoomLevel === 'year' && d.getMonth() % 3 !== 0) {
-            div.textContent = '';
-          } else {
-            div.textContent = d.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '').toUpperCase() + '/' + d.getFullYear().toString().slice(-2);
-          }
-          headerMonths.appendChild(div);
+          monthList.push(new Date(d));
           d.setMonth(d.getMonth() + 1);
         }
+
+        // Largura de cada célula = proporção dos dias daquele mês em relação ao total
+        monthList.forEach((m, i) => {
+          const mStart  = new Date(m.getFullYear(), m.getMonth(), 1);
+          const mEnd    = new Date(m.getFullYear(), m.getMonth() + 1, 0);
+          // Clamp ao range do gantt
+          const clipStart = mStart < ganttStart ? ganttStart : mStart;
+          const clipEnd   = mEnd   > ganttEnd   ? ganttEnd   : mEnd;
+          const daysInCell = Math.max(1, Math.round((clipEnd - clipStart) / 86400000) + 1);
+          const cellW = Math.round((daysInCell / totalDays) * timelineWidth);
+
+          const div = document.createElement('div');
+          div.className = 'gantt-header-month zoom-' + ganttZoomLevel;
+          div.style.width    = cellW + 'px';
+          div.style.minWidth = cellW + 'px';
+
+          // Etiqueta: suprimir em ano/semester para evitar sobreposição
+          const showLabel = ganttZoomLevel !== 'year' || m.getMonth() % 3 === 0;
+          div.textContent = showLabel
+            ? m.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '').toUpperCase() + '/' + m.getFullYear().toString().slice(-2)
+            : '';
+
+          headerMonths.appendChild(div);
+        });
       }
       
       grid.innerHTML = '';
