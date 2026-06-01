@@ -7111,7 +7111,7 @@
             populateDiretoriaChips();
             _wireKpiFilters();
             renderAll();
-            PS.initGanttsResize();
+            ProjectSelector.initGanttsResize();
             return;
           }
 
@@ -7149,7 +7149,7 @@
           populateDiretoriaChips();
           _wireKpiFilters();
           renderAll();
-          PS.initGanttsResize();
+          ProjectSelector.initGanttsResize();
         } catch(err) {
           console.error('[PS] Erro:', err);
           showError(err);
