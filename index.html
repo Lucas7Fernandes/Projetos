@@ -6636,9 +6636,9 @@
         const today = new Date(); today.setHours(0,0,0,0);
         const ex = p.extra || {};
 
-        // Projeto concluído → sempre verde
+        // Projeto concluído ou cancelado pela API → sempre verde / ignora
         const statusNorm = _normalizeApiStatus(ex.status || '');
-        if (statusNorm === 'Concluído') return 'verde';
+        if (statusNorm === 'Concluído' || statusNorm === 'Cancelado') return 'verde';
 
         // Projeto atrasado → vermelho
         const dataFimProj = _parsePtDate(ex.dataFim) || _parseFlexDate(ex.dataFim);
@@ -6741,14 +6741,14 @@
 
       // ── KPI strip ─────────────────────────────────────────────────────────
       function _projetoStatusNorm(p) {
-        // Usar StatusProjeto da API como fonte de verdade
+        // StatusProjeto da API é mandante — itens não podem sobrescrever
         const apiStatus = p.extra ? (p.extra.status || '') : '';
         const ns = _normalizeApiStatus(apiStatus);
         if (ns) return ns;
-        // Fallback pelos itens
+        // Fallback somente quando não há dados da API de projetos
         const s = p.stats;
         const naoCancelados = s.total - s.cancelado;
-        if (s.progresso >= 100 || (s.finalizado === naoCancelados && naoCancelados > 0)) return 'Concluído';
+        if (s.finalizado === naoCancelados && naoCancelados > 0) return 'Concluído';
         if (s.bloqueado > 0) return 'Aguardando';
         return 'Em andamento';
       }
@@ -6878,22 +6878,33 @@
           if (ex && ex.dataFim)    { const d = _parseFlexDate(ex.dataFim);    if (d) end=d;   }
           const resp = (ex && ex.responsavel) ? String(ex.responsavel).trim() : s.responsavelPrincipal;
 
-          // Status visual
+          // Status visual — StatusProjeto da API é mandante
           let barClass = 'b-andamento';
           let statusLabel = 'Em andamento';
-          const naoCancelados = s.total - s.cancelado;
-          if (s.progresso >= 100 || (s.finalizado === naoCancelados && naoCancelados > 0)) { barClass='b-concluido'; statusLabel='Concluído'; }
-          else if (s.bloqueado > 0) { barClass='b-backlog'; statusLabel='Bloqueado'; }
-          else if (ex && ex.status) {
-            const ns = _normalizeApiStatus(ex.status);
-            if (ns) { statusLabel=ns; if (ns === 'Não iniciado') barClass='b-nao-iniciado'; }
+          const apiStatus = ex ? _normalizeApiStatus(ex.status || '') : null;
+          if (apiStatus) {
+            // API define tudo
+            statusLabel = apiStatus;
+            if      (apiStatus === 'Concluído')    { barClass = 'b-concluido'; }
+            else if (apiStatus === 'Não iniciado') { barClass = 'b-nao-iniciado'; }
+            else if (apiStatus === 'Cancelado')    { barClass = 'b-cancelado'; }
+            else if (apiStatus === 'Backlog')      { barClass = 'b-backlog'; }
+            // Em andamento, Homologação, Aguardando → b-andamento (padrão)
+          } else {
+            // Fallback pelos itens (quando não há API de projetos)
+            const naoCancelados = s.total - s.cancelado;
+            if (s.progresso >= 100 || (s.finalizado === naoCancelados && naoCancelados > 0)) { barClass='b-concluido'; statusLabel='Concluído'; }
+            else if (s.bloqueado > 0) { barClass='b-backlog'; statusLabel='Bloqueado'; }
           }
-          { const sc = _computeSemaforoCalc(p); if (sc==='vermelho' && barClass!=='b-concluido') barClass='b-risco'; else if (sc==='amarelo' && barClass!=='b-concluido') barClass='b-backlog'; }
+          // Semáforo de atraso — sobrescreve cor exceto para Concluído e Cancelado
+          { const sc = _computeSemaforoCalc(p); const imutavel = barClass==='b-concluido'||barClass==='b-cancelado'; if (!imutavel && sc==='vermelho') barClass='b-risco'; else if (!imutavel && sc==='amarelo') barClass='b-backlog'; }
 
           const left = (start && end) ? pct(start) : 0;
           const right = (start && end) ? pct(end) : 0;
           const width = Math.max(0.5, right - left);
-          const barTxt = width > 6 ? s.progresso + '%' : '';
+          const apiPct = ex && ex.progresso ? parseInt(String(ex.progresso).replace('%','').trim()) : NaN;
+          const pctFinal = !isNaN(apiPct) ? apiPct : s.progresso;
+          const barTxt = width > 6 ? pctFinal + '%' : '';
 
           const metaTag = (ex && ex.meta) ? '<span style="font-size:9px;background:var(--primary-50);color:var(--primary);border:1px solid var(--primary-200);padding:1px 6px;border-radius:4px;font-weight:600;">'+escapeText(String(ex.meta).trim())+'</span>' : '';
 
