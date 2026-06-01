@@ -919,7 +919,7 @@
       z-index: 2;
       color: rgba(255,255,255,0.95);
     }
-    .gantt-header-right { display: flex; min-width: 600px; }
+    .gantt-header-right { display: flex; overflow: hidden; }
     .gantt-header-month { 
       flex: 0 0 auto;
       padding: 12px 4px; 
@@ -2673,7 +2673,7 @@
           <div class="gantt-container">
             <div class="gantt-header">
               <div class="gantt-header-left">ÉPICO/HISTÓRIA</div>
-              <div class="gantt-header-right" id="gantt-header-months"><div class="gantt-header-month">--</div></div>
+              <div class="gantt-header-right" id="gantt-header-right"><div id="gantt-header-months" style="display:flex;height:100%;"><div class="gantt-header-month">--</div></div></div>
             </div>
             <div class="gantt-grid" id="gantt-grid"><div style="padding:20px;text-align:center;color:var(--text-muted);">Aguardando dados...</div></div>
           </div>
@@ -3786,9 +3786,11 @@
         }
       });
       
-      // Sincronizar largura do header-right + todas as lanes com timelineWidth
-      const headerRight = document.getElementById('gantt-header-months')?.parentElement;
+      // Sincronizar largura do header-right (fundo escuro), months container e todas as lanes
+      const headerRight = document.getElementById('gantt-header-right');
       if (headerRight) { headerRight.style.width = timelineWidth + 'px'; headerRight.style.minWidth = timelineWidth + 'px'; }
+      const headerMonthsEl = document.getElementById('gantt-header-months');
+      if (headerMonthsEl) { headerMonthsEl.style.width = timelineWidth + 'px'; headerMonthsEl.style.minWidth = timelineWidth + 'px'; }
       grid.querySelectorAll('.gantt-row-right').forEach(rr => {
         rr.style.width = timelineWidth + 'px';
         rr.style.minWidth = timelineWidth + 'px';
