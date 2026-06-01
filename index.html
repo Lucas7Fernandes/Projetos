@@ -6193,7 +6193,7 @@
         const preferred = getPreferredStrategy();
         if (preferred >= 0) {
           try {
-            const json = await tryOneProxy(FETCH_STRATEGIES[preferred], targetUrl, 18000);
+            const json = await tryOneProxy(FETCH_STRATEGIES[preferred], targetUrl, 14000);
             console.log('[PS] ✓ (preferred)', FETCH_STRATEGIES[preferred].name, contextLabel);
             markProxyOk(FETCH_STRATEGIES[preferred].name);
             return json;
@@ -6209,7 +6209,7 @@
           for (const strat of FETCH_STRATEGIES) {
             if (contextLabel) updateLoadingStep(contextLabel, strat.name, attempt);
             try {
-              const json = await tryOneProxy(strat, targetUrl, 18000);
+              const json = await tryOneProxy(strat, targetUrl, 14000);
               console.log('[PS] ✓', strat.name, contextLabel, 'tentativa', attempt);
               savePreferredStrategy(strat.name);
               markProxyOk(strat.name);
@@ -6222,7 +6222,7 @@
           }
           if (attempt === 1) {
             // Pequena pausa antes do segundo round
-            await new Promise(res => setTimeout(res, 1500));
+            await new Promise(res => setTimeout(res, 400));
             if (contextLabel) updateLoadingStep(contextLabel, 'retry', 2);
           }
         }
@@ -7054,7 +7054,7 @@
       // ── Cache local (10 min) ──────────────────────────────────────────────────
       const CACHE_KEY_ITENS     = 'goobee_itens_v2';
       const CACHE_KEY_PROJETOS  = 'goobee_projetos_v2';
-      const CACHE_TTL_MS        = 10 * 60 * 1000; // 10 minutos
+      const CACHE_TTL_MS        = 30 * 60 * 1000; // 30 minutos
 
       function _cacheGet(key) {
         try {
@@ -7096,36 +7096,33 @@
             return;
           }
 
-          // 1) ListarProjetos
-          updateLoadingMsg('Carregando lista de projetos...');
-          let projetosOk = false;
-          try {
-            const raw = await fetchUrl(API_PROJETOS_URL, 'Projetos');
-            const list = Array.isArray(raw) ? raw
-              : Array.isArray(raw && raw.data) ? raw.data
-              : Array.isArray(raw && raw.projetos) ? raw.projetos : [];
+          // Disparar ambas as chamadas em paralelo
+          updateLoadingMsg('Carregando projetos e itens em paralelo...');
+          const [rawProjetos, rawItens] = await Promise.all([
+            fetchUrl(API_PROJETOS_URL, 'Projetos').catch(e => { console.error('[PS] ListarProjetos FALHOU:', e.message); return null; }),
+            fetchUrl(API_URL,          'Itens').catch(e => { throw e; })
+          ]);
+
+          // Processar Projetos
+          if (rawProjetos) {
+            const list = Array.isArray(rawProjetos) ? rawProjetos
+              : Array.isArray(rawProjetos && rawProjetos.data) ? rawProjetos.data
+              : Array.isArray(rawProjetos && rawProjetos.projetos) ? rawProjetos.projetos : [];
             projectsApiList = list;
             _cacheSet(CACHE_KEY_PROJETOS, list);
             buildProjectsExtraByName();
-            projetosOk = true;
             console.log('[PS] ListarProjetos OK:', list.length);
-          } catch(e) {
-            console.error('[PS] ListarProjetos FALHOU:', e.message);
+          } else {
             projectsApiList = [];
-          }
-
-          // 2) ExportarQuadroExcel
-          updateLoadingMsg('Carregando itens do quadro...');
-          const raw = await fetchUrl(API_URL, 'Itens');
-          if (!Array.isArray(raw)) throw new Error('ExportarQuadroExcel não retornou array');
-          allItems = raw;
-          _cacheSet(CACHE_KEY_ITENS, raw);
-          console.log('[PS] ExportarQuadroExcel OK:', allItems.length, 'itens');
-
-          if (!projetosOk) {
             showError(new Error('Lista de projetos não carregou. Tente novamente.'));
             return;
           }
+
+          // Processar Itens
+          if (!Array.isArray(rawItens)) throw new Error('ExportarQuadroExcel não retornou array');
+          allItems = rawItens;
+          _cacheSet(CACHE_KEY_ITENS, rawItens);
+          console.log('[PS] ExportarQuadroExcel OK:', allItems.length, 'itens');
 
           buildProjectsMap();
           buildMetas();
