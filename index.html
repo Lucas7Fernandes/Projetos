@@ -3411,16 +3411,16 @@
         
         data.processos.push({ id: 'E' + (index + 1), nome: epico.nome, status: statusMapeado, dataInicio: dataInicio, dataFim: dataFim, progresso: progresso, ordem: index + 1, historias: historias });
       });
-      // MARCOS — todos os épicos (fonte: data.processos já populado acima)
+      // MARCOS — apenas épicos Concluídos ou Finalizados
       data.processos.forEach((proc, index) => {
-        const cor = proc.status === 'Concluído' ? 'verde'
-                  : proc.status === 'Em Andamento' || proc.status === 'Em Homologação' ? 'amarelo'
-                  : 'cinza';
+        const s = (proc.status || '').toLowerCase().replace(/\s+/g, '');
+        const isConcluido = s.includes('conclu') || s.includes('finaliz');
+        if (!isConcluido) return;
         data.marcos.push({
           data:   proc.dataFim   || proc.dataInicio || null,
           marco:  proc.nome,
           status: proc.status    || '–',
-          cor:    cor,
+          cor:    'verde',
           ordem:  index + 1
         });
       });
@@ -4206,11 +4206,11 @@
     
     function renderNextSteps(steps) {
       // Separar atividades em dois grupos:
-      // - "O que estamos fazendo" → Em Andamento + Em Homologação
-      // - "Próximos Passos" → apenas Backlog
+      // - "O que estamos fazendo" → apenas Em Andamento
+      // - "Próximos Passos" → Em Homologação + Backlog
       const all = Array.isArray(steps) ? steps : [];
-      _blockCache.andamento = all.filter(s => s && (s.status === 'Em Andamento' || s.status === 'Em Homologação'));
-      _blockCache.proximos  = all.filter(s => s && s.status !== 'Em Andamento' && s.status !== 'Em Homologação');
+      _blockCache.andamento = all.filter(s => s && s.status === 'Em Andamento');
+      _blockCache.proximos  = all.filter(s => s && s.status !== 'Em Andamento');
       _renderActivityFromCache('andamento');
       _renderActivityFromCache('proximos');
     }
