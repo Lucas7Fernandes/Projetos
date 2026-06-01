@@ -2599,7 +2599,7 @@
         </div>
         <div class="next-steps-container">
           <table>
-            <thead><tr><th>Épico</th><th>Atividade</th><th>Data Prevista</th><th>Responsável</th><th>Status</th></tr></thead>
+            <thead><tr><th>Épico</th><th>Atividade</th><th>Início</th><th>Fim</th><th>Responsável</th><th>Status</th></tr></thead>
             <tbody id="andamento-body"><tr><td colspan="5" style="text-align:center;color:var(--text-muted);">Aguardando dados...</td></tr></tbody>
           </table>
         </div>
@@ -3459,12 +3459,13 @@
         else if (momento.includes('HOMOLOGAÇÃO') || momento.includes('HOMOLOGACAO') ||
                  momento.includes('EMHOMOLOGAÇÃO') || momento.includes('EMHOMOLOGACAO'))                      status = 'Em Homologação';
         return {
-          atividade: h.item,
-          historia:  (h.epico || '-'),   // campo reutilizado para guardar o épico pai
-          data:      h.dataPrevista || h.dataEntrega || null,
+          atividade:  h.item,
+          historia:   (h.epico || '-'),   // campo reutilizado para guardar o épico pai
+          dataInicio: h.dataInicio || null,
+          data:       h.dataPrevista || h.dataEntrega || null,
           responsavel: h.responsavel || 'A definir',
           status,
-          dataObj:   toDate(h.dataPrevista || h.dataEntrega)
+          dataObj:    toDate(h.dataPrevista || h.dataEntrega)
         };
       }).sort((a, b) => {
         const ord = { 'Em Andamento': 0, 'Em Homologação': 1, 'Backlog': 2 };
@@ -4221,6 +4222,7 @@
       const emptyMsg = block === 'andamento' ? 'Nenhuma atividade em andamento' : 'Nenhum próximo passo definido';
       
       _renderActivityTable({
+        block,
         tbody: document.getElementById(tbodyId),
         counter: document.getElementById(counterId),
         rows: _blockCache[block] || [],
@@ -4249,7 +4251,7 @@
       }
       
       if (!total) { 
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);">' + (opts.emptyMsg || 'Nenhum item') + '</td></tr>'; 
+        tbody.innerHTML = '<tr><td colspan="' + (opts.block === 'andamento' ? 6 : 5) + '" style="text-align:center;color:var(--text-muted);">' + (opts.emptyMsg || 'Nenhum item') + '</td></tr>'; 
         return; 
       }
       
@@ -4273,7 +4275,11 @@
         
         const dateClass = isOverdue ? 'date-overdue' : '';
         
-        tr.innerHTML = '<td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="' + (s.historia || '-') + '">' + (s.historia || '-') + '</td><td>' + (s.atividade || '') + '</td><td class="' + dateClass + '"><strong>' + (formatDate(s.data) || '-') + '</strong></td><td>' + (s.responsavel || '') + '</td><td><span class="badge ' + statusClass + '"><span class="dot"></span>' + (s.status || '') + '</span></td>';
+        const isAndamento = opts.block === 'andamento';
+        const tdInicio = isAndamento
+          ? '<td>' + (formatDate(s.dataInicio) || '-') + '</td>'
+          : '';
+        tr.innerHTML = '<td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="' + (s.historia || '-') + '">' + (s.historia || '-') + '</td><td>' + (s.atividade || '') + '</td>' + tdInicio + '<td class="' + dateClass + '"><strong>' + (formatDate(s.data) || '-') + '</strong></td><td>' + (s.responsavel || '') + '</td><td><span class="badge ' + statusClass + '"><span class="dot"></span>' + (s.status || '') + '</span></td>';
         tbody.appendChild(tr);
       });
     }
