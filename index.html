@@ -897,9 +897,10 @@
     
     .gantt-wrapper { overflow-x: auto; position: relative; }
     .gantt-container { min-width: 100%; width: max-content; }
+    :root { --gantt-left: 280px; --ps-gantt-left: 260px; }
     .gantt-header { 
       display: grid; 
-      grid-template-columns: 280px minmax(600px, 1fr); 
+      grid-template-columns: var(--gantt-left) minmax(600px, 1fr); 
       background: var(--gradient-primary-dark);
       color: white;
       box-shadow: 0 1px 0 rgba(0,0,0,0.05);
@@ -938,7 +939,7 @@
     .gantt-grid { background: white; }
     .gantt-row { 
       display: grid; 
-      grid-template-columns: 280px minmax(600px, 1fr); 
+      grid-template-columns: var(--gantt-left) minmax(600px, 1fr); 
       align-items: stretch; 
       min-height: 56px; 
       border-top: 1px solid var(--border);
@@ -959,7 +960,21 @@
       background: inherit;
       z-index: 1; 
       border-right: 1px solid var(--border);
+      overflow: hidden;
     }
+    .gantt-resize-handle {
+      position: absolute; right: -4px; top: 0; bottom: 0; width: 8px;
+      cursor: col-resize; z-index: 20; background: transparent;
+      transition: background .15s;
+    }
+    .gantt-resize-handle:hover, .gantt-resize-handle.dragging { background: rgba(26,31,78,.18); border-radius: 2px; }
+    .ps-gantt-row-left { overflow: hidden; }
+    .ps-gantt-resize-handle {
+      position: absolute; right: -4px; top: 0; bottom: 0; width: 8px;
+      cursor: col-resize; z-index: 20; background: transparent;
+      transition: background .15s;
+    }
+    .ps-gantt-resize-handle:hover, .ps-gantt-resize-handle.dragging { background: rgba(255,255,255,.25); border-radius: 2px; }
     .gantt-row.historia-row .gantt-row-left { padding-left: 32px; background: inherit; }
     .process-title { 
       font-size: 12px; 
@@ -1956,11 +1971,11 @@
     /* === GANTT DA TELA INICIAL === */
     .ps-gantt-section { padding:0 32px 20px; max-width:1280px; margin:0 auto; }
     .ps-gantt-card { background:white; border:1px solid var(--border); border-radius:14px; overflow:hidden; box-shadow:var(--shadow-sm); }
-    .ps-gantt-header { background:var(--gradient-primary-dark); color:white; padding:12px 16px; display:grid; grid-template-columns:260px 1fr; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; overflow:visible; }
+    .ps-gantt-header { background:var(--gradient-primary-dark); color:white; padding:12px 16px; display:grid; grid-template-columns:var(--ps-gantt-left) 1fr; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; overflow:visible; }
     .ps-gantt-header-months { display:flex; min-width:400px; position:relative; overflow:visible; }
     .ps-gantt-header-month { flex:1; min-width:48px; text-align:center; border-left:1px solid rgba(255,255,255,.1); font-size:9px; padding:0 2px; color:rgba(255,255,255,.85); }
     .ps-gantt-header-month:first-child { border-left:none; }
-    .ps-gantt-row { display:grid; grid-template-columns:260px 1fr; min-height:52px; border-top:1px solid var(--border); align-items:center; transition:background var(--tr-fast); }
+    .ps-gantt-row { display:grid; grid-template-columns:var(--ps-gantt-left) 1fr; min-height:52px; border-top:1px solid var(--border); align-items:center; transition:background var(--tr-fast); }
     .ps-gantt-row:first-child { border-top:none; }
     .ps-gantt-row:hover { background:var(--primary-50); }
     .ps-gantt-row-left { padding:10px 14px; border-right:1px solid var(--border); cursor:pointer; }
@@ -3820,14 +3835,20 @@
         }
       });
       
-      // Aplicar largura também nas lanes
+      // Sincronizar largura do header-right + todas as lanes com timelineWidth
+      const headerRight = document.getElementById('gantt-header-months')?.parentElement;
+      if (headerRight) { headerRight.style.width = timelineWidth + 'px'; headerRight.style.minWidth = timelineWidth + 'px'; }
       grid.querySelectorAll('.gantt-row-right').forEach(rr => {
+        rr.style.width = timelineWidth + 'px';
         rr.style.minWidth = timelineWidth + 'px';
       });
       
       // Adicionar linha de hoje em cada lane
       addTodayLines(ganttStart, totalDays);
       
+      // Inicializar resize da coluna esquerda (idempotente)
+      if (typeof initReportGanttResize === 'function') initReportGanttResize();
+
       // Print table
       const printBody = document.getElementById('gantt-print-body');
       if (printBody) {
@@ -3870,6 +3891,34 @@
     }
     
     // GANTT 2.0: Mudar zoom
+    function initReportGanttResize() {
+      const headerLeft = document.querySelector('.gantt-header-left');
+      if (!headerLeft || headerLeft.querySelector('.gantt-resize-handle')) return;
+      headerLeft.style.position = 'relative';
+      const h = document.createElement('div');
+      h.className = 'gantt-resize-handle';
+      headerLeft.appendChild(h);
+      let dragging = false, startX = 0, startW = 0;
+      h.addEventListener('mousedown', e => {
+        dragging = true; startX = e.clientX;
+        startW = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--gantt-left')) || 280;
+        h.classList.add('dragging');
+        document.body.style.cursor = 'col-resize';
+        document.body.style.userSelect = 'none';
+        e.preventDefault();
+      });
+      document.addEventListener('mousemove', e => {
+        if (!dragging) return;
+        const nw = Math.max(160, Math.min(480, startW + e.clientX - startX));
+        document.documentElement.style.setProperty('--gantt-left', nw + 'px');
+      });
+      document.addEventListener('mouseup', () => {
+        if (!dragging) return; dragging = false;
+        h.classList.remove('dragging');
+        document.body.style.cursor = ''; document.body.style.userSelect = '';
+      });
+    }
+
     function setGanttZoom(level) {
       ganttZoomLevel = level;
       document.querySelectorAll('.gantt-zoom-btn').forEach(b => {
@@ -7133,6 +7182,7 @@
             populateDiretoriaChips();
             _wireKpiFilters();
             renderAll();
+            PS.initGanttsResize();
             return;
           }
 
@@ -7170,6 +7220,7 @@
           populateDiretoriaChips();
           _wireKpiFilters();
           renderAll();
+          PS.initGanttsResize();
         } catch(err) {
           console.error('[PS] Erro:', err);
           showError(err);
@@ -7545,7 +7596,45 @@
         loadFromApi();
       }
 
-      return { init, loadFromApi, openMetaModal };
+      // ── Resize handles para colunas de nomes dos Gantts ───────────────────────
+      function _initResizeHandle(handleEl, cssVar, minPx, maxPx) {
+        let dragging = false, startX = 0, startW = 0;
+        handleEl.addEventListener('mousedown', e => {
+          dragging = true;
+          startX = e.clientX;
+          startW = parseFloat(getComputedStyle(document.documentElement).getPropertyValue(cssVar)) || minPx;
+          handleEl.classList.add('dragging');
+          document.body.style.cursor = 'col-resize';
+          document.body.style.userSelect = 'none';
+          e.preventDefault();
+        });
+        document.addEventListener('mousemove', e => {
+          if (!dragging) return;
+          const nw = Math.max(minPx, Math.min(maxPx, startW + e.clientX - startX));
+          document.documentElement.style.setProperty(cssVar, nw + 'px');
+        });
+        document.addEventListener('mouseup', () => {
+          if (!dragging) return;
+          dragging = false;
+          handleEl.classList.remove('dragging');
+          document.body.style.cursor = '';
+          document.body.style.userSelect = '';
+        });
+      }
+
+      function initGanttsResize() {
+        // Portfolio Gantt (ps-gantt-header-label)
+        const psHeaderLabel = document.getElementById('ps-gantt-header')?.querySelector('.ps-gantt-header-label');
+        if (psHeaderLabel && !psHeaderLabel.querySelector('.ps-gantt-resize-handle')) {
+          psHeaderLabel.style.position = 'relative';
+          const h = document.createElement('div');
+          h.className = 'ps-gantt-resize-handle';
+          psHeaderLabel.appendChild(h);
+          _initResizeHandle(h, '--ps-gantt-left', 140, 480);
+        }
+      }
+
+      return { init, loadFromApi, openMetaModal, initGanttsResize };
     })();
 
     // Expor globalmente para debug/integração (não é API pública)
