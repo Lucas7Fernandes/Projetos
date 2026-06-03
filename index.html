@@ -3478,7 +3478,7 @@
       });
 
       historiasOrdenadas.forEach((h, index) => {
-        data.proximos.push({ historia: h.historia, atividade: h.atividade, data: h.data, responsavel: h.responsavel, status: h.status, ordem: index + 1 });
+        data.proximos.push({ historia: h.historia, atividade: h.atividade, dataInicio: h.dataInicio, data: h.data, responsavel: h.responsavel, status: h.status, ordem: index + 1 });
       });
     }
     // Constrói tooltip do semáforo de forma dinâmica baseada nos dados reais.
