@@ -2617,7 +2617,7 @@
         </div>
         <div class="next-steps-container">
           <table>
-            <thead><tr><th>Épico</th><th>Atividade</th><th>Data Prevista</th><th>Responsável</th><th>Status</th></tr></thead>
+            <thead><tr><th>Épico</th><th>Atividade</th><th>Prev. Conclusão</th><th>Responsável</th><th>Status</th></tr></thead>
             <tbody id="next-steps-body"><tr><td colspan="5" style="text-align:center;color:var(--text-muted);">Aguardando dados...</td></tr></tbody>
           </table>
         </div>
@@ -3458,14 +3458,16 @@
         if (momento.includes('EMANDAMENTO'))                                                                  status = 'Em Andamento';
         else if (momento.includes('HOMOLOGAÇÃO') || momento.includes('HOMOLOGACAO') ||
                  momento.includes('EMHOMOLOGAÇÃO') || momento.includes('EMHOMOLOGACAO'))                      status = 'Em Homologação';
+        const diRaw = h.dataInicio || null;
+        const ddRaw = h.dataPrevista || h.dataEntrega || null;
         return {
           atividade:  h.item,
-          historia:   (h.epico || '-'),   // campo reutilizado para guardar o épico pai
-          dataInicio: h.dataInicio || null,
-          data:       h.dataPrevista || h.dataEntrega || null,
+          historia:   (h.epico || '-'),
+          dataInicio: diRaw ? (toDate(diRaw) ? toDate(diRaw).toLocaleDateString('pt-BR') : diRaw) : null,
+          data:       ddRaw ? (toDate(ddRaw) ? toDate(ddRaw).toLocaleDateString('pt-BR') : ddRaw) : null,
           responsavel: h.responsavel || 'A definir',
           status,
-          dataObj:    toDate(h.dataPrevista || h.dataEntrega)
+          dataObj:    toDate(ddRaw)
         };
       }).sort((a, b) => {
         const ord = { 'Em Andamento': 0, 'Em Homologação': 1, 'Backlog': 2 };
@@ -6015,9 +6017,9 @@
           ${list.length === 0
             ? '<div style="font-size:10px;color:#94a3b8;font-style:italic;">Nenhuma atividade em andamento</div>'
             : '<table style="width:100%;border-collapse:collapse;font-size:10px;">'
-              + '<thead><tr style="background:#f6f7fb;"><th style="text-align:left;padding:5px 8px;font-size:8px;font-weight:700;color:#64748b;text-transform:uppercase;border-bottom:1px solid #e5e8ef;">Épico</th><th style="text-align:left;padding:5px 8px;font-size:8px;font-weight:700;color:#64748b;text-transform:uppercase;border-bottom:1px solid #e5e8ef;">Atividade</th><th style="text-align:center;padding:5px 8px;font-size:8px;font-weight:700;color:#64748b;text-transform:uppercase;border-bottom:1px solid #e5e8ef;width:70px;">Data</th></tr></thead>'
+              + '<thead><tr style="background:#f6f7fb;"><th style="text-align:left;padding:5px 8px;font-size:8px;font-weight:700;color:#64748b;text-transform:uppercase;border-bottom:1px solid #e5e8ef;">Épico</th><th style="text-align:left;padding:5px 8px;font-size:8px;font-weight:700;color:#64748b;text-transform:uppercase;border-bottom:1px solid #e5e8ef;">Atividade</th><th style="text-align:center;padding:5px 8px;font-size:8px;font-weight:700;color:#64748b;text-transform:uppercase;border-bottom:1px solid #e5e8ef;width:65px;">Início</th><th style="text-align:center;padding:5px 8px;font-size:8px;font-weight:700;color:#64748b;text-transform:uppercase;border-bottom:1px solid #e5e8ef;width:65px;">Fim</th></tr></thead>'
               + '<tbody>'
-              + list.map((p,i) => `<tr style="${i%2===1?'background:#f9fafb;':''}"><td style="padding:5px 8px;color:#64748b;font-size:9px;border-bottom:1px solid #f1f3f9;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(p.historia||'—')}</td><td style="padding:5px 8px;color:#0f172a;font-weight:500;border-bottom:1px solid #f1f3f9;">${escapeHtml(p.atividade||'—')}</td><td style="padding:5px 8px;text-align:center;color:#1a1f4e;font-weight:700;border-bottom:1px solid #f1f3f9;white-space:nowrap;">${fmtShort(p.data)}</td></tr>`).join('')
+              + list.map((p,i) => `<tr style="${i%2===1?'background:#f9fafb;':''}"><td style="padding:5px 8px;color:#64748b;font-size:9px;border-bottom:1px solid #f1f3f9;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(p.historia||'—')}</td><td style="padding:5px 8px;color:#0f172a;font-weight:500;border-bottom:1px solid #f1f3f9;">${escapeHtml(p.atividade||'—')}</td><td style="padding:5px 8px;text-align:center;color:#1a1f4e;font-weight:700;border-bottom:1px solid #f1f3f9;white-space:nowrap;">${fmtShort(p.dataInicio)}</td><td style="padding:5px 8px;text-align:center;color:#1a1f4e;font-weight:700;border-bottom:1px solid #f1f3f9;white-space:nowrap;">${fmtShort(p.data)}</td></tr>`).join('')
               + '</tbody></table>'
           }
         </div>`;
@@ -6036,7 +6038,7 @@
           ${list.length === 0
             ? '<div style="font-size:10px;color:#94a3b8;font-style:italic;">Nenhum próximo passo definido</div>'
             : '<table style="width:100%;border-collapse:collapse;font-size:10px;">'
-              + '<thead><tr style="background:#f6f7fb;"><th style="text-align:left;padding:5px 8px;font-size:8px;font-weight:700;color:#64748b;text-transform:uppercase;border-bottom:1px solid #e5e8ef;">Épico</th><th style="text-align:left;padding:5px 8px;font-size:8px;font-weight:700;color:#64748b;text-transform:uppercase;border-bottom:1px solid #e5e8ef;">Atividade</th><th style="text-align:center;padding:5px 8px;font-size:8px;font-weight:700;color:#64748b;text-transform:uppercase;border-bottom:1px solid #e5e8ef;width:70px;">Data</th><th style="text-align:center;padding:5px 8px;font-size:8px;font-weight:700;color:#64748b;text-transform:uppercase;border-bottom:1px solid #e5e8ef;width:90px;">Status</th></tr></thead>'
+              + '<thead><tr style="background:#f6f7fb;"><th style="text-align:left;padding:5px 8px;font-size:8px;font-weight:700;color:#64748b;text-transform:uppercase;border-bottom:1px solid #e5e8ef;">Épico</th><th style="text-align:left;padding:5px 8px;font-size:8px;font-weight:700;color:#64748b;text-transform:uppercase;border-bottom:1px solid #e5e8ef;">Atividade</th><th style="text-align:center;padding:5px 8px;font-size:8px;font-weight:700;color:#64748b;text-transform:uppercase;border-bottom:1px solid #e5e8ef;width:80px;">Prev. Conclusão</th><th style="text-align:center;padding:5px 8px;font-size:8px;font-weight:700;color:#64748b;text-transform:uppercase;border-bottom:1px solid #e5e8ef;width:90px;">Status</th></tr></thead>'
               + '<tbody>'
               + list.map((p,i) => `<tr style="${i%2===1?'background:#f9fafb;':''}"><td style="padding:5px 8px;color:#64748b;font-size:9px;border-bottom:1px solid #f1f3f9;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(p.historia||'—')}</td><td style="padding:5px 8px;color:#0f172a;font-weight:500;border-bottom:1px solid #f1f3f9;">${escapeHtml(p.atividade||'—')}</td><td style="padding:5px 8px;text-align:center;color:#1a1f4e;font-weight:700;border-bottom:1px solid #f1f3f9;white-space:nowrap;">${fmtShort(p.data)}</td><td style="padding:5px 8px;text-align:center;border-bottom:1px solid #f1f3f9;">${badge(p.status)}</td></tr>`).join('')
               + '</tbody></table>'
