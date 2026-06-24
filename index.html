@@ -2465,7 +2465,214 @@
     .kb-modal-cell { background:var(--bg); border-radius:var(--radius-sm); padding:11px; border:1px solid var(--border); }
     .kb-modal-lbl { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--text-muted); margin-bottom:6px; }
     .kb-modal-desc { background:var(--bg); border-radius:var(--radius-sm); padding:13px; font-size:12px; color:var(--text-secondary); line-height:1.65; margin-bottom:18px; border:1px solid var(--border); }
-    .kb-waiting { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:60px 20px; gap:14px; flex:1; color:var(--text-muted); text-align:center; }
+
+    /* ════════════════════════ KANBAN KPI STRIP ═══════════════════════ */
+    .kb-kpi-strip {
+      display: flex; gap: 8px;
+      padding: 8px 32px;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      overflow-x: auto;
+      flex-shrink: 0;
+    }
+    .kb-kpi-strip::-webkit-scrollbar { height: 3px; }
+    .kb-kpi {
+      flex: 1; min-width: 130px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 8px 12px;
+      display: flex; align-items: center; gap: 9px;
+      transition: all var(--tr-fast);
+    }
+    .kb-kpi-icon {
+      width: 28px; height: 28px;
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; flex-shrink: 0;
+    }
+    .kb-kpi-body { display: flex; flex-direction: column; min-width: 0; }
+    .kb-kpi-value { font-size: 15px; font-weight: 800; color: var(--text-main); line-height: 1.1; letter-spacing: -.02em; }
+    .kb-kpi-label { font-size: 9px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .04em; margin-top: 1px; }
+    .kb-kpi-sub { font-size: 9px; color: var(--text-muted); margin-top: 1px; }
+    .kb-kpi.k-total .kb-kpi-icon  { background:rgba(26,31,78,.08);  color:var(--primary); }
+    .kb-kpi.k-late  .kb-kpi-icon  { background:rgba(220,38,38,.1);  color:var(--red); }
+    .kb-kpi.k-soon  .kb-kpi-icon  { background:rgba(217,119,6,.1);  color:var(--yellow); }
+    .kb-kpi.k-doing .kb-kpi-icon  { background:rgba(59,130,246,.1); color:#3B82F6; }
+    .kb-kpi.k-norep .kb-kpi-icon  { background:rgba(100,116,139,.1); color:var(--text-muted); }
+    .kb-kpi.k-done  .kb-kpi-icon  { background:rgba(22,163,74,.1);  color:var(--green); }
+    .kb-kpi.k-late .kb-kpi-value  { color: var(--red); }
+    .kb-kpi.k-soon .kb-kpi-value  { color: var(--yellow); }
+    .kb-kpi.k-done .kb-kpi-value  { color: var(--green); }
+
+    /* ═══════════════════ QUICK FILTERS ═══════════════════ */
+    .kb-quick-bar {
+      display: flex; align-items: center; gap: 8px;
+      padding: 6px 32px;
+      background: var(--bg-elevated);
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap; flex-shrink: 0;
+    }
+    .kb-quick-lbl {
+      font-size: 9px; font-weight: 700; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: .06em; margin-right: 2px;
+    }
+    .kb-quick {
+      background: var(--bg);
+      border: 1px solid var(--border-strong);
+      color: var(--text-secondary);
+      font-size: 11px; font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-family: inherit;
+      display: inline-flex; align-items: center; gap: 5px;
+      transition: all var(--tr-fast);
+    }
+    .kb-quick:hover { background: var(--primary-50); border-color: var(--primary-200); }
+    .kb-quick.active {
+      background: var(--primary); color: white; border-color: var(--primary);
+    }
+    .kb-quick-cnt {
+      background: rgba(255,255,255,.25);
+      font-size: 10px; font-weight: 800;
+      padding: 1px 5px; border-radius: 7px; min-width: 14px; text-align: center;
+    }
+    .kb-quick:not(.active) .kb-quick-cnt {
+      background: var(--bg-elevated); color: var(--text-muted);
+    }
+    .kb-group-toggle {
+      margin-left: auto;
+      display: flex; align-items: center; gap: 5px;
+      font-size: 10px; color: var(--text-muted);
+    }
+    .kb-group-btn {
+      background: var(--bg);
+      border: 1px solid var(--border-strong);
+      color: var(--text-muted);
+      font-size: 10px; font-weight: 600;
+      padding: 4px 9px; border-radius: 5px; cursor: pointer;
+      font-family: inherit; transition: all var(--tr-fast);
+    }
+    .kb-group-btn:hover { background: var(--primary-50); color: var(--primary); }
+    .kb-group-btn.active { background: rgba(26,31,78,.08); border-color: rgba(26,31,78,.25); color: var(--primary); }
+
+    /* ═══════════════════ A VENCER (3 dias) ═══════════════════ */
+    .kanban-card.kb-card-vencendo { background: #fefce8; }
+    .kanban-card.kb-card-vencendo:hover { background: #fef9c3; box-shadow: 0 4px 10px rgba(217,119,6,.15); }
+    .kanban-card.kb-card-vencendo .kanban-card-date { color: #a16207; font-weight: 700; }
+
+    /* ═══════════════════ CARD: aging + sem responsável + tipo ═══════════════════ */
+    .kb-card-flags {
+      position: absolute; top: 8px; right: 8px;
+      display: flex; gap: 3px;
+    }
+    .kanban-card { position: relative; }
+    .kb-flag {
+      font-size: 9px; padding: 1px 5px; border-radius: 3px;
+      font-weight: 700; line-height: 1.4;
+    }
+    .kb-flag-norep { background: rgba(100,116,139,.15); color: var(--text-muted); }
+    .kb-flag-aging { background: rgba(217,119,6,.12); color: #a16207; }
+    .kb-flag-tipo { background: rgba(26,31,78,.07); color: var(--primary); }
+
+    /* ═══════════════════ WIP ALERT ═══════════════════ */
+    .kanban-col-cnt.kb-wip-high {
+      background: rgba(217,119,6,.1); color: var(--yellow);
+      border-color: rgba(217,119,6,.3);
+    }
+    .kanban-col-cnt.kb-wip-critical {
+      background: rgba(220,38,38,.1); color: var(--red);
+      border-color: rgba(220,38,38,.3);
+      animation: kbPulse 2s ease-in-out infinite;
+    }
+    @keyframes kbPulse {
+      0%, 100% { transform: scale(1); }
+      50%      { transform: scale(1.06); }
+    }
+
+    /* ═══════════════════ COLUNA: ver todos / coletivo ═══════════════════ */
+    .kb-col-toggle-all {
+      display: block; width: 100%;
+      background: transparent; border: 1px dashed var(--border-strong);
+      color: var(--text-muted); font-size: 10px; font-weight: 600;
+      padding: 6px 8px; border-radius: var(--radius-sm); cursor: pointer;
+      font-family: inherit; margin-top: 4px;
+      transition: all var(--tr-fast);
+    }
+    .kb-col-toggle-all:hover { background: var(--bg); color: var(--text-secondary); }
+
+    /* ═══════════════════ SWIMLANES ═══════════════════ */
+    .kanban-board.kb-grouped {
+      flex-direction: column; gap: 14px;
+      overflow-y: auto;
+    }
+    .kb-swimlane {
+      display: flex; flex-direction: column;
+      background: var(--bg-elevated);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .kb-swimlane-head {
+      padding: 9px 14px;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 10px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .kb-swimlane-head:hover { background: var(--primary-50); }
+    .kb-swimlane-name { font-size: 12px; font-weight: 700; color: var(--text-main); flex: 1; }
+    .kb-swimlane-stats {
+      display: flex; gap: 6px;
+      font-size: 10px; color: var(--text-muted);
+    }
+    .kb-swimlane-stat {
+      padding: 1px 7px; border-radius: 8px;
+      background: var(--bg-elevated);
+      font-weight: 700;
+    }
+    .kb-swimlane-stat.s-late { background: rgba(220,38,38,.1);  color: var(--red); }
+    .kb-swimlane-stat.s-soon { background: rgba(217,119,6,.1);  color: var(--yellow); }
+    .kb-swimlane-stat.s-ok   { background: rgba(22,163,74,.1);  color: var(--green); }
+    .kb-swimlane-chev { font-size: 10px; color: var(--text-muted); transition: transform var(--tr-fast); }
+    .kb-swimlane.collapsed .kb-swimlane-chev { transform: rotate(-90deg); }
+    .kb-swimlane.collapsed .kb-swimlane-body { display: none; }
+    .kb-swimlane-body {
+      display: flex; gap: 10px;
+      padding: 10px;
+      overflow-x: auto;
+    }
+    .kb-swimlane-body .kanban-col {
+      min-width: 240px; max-width: 240px;
+      max-height: 380px;
+    }
+
+    /* ═══════════════════ MODAL APRIMORADO ═══════════════════ */
+    .kb-modal-section {
+      margin-bottom: 14px;
+    }
+    .kb-modal-section-lbl {
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .06em; color: var(--text-muted); margin-bottom: 7px;
+      display: flex; align-items: center; gap: 5px;
+    }
+    .kb-modal-urgency {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 4px 10px; border-radius: 12px;
+      font-size: 10px; font-weight: 700;
+    }
+    .kb-modal-urgency.u-late { background: rgba(220,38,38,.1); color: var(--red); }
+    .kb-modal-urgency.u-soon { background: rgba(217,119,6,.1); color: var(--yellow); }
+    .kb-modal-urgency.u-ok   { background: rgba(22,163,74,.1); color: var(--green); }
+
+    /* Kanban waiting state */
+    .kb-waiting {
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      padding:60px 20px; gap:14px; flex:1; color:var(--text-muted); text-align:center;
+    }
     .kb-waiting-icon { font-size:36px; }
     .kb-waiting-title { font-size:14px; font-weight:700; color:var(--primary); }
     .kb-waiting-sub { font-size:12px; max-width:320px; }
@@ -2686,6 +2893,32 @@
 
   <!-- ============ KANBAN SECTION ============ -->
   <div id="ps-kanban-section">
+
+    <!-- KPI STRIP -->
+    <div class="kb-kpi-strip" id="kb-kpi-strip">
+      <div class="kb-kpi k-total"><div class="kb-kpi-icon">📋</div><div class="kb-kpi-body"><span class="kb-kpi-value" id="kb-kpi-total">0</span><span class="kb-kpi-label">Total</span></div></div>
+      <div class="kb-kpi k-late"><div class="kb-kpi-icon">🔥</div><div class="kb-kpi-body"><span class="kb-kpi-value" id="kb-kpi-late">0</span><span class="kb-kpi-label">Atrasadas</span><span class="kb-kpi-sub" id="kb-kpi-late-pct">0%</span></div></div>
+      <div class="kb-kpi k-soon"><div class="kb-kpi-icon">⏰</div><div class="kb-kpi-body"><span class="kb-kpi-value" id="kb-kpi-soon">0</span><span class="kb-kpi-label">Vencem ≤ 7 dias</span></div></div>
+      <div class="kb-kpi k-doing"><div class="kb-kpi-icon">▶</div><div class="kb-kpi-body"><span class="kb-kpi-value" id="kb-kpi-doing">0</span><span class="kb-kpi-label">Em andamento</span></div></div>
+      <div class="kb-kpi k-norep"><div class="kb-kpi-icon">❓</div><div class="kb-kpi-body"><span class="kb-kpi-value" id="kb-kpi-norep">0</span><span class="kb-kpi-label">Sem responsável</span></div></div>
+      <div class="kb-kpi k-done"><div class="kb-kpi-icon">✅</div><div class="kb-kpi-body"><span class="kb-kpi-value" id="kb-kpi-done">0</span><span class="kb-kpi-label">Concluídas 30d</span></div></div>
+    </div>
+
+    <!-- QUICK FILTERS + AGRUPAMENTO -->
+    <div class="kb-quick-bar">
+      <span class="kb-quick-lbl">Atalhos</span>
+      <button type="button" class="kb-quick" data-kb-q="atrasadas">🔥 Atrasadas <span class="kb-quick-cnt" id="kb-q-late">0</span></button>
+      <button type="button" class="kb-quick" data-kb-q="vencendo">⏰ Vencem ≤ 7d <span class="kb-quick-cnt" id="kb-q-soon">0</span></button>
+      <button type="button" class="kb-quick" data-kb-q="norep">❓ Sem resp. <span class="kb-quick-cnt" id="kb-q-norep">0</span></button>
+      <button type="button" class="kb-quick" data-kb-q="andamento">▶ Em andamento <span class="kb-quick-cnt" id="kb-q-doing">0</span></button>
+      <div class="kb-group-toggle">
+        <span class="kb-quick-lbl">Agrupar por</span>
+        <button type="button" class="kb-group-btn active" data-kb-grp="status">Status</button>
+        <button type="button" class="kb-group-btn" data-kb-grp="projeto">Projeto</button>
+        <button type="button" class="kb-group-btn" data-kb-grp="responsavel">Responsável</button>
+      </div>
+    </div>
+
     <div class="kanban-filters">
       <!-- LINHA SEMPRE VISÍVEL: busca + Resp + Diretoria + Projeto + toggle + contador -->
       <div class="kb-filters-primary">
@@ -7947,6 +8180,11 @@
       let kbActiveStatuses = new Set(KB_COLS.map(c => c.id));
       let kbSortBy     = 'prazo';
       let kbDataLoaded = false;
+      let kbGroupBy    = 'status';            // 'status' | 'projeto' | 'responsavel'
+      let kbShowAllDone = false;              // mostrar tudo ou só últimos 30d em Concluído
+      let kbCollapsedGroups = new Set();      // swimlanes recolhidos
+      let kbQuickFilter = null;               // 'atrasadas' | 'vencendo' | 'norep' | 'andamento' | null
+      const KB_STORAGE_KEY = 'portalKanbanV2'; // persistência de filtros
 
       function _kbColor(nome) {
         let h = 0;
@@ -8006,14 +8244,25 @@
       }
       function _kbDaysInfo(dataFim, col) {
         if (!dataFim) return null;
-        if (col === 'FINALIZADO') return { label: 'Concluído', cls: 'kb-days-ok' };
+        if (col === 'FINALIZADO') return { label: 'Concluído', cls: 'kb-days-ok', days: 0 };
         const today = new Date(); today.setHours(0, 0, 0, 0);
         const due   = _kbParseDate(dataFim);
         if (!due) return null;
         const diff  = Math.round((due - today) / 86400000);
-        if (diff < 0)   return { label: Math.abs(diff) + 'd em atraso', cls: 'kb-days-late' };
-        if (diff <= 10) return { label: diff + 'd restantes',           cls: 'kb-days-warn' };
-        return { label: diff + 'd restantes', cls: 'kb-days-ok' };
+        if (diff < 0)  return { label: Math.abs(diff) + 'd em atraso', cls: 'kb-days-late', days: diff };
+        if (diff === 0) return { label: 'Vence hoje',                  cls: 'kb-days-warn', days: 0 };
+        if (diff <= 3) return { label: diff + 'd restantes',           cls: 'kb-days-warn', days: diff };
+        if (diff <= 7) return { label: diff + 'd restantes',           cls: 'kb-days-warn', days: diff };
+        return { label: diff + 'd restantes', cls: 'kb-days-ok', days: diff };
+      }
+      // Idade do card (dias desde dataInicio, se em andamento)
+      function _kbAgingDays(h) {
+        if (!h.dataInicio || h.momento === 'FINALIZADO' || h.momento === 'BACKLOG') return null;
+        const start = _kbParseDate(h.dataInicio);
+        if (!start) return null;
+        const today = new Date(); today.setHours(0, 0, 0, 0);
+        const diff = Math.round((today - start) / 86400000);
+        return diff > 0 ? diff : null;
       }
       function _kbNormMomento(item) {
         const m = String(item.momento || '').toUpperCase().replace(/\s+/g, ' ').trim();
@@ -8109,6 +8358,34 @@
               btn.classList.remove('open');
             }
           });
+
+          // Quick filters
+          document.querySelectorAll('.kb-quick').forEach(btn => {
+            btn.addEventListener('click', () => {
+              const q = btn.dataset.kbQ;
+              if (kbQuickFilter === q) {
+                kbQuickFilter = null;
+                btn.classList.remove('active');
+              } else {
+                kbQuickFilter = q;
+                document.querySelectorAll('.kb-quick').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+              }
+              applyKanbanFilters();
+            });
+          });
+
+          // Grupos (Status/Projeto/Responsável)
+          document.querySelectorAll('.kb-group-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+              document.querySelectorAll('.kb-group-btn').forEach(b => b.classList.remove('active'));
+              btn.classList.add('active');
+              kbGroupBy = btn.dataset.kbGrp;
+              kbCollapsedGroups.clear();
+              _kbSaveState();
+              renderKanbanBoard();
+            });
+          });
         }
       }
 
@@ -8123,6 +8400,102 @@
         else       { badge.style.display = 'none'; }
       }
 
+      // ─── KPIs no topo do Kanban ───────────────────────────────────────
+      function _kbUpdateKPIs() {
+        const total = kbFiltered.length;
+        const late  = kbFiltered.filter(h => h.momento === 'ATRASADO').length;
+        const soon  = kbFiltered.filter(h => {
+          if (h.momento === 'ATRASADO' || h.momento === 'FINALIZADO') return false;
+          const di = _kbDaysInfo(h.dataFim, h.momento);
+          return di && di.days != null && di.days >= 0 && di.days <= 7;
+        }).length;
+        const doing = kbFiltered.filter(h => h.momento === 'EM_ANDAMENTO').length;
+        const norep = kbFiltered.filter(h => !h.responsavel || h.responsavel === '—').length;
+        // Concluídas nos últimos 30 dias
+        const today = new Date(); today.setHours(0,0,0,0);
+        const cutoff = new Date(today.getTime() - 30 * 86400000);
+        const done30 = kbFiltered.filter(h => {
+          if (h.momento !== 'FINALIZADO') return false;
+          const df = _kbParseDate(h.dataFim || h.dataInicio);
+          return df ? df >= cutoff : false;
+        }).length;
+        const setT = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+        setT('kb-kpi-total', total);
+        setT('kb-kpi-late', late);
+        setT('kb-kpi-late-pct', total ? Math.round((late / total) * 100) + '% do total' : '0%');
+        setT('kb-kpi-soon', soon);
+        setT('kb-kpi-doing', doing);
+        setT('kb-kpi-norep', norep);
+        setT('kb-kpi-done', done30);
+        // Quick filter counts (sobre kbHistorias inteiro, ignorando outros filtros — exceto status pills)
+        const baseAll = kbHistorias.filter(h => kbActiveStatuses.has(h.momento));
+        const qLate = baseAll.filter(h => h.momento === 'ATRASADO').length;
+        const qSoon = baseAll.filter(h => {
+          if (h.momento === 'ATRASADO' || h.momento === 'FINALIZADO') return false;
+          const di = _kbDaysInfo(h.dataFim, h.momento);
+          return di && di.days != null && di.days >= 0 && di.days <= 7;
+        }).length;
+        const qNorep = baseAll.filter(h => !h.responsavel || h.responsavel === '—').length;
+        const qDoing = baseAll.filter(h => h.momento === 'EM_ANDAMENTO').length;
+        setT('kb-q-late', qLate);
+        setT('kb-q-soon', qSoon);
+        setT('kb-q-norep', qNorep);
+        setT('kb-q-doing', qDoing);
+      }
+
+      // ─── Persistência via localStorage ─────────────────────────────────
+      function _kbSaveState() {
+        try {
+          const state = {
+            search:   document.getElementById('kb-f-search')?.value || '',
+            resp:     document.getElementById('kb-f-resp')?.value   || '',
+            dir:      document.getElementById('kb-f-dir')?.value    || '',
+            proj:     document.getElementById('kb-f-proj')?.value   || '',
+            statuses: [...kbActiveStatuses],
+            sortBy:   kbSortBy,
+            groupBy:  kbGroupBy,
+            quick:    kbQuickFilter,
+            showAllDone: kbShowAllDone,
+          };
+          localStorage.setItem(KB_STORAGE_KEY, JSON.stringify(state));
+        } catch (e) {}
+      }
+      function _kbLoadState() {
+        try {
+          const raw = localStorage.getItem(KB_STORAGE_KEY);
+          if (!raw) return;
+          const s = JSON.parse(raw);
+          if (s.statuses && Array.isArray(s.statuses)) kbActiveStatuses = new Set(s.statuses);
+          if (s.sortBy)   kbSortBy = s.sortBy;
+          if (s.groupBy)  kbGroupBy = s.groupBy;
+          if (typeof s.quick !== 'undefined') kbQuickFilter = s.quick;
+          if (typeof s.showAllDone === 'boolean') kbShowAllDone = s.showAllDone;
+          // Aplicar à UI quando elementos existirem
+          setTimeout(() => {
+            const fs = document.getElementById('kb-f-search'); if (fs && s.search) fs.value = s.search;
+            const fr = document.getElementById('kb-f-resp');   if (fr && s.resp)   fr.value = s.resp;
+            const fd = document.getElementById('kb-f-dir');    if (fd && s.dir)    fd.value = s.dir;
+            const fp = document.getElementById('kb-f-proj');   if (fp && s.proj)   fp.value = s.proj;
+            document.querySelectorAll('.kb-pill').forEach(p => {
+              if (kbActiveStatuses.has(p.dataset.kbS)) p.classList.add('on');
+              else                                      p.classList.remove('on');
+            });
+            document.querySelectorAll('.kb-sort-btn').forEach(b => {
+              if (b.dataset.kbSort === kbSortBy) b.classList.add('active');
+              else                                b.classList.remove('active');
+            });
+            document.querySelectorAll('.kb-group-btn').forEach(b => {
+              if (b.dataset.kbGrp === kbGroupBy) b.classList.add('active');
+              else                                b.classList.remove('active');
+            });
+            document.querySelectorAll('.kb-quick').forEach(b => {
+              if (b.dataset.kbQ === kbQuickFilter) b.classList.add('active');
+              else                                  b.classList.remove('active');
+            });
+          }, 0);
+        } catch (e) {}
+      }
+
       function applyKanbanFilters() {
         const q    = (document.getElementById('kb-f-search')?.value || '').toLowerCase();
         const resp = document.getElementById('kb-f-resp')?.value || '';
@@ -8134,25 +8507,36 @@
           if (resp && h.responsavel !== resp) return false;
           if (dir  && h.diretoria  !== dir)  return false;
           if (proj && h.projeto    !== proj) return false;
+          // Quick filter
+          if (kbQuickFilter === 'atrasadas' && h.momento !== 'ATRASADO') return false;
+          if (kbQuickFilter === 'vencendo') {
+            const di = _kbDaysInfo(h.dataFim, h.momento);
+            if (!di || di.days == null || di.days < 0 || di.days > 7 || h.momento === 'FINALIZADO') return false;
+          }
+          if (kbQuickFilter === 'norep' && h.responsavel && h.responsavel !== '—') return false;
+          if (kbQuickFilter === 'andamento' && h.momento !== 'EM_ANDAMENTO') return false;
           return true;
         });
         if      (kbSortBy === 'prazo')   kbFiltered.sort((a,b) => (a.dataFim||'z').localeCompare(b.dataFim||'z'));
         else if (kbSortBy === 'titulo')  kbFiltered.sort((a,b) => a.titulo.localeCompare(b.titulo,'pt-BR'));
         else if (kbSortBy === 'projeto') kbFiltered.sort((a,b) => a.projeto.localeCompare(b.projeto,'pt-BR'));
         _kbUpdateFilterBadge();
+        _kbSaveState();
         renderKanbanBoard();
       }
 
       function clearKanbanFilters() {
         kbActiveStatuses = new Set(KB_COLS.map(c => c.id));
         kbSortBy = 'prazo';
+        kbQuickFilter = null;
+        kbShowAllDone = false;
         const fs = document.getElementById('kb-f-search'); if (fs) fs.value = '';
         ['kb-f-resp','kb-f-dir','kb-f-proj'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
         document.querySelectorAll('.kb-pill').forEach(p => p.classList.add('on'));
         document.querySelectorAll('.kb-sort-btn').forEach(b => b.classList.remove('active'));
         document.querySelector('[data-kb-sort="prazo"]')?.classList.add('active');
-        kbFiltered = [...kbHistorias];
-        renderKanbanBoard();
+        document.querySelectorAll('.kb-quick').forEach(b => b.classList.remove('active'));
+        applyKanbanFilters();
       }
 
       function renderKanbanCard(h) {
@@ -8160,17 +8544,31 @@
         const ac       = _kbColor(h.responsavel);
         const ini      = _kbInitials(h.responsavel);
         const di       = _kbDaysInfo(h.dataFim, h.momento);
+        const aging    = _kbAgingDays(h);
         const sid      = String(h.id).replace(/['"`\\]/g,'');
         const atrasado = h.momento === 'ATRASADO';
-        const cardCls  = 'kanban-card' + (atrasado ? ' kb-card-atrasado' : '');
-        // Período: data início → data fim
+        const vencendo = !atrasado && h.momento !== 'FINALIZADO' && di && di.days != null && di.days >= 0 && di.days <= 3;
+        const noResp   = !h.responsavel || h.responsavel === '—';
+        let cardCls = 'kanban-card';
+        if (atrasado) cardCls += ' kb-card-atrasado';
+        else if (vencendo) cardCls += ' kb-card-vencendo';
+        // Período
         const dIni = _kbFmtDate(h.dataInicio);
         const dFim = _kbFmtDate(h.dataFim);
         let periodo = '';
         if (dIni && dFim)      periodo = dIni + ' → ' + dFim;
         else if (dFim)         periodo = '→ ' + dFim;
         else if (dIni)         periodo = dIni + ' → ?';
+        // Flags (canto superior direito)
+        let flags = '';
+        if (noResp) flags += '<span class="kb-flag kb-flag-norep" title="Sem responsável">?</span>';
+        if (aging && aging > 14 && h.momento === 'EM_ANDAMENTO') flags += '<span class="kb-flag kb-flag-aging" title="Em andamento há ' + aging + ' dias">' + aging + 'd</span>';
+        const flagsHtml = flags ? '<div class="kb-card-flags">' + flags + '</div>' : '';
+        // Responsável (mostra avatar mesmo se sem nome — usa "?" e cor cinza)
+        const respLabel = noResp ? 'Sem responsável' : h.responsavel;
+        const respAvBg = noResp ? '#94a3b8' : ac;
         return '<div class="' + cardCls + '" style="border-left-color:' + pc + '" onclick="openKanbanModal(\'' + sid + '\')">'
+          + flagsHtml
           + '<div class="kanban-card-title">' + h.titulo + '</div>'
           + '<div class="kanban-card-badges">'
           +   '<span class="kanban-badge-proj" style="border-color:' + pc + '" title="' + h.projeto + '">' + h.projeto + '</span>'
@@ -8178,8 +8576,8 @@
           + '</div>'
           + '<div class="kanban-card-meta">'
           +   '<div class="kanban-card-who">'
-          +     '<div class="kanban-avatar" style="background:' + ac + '">' + ini + '</div>'
-          +     '<span class="kanban-card-name" title="' + h.responsavel + '">' + h.responsavel + '</span>'
+          +     '<div class="kanban-avatar" style="background:' + respAvBg + '">' + ini + '</div>'
+          +     '<span class="kanban-card-name" title="' + respLabel + '">' + respLabel + '</span>'
           +   '</div>'
           +   (di ? '<span class="kanban-days ' + di.cls + '">' + di.label + '</span>' : '')
           + '</div>'
@@ -8187,60 +8585,188 @@
           + '</div>';
       }
 
+      // Filtra Concluído nos últimos 30 dias (se kbShowAllDone=false)
+      function _kbFilterDoneRecent(items) {
+        if (kbShowAllDone) return items;
+        const today = new Date(); today.setHours(0,0,0,0);
+        const cutoff = new Date(today.getTime() - 30 * 86400000);
+        return items.filter(h => {
+          if (h.momento !== 'FINALIZADO') return true;
+          const df = _kbParseDate(h.dataFim || h.dataInicio);
+          return df ? df >= cutoff : false;
+        });
+      }
+      function _kbWipClass(n, colId) {
+        if (colId === 'FINALIZADO' || colId === 'BACKLOG') return '';
+        if (n >= 20) return ' kb-wip-critical';
+        if (n >= 12) return ' kb-wip-high';
+        return '';
+      }
+      function _renderColumn(col, items) {
+        const wip = _kbWipClass(items.length, col.id);
+        const isDone = col.id === 'FINALIZADO';
+        const byResp = {};
+        items.forEach(h => { byResp[h.responsavel] = (byResp[h.responsavel] || 0) + 1; });
+        const topR = Object.entries(byResp).sort((a,b) => b[1]-a[1])[0];
+        const foot = topR ? '· ' + (topR[0]==='—'?'Sem resp.':topR[0].split(' ')[0]) + ' (' + topR[1] + ')' : '';
+        // Botão "Ver todos" só na coluna Concluído quando há mais itens ocultos
+        let toggleBtn = '';
+        if (isDone) {
+          const totalDone = kbFiltered.filter(h => h.momento === 'FINALIZADO').length;
+          if (!kbShowAllDone && totalDone > items.length) {
+            toggleBtn = '<button class="kb-col-toggle-all" onclick="window._kbToggleAllDone(true)">Ver todas (' + totalDone + ')</button>';
+          } else if (kbShowAllDone && totalDone > 0) {
+            toggleBtn = '<button class="kb-col-toggle-all" onclick="window._kbToggleAllDone(false)">Mostrar só últimos 30d</button>';
+          }
+        }
+        return '<div class="kanban-col">'
+          + '<div class="kanban-col-head">'
+          +   '<div class="col-stripe" style="background:' + col.color + '"></div>'
+          +   '<span class="kanban-col-dot" style="background:' + col.color + '"></span>'
+          +   '<span class="kanban-col-name" style="color:' + col.color + '">' + col.label + '</span>'
+          +   '<span class="kanban-col-cnt' + wip + '" title="' + (wip ? 'Carga alta nesta coluna' : '') + '">' + items.length + '</span>'
+          + '</div>'
+          + '<div class="kanban-col-body">'
+          +   (items.length ? items.map(h => renderKanbanCard(h)).join('') : '<div class="kanban-col-empty">Nenhuma história</div>')
+          +   toggleBtn
+          + '</div>'
+          + (items.length ? '<div class="kanban-col-foot">' + items.length + ' ' + (items.length===1?'história':'histórias') + ' ' + foot + '</div>' : '')
+          + '</div>';
+      }
       function renderKanbanBoard() {
         const board = document.getElementById('kb-board');
         if (!board) return;
-        let html = '';
-        KB_COLS.forEach(col => {
-          const items = kbFiltered.filter(h => h.momento === col.id);
-          const byResp = {};
-          items.forEach(h => { byResp[h.responsavel] = (byResp[h.responsavel] || 0) + 1; });
-          const topR = Object.entries(byResp).sort((a,b) => b[1]-a[1])[0];
-          const foot = topR ? '· ' + topR[0].split(' ')[0] + ' (' + topR[1] + ')' : '';
-          html += '<div class="kanban-col">'
-            + '<div class="kanban-col-head">'
-            +   '<div class="col-stripe" style="background:' + col.color + '"></div>'
-            +   '<span class="kanban-col-dot" style="background:' + col.color + '"></span>'
-            +   '<span class="kanban-col-name" style="color:' + col.color + '">' + col.label + '</span>'
-            +   '<span class="kanban-col-cnt">' + items.length + '</span>'
-            + '</div>'
-            + '<div class="kanban-col-body">'
-            +   (items.length ? items.map(h => renderKanbanCard(h)).join('') : '<div class="kanban-col-empty">Nenhuma história</div>')
-            + '</div>'
-            + (items.length ? '<div class="kanban-col-foot">' + items.length + ' ' + (items.length===1?'história':'histórias') + ' ' + foot + '</div>' : '')
-            + '</div>';
-        });
-        board.innerHTML = html;
+        // Aplicar filtro de Concluído últimos 30d
+        const visible = _kbFilterDoneRecent(kbFiltered);
+
+        if (kbGroupBy === 'status') {
+          board.classList.remove('kb-grouped');
+          let html = '';
+          KB_COLS.forEach(col => {
+            const items = visible.filter(h => h.momento === col.id);
+            html += _renderColumn(col, items);
+          });
+          board.innerHTML = html;
+        } else {
+          // Agrupamento por projeto ou responsável (swimlanes)
+          board.classList.add('kb-grouped');
+          const keyFn = kbGroupBy === 'projeto' ? (h => h.projeto) : (h => h.responsavel || '—');
+          const groups = {};
+          visible.forEach(h => {
+            const k = keyFn(h);
+            (groups[k] = groups[k] || []).push(h);
+          });
+          const groupKeys = Object.keys(groups).sort((a,b) => a.localeCompare(b, 'pt-BR'));
+          let html = '';
+          groupKeys.forEach((k, idx) => {
+            const items = groups[k];
+            const cnt = items.length;
+            const lateN = items.filter(h => h.momento === 'ATRASADO').length;
+            const soonN = items.filter(h => {
+              if (h.momento === 'ATRASADO' || h.momento === 'FINALIZADO') return false;
+              const di = _kbDaysInfo(h.dataFim, h.momento);
+              return di && di.days != null && di.days >= 0 && di.days <= 7;
+            }).length;
+            const doneN = items.filter(h => h.momento === 'FINALIZADO').length;
+            const collapsed = kbCollapsedGroups.has(k);
+            // Render colunas dentro do swimlane
+            let colsHtml = '';
+            KB_COLS.forEach(col => {
+              const colItems = items.filter(h => h.momento === col.id);
+              colsHtml += _renderColumn(col, colItems);
+            });
+            const label = kbGroupBy === 'responsavel' && k === '—' ? 'Sem responsável' : k;
+            html += '<div class="kb-swimlane' + (collapsed ? ' collapsed' : '') + '" data-kb-grp-key="' + k.replace(/"/g, '&quot;') + '">'
+              + '<div class="kb-swimlane-head" onclick="window._kbToggleSwimlane(this)">'
+              +   '<span class="kb-swimlane-chev">▾</span>'
+              +   '<span class="kb-swimlane-name">' + label + '</span>'
+              +   '<span class="kb-swimlane-stats">'
+              +     '<span class="kb-swimlane-stat">' + cnt + ' ' + (cnt===1?'item':'itens') + '</span>'
+              +     (lateN ? '<span class="kb-swimlane-stat s-late">🔥 ' + lateN + '</span>' : '')
+              +     (soonN ? '<span class="kb-swimlane-stat s-soon">⏰ ' + soonN + '</span>' : '')
+              +     (doneN ? '<span class="kb-swimlane-stat s-ok">✅ ' + doneN + '</span>' : '')
+              +   '</span>'
+              + '</div>'
+              + '<div class="kb-swimlane-body">' + colsHtml + '</div>'
+              + '</div>';
+          });
+          board.innerHTML = html || '<div class="kanban-col-empty" style="padding:50px">Nenhum grupo</div>';
+        }
+        // Contadores
         const cnt = document.getElementById('kb-total-count');
         if (cnt) cnt.innerHTML = '<strong>' + kbFiltered.length + '</strong> histórias';
+        _kbUpdateKPIs();
       }
+      // Toggle "Ver todas" / "Só 30d" na coluna Concluído
+      window._kbToggleAllDone = function(showAll) {
+        kbShowAllDone = showAll;
+        renderKanbanBoard();
+      };
+      window._kbToggleSwimlane = function(headEl) {
+        const lane = headEl.closest('.kb-swimlane');
+        if (!lane) return;
+        const key = lane.dataset.kbGrpKey;
+        if (kbCollapsedGroups.has(key)) kbCollapsedGroups.delete(key);
+        else                              kbCollapsedGroups.add(key);
+        lane.classList.toggle('collapsed');
+      };
 
       function openKanbanModal(id) {
         const h = kbHistorias.find(x => String(x.id) === String(id));
         if (!h) return;
-        const pc     = _kbColor(h.projeto);
-        const ac     = _kbColor(h.responsavel);
-        const ini    = _kbInitials(h.responsavel);
-        const di     = _kbDaysInfo(h.dataFim, h.momento);
-        const colCfg = KB_COLS.find(c => c.id === h.momento) || KB_COLS[0];
-        const modal  = document.getElementById('kb-modal');
-        const ov     = document.getElementById('kb-overlay');
+        const pc      = _kbColor(h.projeto);
+        const noResp  = !h.responsavel || h.responsavel === '—';
+        const ac      = noResp ? '#94a3b8' : _kbColor(h.responsavel);
+        const ini     = _kbInitials(h.responsavel);
+        const respLbl = noResp ? 'Sem responsável' : h.responsavel;
+        const di      = _kbDaysInfo(h.dataFim, h.momento);
+        const aging   = _kbAgingDays(h);
+        const colCfg  = KB_COLS.find(c => c.id === h.momento) || KB_COLS[0];
+        const modal   = document.getElementById('kb-modal');
+        const ov      = document.getElementById('kb-overlay');
         if (!modal || !ov) return;
         const diColor = di ? (di.cls==='kb-days-late' ? 'var(--red)' : di.cls==='kb-days-warn' ? 'var(--yellow)' : 'var(--green)') : '';
+        // Barra de urgência: indicador rápido
+        let urgencyBar = '';
+        if (h.momento === 'ATRASADO' && di) {
+          urgencyBar = '<span class="kb-modal-urgency u-late">🔥 ' + di.label + '</span>';
+        } else if (di && di.days != null && di.days >= 0 && di.days <= 3) {
+          urgencyBar = '<span class="kb-modal-urgency u-soon">⏰ ' + di.label + '</span>';
+        } else if (h.momento === 'FINALIZADO') {
+          urgencyBar = '<span class="kb-modal-urgency u-ok">✅ Concluído</span>';
+        }
+
         modal.innerHTML =
-          '<div style="border-left:4px solid '+pc+';padding-left:14px;margin-bottom:20px">'
-          + '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);margin-bottom:4px">'+h.projeto+(h.diretoria?' · '+h.diretoria:'')+'</div>'
-          + '<div style="font-size:16px;font-weight:700;line-height:1.4;color:var(--text-main)">'+h.titulo+'</div>'
+          // CABEÇALHO
+          '<div style="border-left:4px solid '+pc+';padding-left:14px;margin-bottom:18px">'
+          + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap">'
+          +   '<span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:'+pc+'">'+h.projeto+'</span>'
+          +   (h.diretoria ? '<span style="font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px;background:rgba(124,58,237,.08);color:var(--purple)">'+h.diretoria+'</span>' : '')
+          +   urgencyBar
           + '</div>'
-          + '<div class="kb-modal-grid">'
-          +   '<div class="kb-modal-cell"><div class="kb-modal-lbl">Responsável</div><div style="display:flex;align-items:center;gap:8px"><div class="kanban-avatar" style="background:'+ac+';width:28px;height:28px;font-size:10px">'+ini+'</div><span style="font-size:13px;font-weight:500;color:var(--text-main)">'+h.responsavel+'</span></div></div>'
-          +   '<div class="kb-modal-cell"><div class="kb-modal-lbl">Status</div><span style="font-size:11px;font-weight:700;color:'+colCfg.color+';background:'+colCfg.colorBg+';padding:4px 10px;border-radius:10px;border:1px solid '+colCfg.color+'40">'+colCfg.label+'</span></div>'
-          +   '<div class="kb-modal-cell"><div class="kb-modal-lbl">Período</div><div style="font-size:12px;font-weight:500;color:var(--text-main);line-height:1.5">'+(h.dataInicio?'<div>Início: <strong>'+_kbFmtDate(h.dataInicio)+'</strong></div>':'')+(h.dataFim?'<div>Fim: <strong>'+_kbFmtDate(h.dataFim)+'</strong></div>':'')+(!h.dataInicio && !h.dataFim?'—':'')+'</div>'+(di?'<div style="font-size:10px;margin-top:4px;font-weight:700;color:'+diColor+'">'+di.label+'</div>':'')+'</div>'
-          +   '<div class="kb-modal-cell"><div class="kb-modal-lbl">Projeto</div><span style="font-size:12px;font-weight:700;color:'+pc+'">'+h.projeto+'</span></div>'
+          + '<div style="font-size:17px;font-weight:700;line-height:1.35;color:var(--text-main)">'+h.titulo+'</div>'
           + '</div>'
-          + (h.descricao ? '<div class="kb-modal-desc"><div class="kb-modal-lbl" style="margin-bottom:6px">Descrição</div>'+h.descricao+'</div>' : '')
+          // VISÃO RÁPIDA (grid)
+          + '<div class="kb-modal-section">'
+          +   '<div class="kb-modal-section-lbl">📌 Visão geral</div>'
+          +   '<div class="kb-modal-grid">'
+          +     '<div class="kb-modal-cell"><div class="kb-modal-lbl">Responsável</div><div style="display:flex;align-items:center;gap:8px"><div class="kanban-avatar" style="background:'+ac+';width:28px;height:28px;font-size:10px">'+ini+'</div><span style="font-size:13px;font-weight:500;color:var(--text-main)">'+respLbl+'</span></div></div>'
+          +     '<div class="kb-modal-cell"><div class="kb-modal-lbl">Status atual</div><span style="font-size:11px;font-weight:700;color:'+colCfg.color+';background:'+colCfg.colorBg+';padding:4px 10px;border-radius:10px;border:1px solid '+colCfg.color+'40">'+colCfg.label+'</span></div>'
+          +   '</div>'
+          + '</div>'
+          // PRAZOS
+          + '<div class="kb-modal-section">'
+          +   '<div class="kb-modal-section-lbl">📅 Prazos</div>'
+          +   '<div class="kb-modal-grid">'
+          +     '<div class="kb-modal-cell"><div class="kb-modal-lbl">Data de início</div><div style="font-size:13px;font-weight:600;color:var(--text-main)">'+(h.dataInicio?_kbFmtDate(h.dataInicio):'—')+'</div>'+(aging?'<div style="font-size:10px;margin-top:3px;color:var(--text-muted)">há '+aging+'d em andamento</div>':'')+'</div>'
+          +     '<div class="kb-modal-cell"><div class="kb-modal-lbl">Data de entrega</div><div style="font-size:13px;font-weight:600;color:var(--text-main)">'+(h.dataFim?_kbFmtDate(h.dataFim):'—')+'</div>'+(di?'<div style="font-size:10px;margin-top:3px;font-weight:700;color:'+diColor+'">'+di.label+'</div>':'')+'</div>'
+          +   '</div>'
+          + '</div>'
+          // DESCRIÇÃO
+          + (h.descricao ? '<div class="kb-modal-section"><div class="kb-modal-section-lbl">📝 Descrição</div><div class="kb-modal-desc" style="margin-bottom:0">'+h.descricao+'</div></div>' : '')
+          // RODAPÉ
           + '<div style="display:flex;justify-content:flex-end;padding-top:14px;border-top:1px solid var(--border)">'
-          +   '<button type="button" onclick="closeKanbanModal()" style="background:var(--bg);border:1px solid var(--border-strong);color:var(--text-secondary);font-size:12px;padding:7px 16px;border-radius:var(--radius-sm);cursor:pointer;font-family:inherit">Fechar</button>'
+          +   '<button type="button" onclick="closeKanbanModal()" style="background:var(--primary);border:1px solid var(--primary);color:white;font-size:12px;font-weight:600;padding:8px 18px;border-radius:var(--radius-sm);cursor:pointer;font-family:inherit">Fechar</button>'
           + '</div>';
         ov.classList.add('kb-open');
       }
@@ -8253,6 +8779,7 @@
         if (Object.keys(projectsMap).length === 0) return;
         buildKanbanHistorias();
         populateKanbanFilters();
+        if (!kbDataLoaded) _kbLoadState();
         kbFiltered   = [...kbHistorias];
         kbDataLoaded = true;
         applyKanbanFilters();
