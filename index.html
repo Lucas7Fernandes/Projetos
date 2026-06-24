@@ -7960,14 +7960,48 @@
       }
       function _kbFmtDate(d) {
         if (!d) return '';
-        const iso = String(d).split(/[T ]/)[0];
+        const s = String(d).trim();
+        // Já está em pt-BR (dd/mm/yyyy)? Devolve direto
+        if (/^\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4}/.test(s)) {
+          return s.replace(/-/g, '/').split(' ')[0];
+        }
+        // ISO yyyy-mm-dd[T...] → dd/mm/yyyy
+        const iso = s.split(/[T ]/)[0];
         const pt = iso.split('-');
-        return pt.length === 3 ? pt[2] + '/' + pt[1] + '/' + pt[0] : d;
+        if (pt.length === 3) return pt[2] + '/' + pt[1] + '/' + pt[0];
+        // Último recurso: tentar parsear como Date
+        const dt = _kbParseDate(s);
+        if (dt) {
+          const dd = String(dt.getDate()).padStart(2, '0');
+          const mm = String(dt.getMonth() + 1).padStart(2, '0');
+          return dd + '/' + mm + '/' + dt.getFullYear();
+        }
+        return s;
       }
       function _kbParseDate(d) {
         if (!d) return null;
-        const iso = String(d).split(/[T ]/)[0];
-        const dt  = new Date(iso + 'T00:00:00');
+        const s = String(d).trim();
+        if (!s) return null;
+        // Reusa parsers do portal (já lidam com pt-BR dd/mm/yyyy e ISO)
+        try {
+          if (typeof _parsePtDate === 'function') {
+            const dt = _parsePtDate(s);
+            if (dt && !isNaN(dt.getTime())) return dt;
+          }
+          if (typeof _parseFlexDate === 'function') {
+            const dt = _parseFlexDate(s);
+            if (dt && !isNaN(dt.getTime())) return dt;
+          }
+        } catch (e) {}
+        // Fallback 1: pt-BR dd/mm/yyyy manual
+        const ptMatch = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+        if (ptMatch) {
+          const dt = new Date(parseInt(ptMatch[3]), parseInt(ptMatch[2]) - 1, parseInt(ptMatch[1]));
+          if (!isNaN(dt.getTime())) return dt;
+        }
+        // Fallback 2: ISO yyyy-mm-dd[T...]
+        const iso = s.split(/[T ]/)[0];
+        const dt = new Date(iso + 'T00:00:00');
         return isNaN(dt.getTime()) ? null : dt;
       }
       function _kbDaysInfo(dataFim, col) {
