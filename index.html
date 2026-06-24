@@ -2241,11 +2241,7 @@
     .ps-view-tab:hover { color: var(--text-secondary); background: var(--primary-50); }
     .ps-view-tab.active { color: var(--primary); border-bottom-color: var(--accent); }
 
-    /* Oculta elementos do portfólio quando kanban está ativo */
-    .kanban-active .ps-kpi-strip,
-    .kanban-active .ps-toolbar,
-    .kanban-active #ps-content { display: none !important; }
-    .kanban-active #ps-kanban-section { display: flex !important; }
+    /* Kanban: visibilidade controlada via JS (inline styles) */
 
     /* ══════════════════════════════════════════════════════════
        KANBAN SECTION
@@ -2253,9 +2249,7 @@
     #ps-kanban-section {
       display: none;
       flex-direction: column;
-      flex: 1;
       overflow: hidden;
-      min-height: 0;
     }
     .kanban-filters {
       background: var(--bg-elevated);
@@ -2340,8 +2334,9 @@
     .kanban-board {
       display: flex; gap: 12px;
       padding: 14px 32px 20px;
-      overflow-x: auto; flex: 1;
-      align-items: flex-start; min-height: 0;
+      overflow-x: auto; overflow-y: hidden;
+      align-items: flex-start;
+      box-sizing: border-box;
     }
     .kanban-board::-webkit-scrollbar { height: 6px; }
     .kanban-board::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 3px; }
@@ -2350,7 +2345,7 @@
       background: var(--bg-elevated);
       border-radius: var(--radius-md); border: 1px solid var(--border);
       display: flex; flex-direction: column;
-      max-height: calc(100vh - 230px);
+      height: 100%;
       box-shadow: var(--shadow-xs);
     }
     .kanban-col-head {
@@ -8133,19 +8128,54 @@
         applyKanbanFilters();
       }
 
+      function _kbSetHeight() {
+        // Calcula altura disponível subtraindo hero + tabs do viewport
+        const heroH = document.querySelector('.ps-hero')?.offsetHeight || 0;
+        const tabsH = document.querySelector('.ps-view-tabs-wrap')?.offsetHeight || 0;
+        const avail = window.innerHeight - heroH - tabsH;
+        const sec = document.getElementById('ps-kanban-section');
+        if (sec) sec.style.height = avail + 'px';
+        const board = document.getElementById('kb-board');
+        if (board) {
+          const filterH = document.querySelector('.kanban-filters')?.offsetHeight || 0;
+          board.style.height = (avail - filterH - 4) + 'px';
+        }
+      }
+
       function switchPortalTab(tab) {
-        const sel          = document.getElementById('project-selector');
         const tabPortfolio = document.getElementById('ps-tab-portfolio');
         const tabKanban    = document.getElementById('ps-tab-kanban');
-        if (!sel) return;
+        const kpiStrip     = document.querySelector('.ps-kpi-strip');
+        const toolbar      = document.querySelector('.ps-toolbar');
+        const psContent    = document.getElementById('ps-content');
+        const kanbanSec    = document.getElementById('ps-kanban-section');
+
         if (tab === 'kanban') {
-          sel.classList.add('kanban-active');
+          // Esconder portfólio com inline style (mais confiável que CSS class)
+          if (kpiStrip)  kpiStrip.style.display  = 'none';
+          if (toolbar)   toolbar.style.display    = 'none';
+          if (psContent) psContent.style.display  = 'none';
+          // Mostrar kanban com dimensões explícitas
+          if (kanbanSec) {
+            kanbanSec.style.display       = 'flex';
+            kanbanSec.style.flexDirection = 'column';
+            kanbanSec.style.overflow      = 'hidden';
+          }
+          // Calcular altura após mostrar
+          requestAnimationFrame(_kbSetHeight);
           tabPortfolio?.classList.remove('active');
           tabKanban?.classList.add('active');
           if (Object.keys(projectsMap).length > 0 && !kbDataLoaded) renderKanban();
           else if (kbDataLoaded) applyKanbanFilters();
         } else {
-          sel.classList.remove('kanban-active');
+          // Restaurar portfólio
+          if (kpiStrip)  kpiStrip.style.display  = '';
+          if (toolbar)   toolbar.style.display    = '';
+          if (kanbanSec) kanbanSec.style.display  = 'none';
+          // Restaurar ps-content só se dados já carregaram
+          if (psContent) {
+            psContent.style.display = Object.keys(projectsMap).length > 0 ? 'flex' : 'none';
+          }
           tabPortfolio?.classList.add('active');
           tabKanban?.classList.remove('active');
         }
@@ -8155,6 +8185,12 @@
       window.switchPortalTab  = switchPortalTab;
       window.openKanbanModal  = openKanbanModal;
       window.closeKanbanModal = closeKanbanModal;
+      // Reajustar altura do board ao redimensionar janela
+      window.addEventListener('resize', () => {
+        if (document.getElementById('ps-kanban-section')?.style.display === 'flex') {
+          _kbSetHeight();
+        }
+      });
 
       return { init, loadFromApi, openMetaModal, initGanttsResize };
     })();
