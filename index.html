@@ -439,6 +439,30 @@
       text-transform: uppercase;
       letter-spacing: 0.06em;
     }
+    .project-receita-wrap {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      margin: 10px 0 4px;
+      padding: 10px 14px;
+      background: rgba(22, 163, 74, 0.06);
+      border: 1px solid rgba(22, 163, 74, 0.20);
+      border-radius: 8px;
+    }
+    .project-receita-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+    .project-receita-value {
+      font-size: 18px;
+      font-weight: 800;
+      color: #16a34a;
+      letter-spacing: -.02em;
+    }
     .project-description .ganhos-title { 
       font-weight: 700; 
       color: var(--primary); 
@@ -3111,6 +3135,10 @@
             <span class="ganhos-title" id="ganhos-title" style="display:none;">Ganhos do Projeto:</span>
             <span id="project-ganhos-text"></span>
           </div>
+          <div class="project-receita-wrap" id="project-receita-wrap">
+            <span class="project-receita-label">💰 Receita do Projeto</span>
+            <span class="project-receita-value" id="project-receita-value"></span>
+          </div>
           <div class="project-dates">
             <div class="date-box"><span class="label">Data de Início</span><span class="value" id="project-start-date">--/--/----</span></div>
             <div class="date-box"><span class="label">Previsão de Conclusão</span><span class="value" id="project-end-date">--/--/----</span></div>
@@ -4124,6 +4152,19 @@
         ganhosEl.textContent = '';
       }
       
+      // Receita
+      const receitaWrap = document.getElementById('project-receita-wrap');
+      const receitaVal  = document.getElementById('project-receita-value');
+      if (receitaWrap && receitaVal) {
+        if (meta.Receita != null && meta.Receita !== '') {
+          const recFmt = Number(meta.Receita).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
+          receitaVal.textContent = recFmt;
+          receitaWrap.style.display = 'flex';
+        } else {
+          receitaWrap.style.display = 'none';
+        }
+      }
+
       const startEl = document.getElementById('project-start-date');
       if (startEl && meta.DataInicio) startEl.textContent = formatDate(meta.DataInicio);
       const endEl = document.getElementById('project-end-date');
@@ -7865,7 +7906,8 @@
           cor:         ex.cor        || '',
           responsavel: ex.responsavel|| '',
           owner:       ex.owner      || '',
-          progresso:   ex.progresso  || ''
+          progresso:   ex.progresso  || '',
+          receita:     ex.receita    != null ? ex.receita : null
         };
         let data;
         try {
@@ -8106,7 +8148,8 @@
           DataInicio:            metaInput.dataInicio,
           DataFimPrevista:       metaInput.dataFim,
           Responsavel:           metaInput.responsavel,
-          Owner:                 metaInput.owner
+          Owner:                 metaInput.owner,
+          Receita:               metaInput.receita != null ? metaInput.receita : null
         };
         const data = { meta, epicos, itens: itensClean, processos: [], marcos: [], riscos: [], proximos: [], warnings: [] };
         processarDadosDerivados(data);
