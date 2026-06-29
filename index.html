@@ -4,9 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Status Report - Projeto</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=DM+Serif+Display&display=swap" rel="stylesheet">
   <style>
     /* === DESIGN SYSTEM EXECUTIVO === */
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    /* DM Sans já carregado via link acima */
     
     :root {
       /* Cores principais (mantém identidade) */
@@ -2711,43 +2713,279 @@
     .kb-waiting-title { font-size:14px; font-weight:700; color:var(--primary); }
     .kb-waiting-sub { font-size:12px; max-width:320px; }
 
+
+    /* ═══════════════════════════════════════════════════════
+       DESIGN SYSTEM INDEX 50 — nav, header, seções novas
+    ═══════════════════════════════════════════════════════ */
+
+    /* ── Header novo ───────────────────────────────────── */
+    .pp-header {
+      background: linear-gradient(135deg, #1B2A4A, #111C33);
+      padding: 20px 40px;
+      position: relative; overflow: hidden;
+      flex-shrink: 0;
+    }
+    .pp-header::before {
+      content:''; position:absolute; top:-50%; right:-10%;
+      width:500px; height:500px;
+      background:radial-gradient(circle,rgba(233,88,79,.15),transparent 70%);
+      pointer-events:none;
+    }
+    .pp-header::after {
+      content:''; position:absolute; bottom:0; left:0; right:0; height:3px;
+      background:linear-gradient(90deg,#E8584F,#FF7A72,#E8584F);
+    }
+    .pp-header-inner {
+      max-width:1440px; margin:0 auto;
+      display:flex; align-items:center; justify-content:space-between;
+      gap:16px; flex-wrap:wrap; position:relative; z-index:1;
+    }
+    .pp-header-brand { display:flex; align-items:center; gap:14px; }
+    .pp-header-logo {
+      width:40px; height:40px; border-radius:10px; background:#E8584F;
+      display:flex; align-items:center; justify-content:center;
+      font-family:'DM Serif Display',serif; color:white; font-size:18px; flex-shrink:0;
+    }
+    .pp-header-title {
+      font-family:'DM Serif Display',serif; font-size:22px;
+      color:white; font-weight:400; margin:0;
+    }
+    .pp-header-sub { color:rgba(255,255,255,.5); font-size:12px; margin:2px 0 0; }
+    .pp-header-actions { display:flex; gap:8px; flex-shrink:0; flex-wrap:wrap; }
+    .pp-header-btn {
+      background:rgba(255,255,255,.12); backdrop-filter:blur(8px);
+      border:1px solid rgba(255,255,255,.18); border-radius:8px;
+      padding:7px 14px; color:rgba(255,255,255,.9);
+      font-size:12px; font-weight:600; cursor:pointer;
+      font-family:'DM Sans',sans-serif; transition:all .2s;
+    }
+    .pp-header-btn:hover { background:rgba(255,255,255,.22); color:#fff; }
+    .pp-header-cache {
+      font-size:11px; color:rgba(255,255,255,.45); white-space:nowrap;
+    }
+
+    /* ── Nav 4 abas ─────────────────────────────────────── */
+    .pp-nav {
+      display:flex; gap:2px; padding:0 40px;
+      background:#111C33; overflow-x:auto;
+      -webkit-overflow-scrolling:touch; flex-shrink:0;
+    }
+    .pp-tab {
+      padding:10px 20px; color:rgba(255,255,255,.45);
+      font-size:12px; font-weight:500; border:none; background:none;
+      cursor:pointer; border-radius:8px 8px 0 0;
+      transition:all .2s; white-space:nowrap;
+      font-family:'DM Sans',sans-serif; letter-spacing:.01em;
+    }
+    .pp-tab:hover { color:rgba(255,255,255,.8); background:rgba(255,255,255,.05); }
+    .pp-tab.active { color:#1B2A4A; background:#F4F3F0; font-weight:600; }
+
+    /* ── Tab content ────────────────────────────────────── */
+    .pp-tab-content { display:none; animation:ppFadeIn .25s ease; }
+    .pp-tab-content.active { display:block; }
+    @keyframes ppFadeIn {
+      from { opacity:0; transform:translateY(5px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+
+    /* ── Section header (h2 serif + linha) ─────────────── */
+    .pp-section-header {
+      display:flex; align-items:center; gap:10px;
+      margin:24px 40px 14px; padding:0;
+    }
+    .pp-section-header h2 {
+      font-family:'DM Serif Display',serif; font-size:18px;
+      font-weight:400; color:#1B2A4A; white-space:nowrap; margin:0;
+    }
+    .pp-section-line { flex:1; height:1px; background:#ECEAE6; }
+    .pp-section-count {
+      font-size:11px; color:#6B7280; background:#ECEAE6;
+      padding:3px 10px; border-radius:12px; white-space:nowrap;
+    }
+
+    /* ── KPI grid novo (Visão Geral) ────────────────────── */
+    .pp-kpi-grid {
+      display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+      gap:12px; padding:20px 40px 0;
+    }
+    .pp-kpi-card {
+      background:#fff; border-radius:12px; padding:16px 20px;
+      box-shadow:0 1px 3px rgba(27,42,74,.06);
+      border:1px solid rgba(0,0,0,.04); position:relative; overflow:hidden;
+      transition:all .25s; cursor:pointer;
+    }
+    .pp-kpi-card:hover { box-shadow:0 4px 16px rgba(27,42,74,.08); transform:translateY(-2px); }
+    .pp-kpi-card::before {
+      content:''; position:absolute; top:0; left:0; width:4px; height:100%;
+    }
+    .pp-kpi-card.accent-navy::before  { background:#1B2A4A; }
+    .pp-kpi-card.accent-blue::before  { background:#3B82F6; }
+    .pp-kpi-card.accent-green::before { background:#10B981; }
+    .pp-kpi-card.accent-yellow::before{ background:#F59E0B; }
+    .pp-kpi-card.accent-coral::before { background:#E8584F; }
+    .pp-kpi-label {
+      font-size:10px; text-transform:uppercase; letter-spacing:.8px;
+      color:#6B7280; margin-bottom:6px; font-weight:500;
+    }
+    .pp-kpi-value {
+      font-family:'DM Serif Display',serif; font-size:30px;
+      color:#1B2A4A; line-height:1;
+    }
+    .pp-kpi-sub { font-size:11px; color:#6B7280; margin-top:4px; }
+
+    /* ── Conquistas ─────────────────────────────────────── */
+    .vg-conquistas-grid {
+      display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+      gap:12px; padding:0 40px;
+    }
+    .vg-conquest-card {
+      background:#fff; border-radius:12px; padding:16px 18px;
+      box-shadow:0 1px 3px rgba(27,42,74,.06);
+      border:1px solid rgba(0,0,0,.04);
+      border-left:4px solid #10B981;
+      transition:all .2s;
+    }
+    .vg-conquest-card:hover { box-shadow:0 4px 16px rgba(27,42,74,.08); }
+    .vg-conquest-nome {
+      font-weight:600; font-size:13px; color:#1B2A4A;
+      margin-bottom:8px; line-height:1.3;
+    }
+    .vg-conquest-meta {
+      display:flex; flex-direction:column; gap:4px;
+    }
+    .vg-conquest-row {
+      display:flex; align-items:center; gap:6px;
+      font-size:11px; color:#6B7280;
+    }
+    .vg-conquest-icon { width:14px; text-align:center; font-size:11px; flex-shrink:0; }
+    .vg-conquest-badge {
+      display:inline-flex; align-items:center; gap:4px;
+      padding:2px 8px; border-radius:20px;
+      font-size:9px; font-weight:700;
+      background:#ECFDF5; color:#059669;
+      margin-top:8px;
+    }
+
+    /* ── Riscos (bloqueados) ────────────────────────────── */
+    .vg-riscos-list { padding:0 40px; display:flex; flex-direction:column; gap:0; }
+    .vg-risco-row {
+      display:grid; grid-template-columns:8px 1fr auto auto;
+      gap:12px; align-items:center;
+      padding:10px 16px; background:#fff;
+      border-bottom:1px solid #F4F3F0;
+      transition:background .15s;
+    }
+    .vg-riscos-card { background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 1px 3px rgba(27,42,74,.06); border:1px solid rgba(0,0,0,.04); }
+    .vg-risco-row:hover { background:#FAFAF8; }
+    .vg-risco-row:last-child { border-bottom:none; }
+    .vg-risco-dot { width:8px; height:8px; border-radius:2px; background:#EF4444; flex-shrink:0; }
+    .vg-risco-desc { font-size:12px; color:#1B2A4A; font-weight:500; }
+    .vg-risco-proj { font-size:10px; color:#6B7280; margin-top:1px; }
+    .vg-risco-resp { font-size:10px; color:#6B7280; white-space:nowrap; }
+    .vg-risco-badge {
+      font-size:9px; font-weight:700; padding:2px 8px; border-radius:12px;
+      background:#FEF2F2; color:#EF4444; white-space:nowrap;
+    }
+    .vg-empty {
+      text-align:center; padding:32px 20px; color:#9CA3AF;
+      font-size:13px;
+    }
+
+    /* ── Financeiro ─────────────────────────────────────── */
+    .fin-wrap { padding:0 40px 32px; }
+    .fin-table-card { background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 1px 3px rgba(27,42,74,.06); border:1px solid rgba(0,0,0,.04); }
+    .fin-table { width:100%; border-collapse:collapse; }
+    .fin-table thead th {
+      text-align:left; font-size:10px; text-transform:uppercase;
+      letter-spacing:.7px; color:#6B7280; padding:12px 16px;
+      border-bottom:2px solid #ECEAE6; font-weight:600;
+      background:#fff; white-space:nowrap;
+    }
+    .fin-table thead th.num { text-align:right; }
+    .fin-table tbody td {
+      padding:12px 16px; border-bottom:1px solid #F4F3F0;
+      font-size:13px; color:#1B2A4A; vertical-align:middle;
+    }
+    .fin-table tbody td.num { text-align:right; font-weight:600; }
+    .fin-table tbody tr { transition:background .15s; cursor:default; }
+    .fin-table tbody tr:hover { background:#FAFAF8; }
+    .fin-table tbody tr:last-child td { border-bottom:none; }
+    .fin-nome { font-weight:600; font-size:12px; color:#1B2A4A; }
+    .fin-resp { font-size:10px; color:#6B7280; margin-top:2px; }
+    .fin-receita { color:#059669; }
+    .fin-custo   { color:#DC2626; }
+    .fin-vazio   { color:#9CA3AF; font-weight:400; }
+    .fin-total-row td { font-weight:700; background:#F4F3F0; border-top:2px solid #ECEAE6; }
+
+    /* ── Wrapper de padding do portfólio e gantt ─────────── */
+    .pp-main-inner { max-width:1440px; margin:0 auto; padding:0; }
+
   </style>
 </head>
 </head>
 <body>
-  <!-- ============ TELA DE SELEÇÃO DE PROJETO ============ -->
+  <!-- ============ DASHBOARD PRINCIPAL ============ -->
   <div class="project-selector" id="project-selector">
 
-    <!-- Hero -->
-    <div class="ps-hero">
-      <div class="ps-hero-inner">
-        <div class="ps-hero-brand">
-          <div class="ps-hero-mark">📊</div>
+    <!-- Header -->
+    <div class="pp-header">
+      <div class="pp-header-inner">
+        <div class="pp-header-brand">
+          <div class="pp-header-logo">P&P</div>
           <div>
-            <p class="ps-hero-title">Status Report Executivo</p>
-            <p class="ps-hero-sub">Portfólio de Projetos</p>
+            <p class="pp-header-title">Portfólio de Projetos</p>
+            <p class="pp-header-sub">Plano&amp;Plano Desenvolvimento Imobiliário</p>
           </div>
         </div>
-        <div style="display:flex; align-items:center; gap:12px; flex-shrink:0;">
-          <div id="ps-cache-info" style="font-size:11px; color:rgba(255,255,255,.5); display:none;">
+        <div style="display:flex; align-items:center; gap:12px; flex-shrink:0; flex-wrap:wrap;">
+          <span class="pp-header-cache" id="ps-cache-info" style="display:none;">
             <span id="ps-cache-time"></span>
+          </span>
+          <div class="pp-header-actions">
+            <button type="button" class="pp-header-btn" id="ps-refresh">🔄 Atualizar</button>
+            <button type="button" class="pp-header-btn" id="ps-use-excel">📥 Planilha Excel</button>
           </div>
-        <div class="ps-hero-actions">
-          <button type="button" class="ps-hero-btn" id="ps-refresh">🔄 Atualizar</button>
-          <button type="button" class="ps-hero-btn" id="ps-use-excel">📥 Planilha Excel</button>
-        </div></div>
+        </div>
       </div>
     </div>
 
-    <!-- ============ VIEW TABS (Portfólio / Kanban) ============ -->
-    <div class="ps-view-tabs-wrap">
-      <div class="ps-view-tabs">
-        <button type="button" class="ps-view-tab active" id="ps-tab-portfolio" onclick="switchPortalTab('portfolio')">📊 Portfólio</button>
-        <button type="button" class="ps-view-tab" id="ps-tab-kanban" onclick="switchPortalTab('kanban')">🗂 Kanban</button>
+    <!-- Nav 4 abas -->
+    <nav class="pp-nav" id="pp-nav">
+      <button class="pp-tab active" id="pp-tab-vg"  onclick="switchMainTab('vg')">Visão Geral</button>
+      <button class="pp-tab"        id="pp-tab-fin" onclick="switchMainTab('fin')">Financeiro</button>
+      <button class="pp-tab"        id="pp-tab-kb"  onclick="switchMainTab('kb')">Kanban</button>
+      <button class="pp-tab"        id="pp-tab-sr"  onclick="switchMainTab('sr')">Status Report</button>
+    </nav>
+
+    <!-- ═══ TAB: VISÃO GERAL ═══ -->
+    <div id="pp-content-vg" class="pp-tab-content active">
+
+    <!-- KPIs redesenhados (Visão Geral) -->
+    <div class="pp-kpi-grid" id="pp-kpi-grid">
+      <div class="pp-kpi-card accent-navy" id="pp-kpi-total" data-kpi="total" style="cursor:pointer">
+        <div class="pp-kpi-label">Total de Projetos</div>
+        <div class="pp-kpi-value" id="pp-kpi-n-total">–</div>
+        <div class="pp-kpi-sub" id="pp-kpi-sub-total"></div>
+      </div>
+      <div class="pp-kpi-card accent-blue" id="pp-kpi-andamento" data-kpi="andamento" style="cursor:pointer">
+        <div class="pp-kpi-label">Em Andamento</div>
+        <div class="pp-kpi-value" id="pp-kpi-n-andamento">–</div>
+        <div class="pp-kpi-sub" id="pp-kpi-sub-andamento"></div>
+      </div>
+      <div class="pp-kpi-card accent-green" id="pp-kpi-concluido" data-kpi="concluido" style="cursor:pointer">
+        <div class="pp-kpi-label">Concluídos</div>
+        <div class="pp-kpi-value" id="pp-kpi-n-concluido">–</div>
+        <div class="pp-kpi-sub" id="pp-kpi-sub-concluido"></div>
+      </div>
+      <div class="pp-kpi-card accent-yellow" id="pp-kpi-risco" data-kpi="risco" style="cursor:pointer">
+        <div class="pp-kpi-label">Em Risco</div>
+        <div class="pp-kpi-value" id="pp-kpi-n-risco">–</div>
+        <div class="pp-kpi-sub" id="pp-kpi-sub-risco"></div>
       </div>
     </div>
 
-    <!-- KPI Strip -->
+    <!-- KPI Strip legado (mantido para lógica JS, oculto visualmente) -->
+    <div class="ps-kpi-strip" style="display:none;">
     <div class="ps-kpi-strip">
       <div class="ps-kpi-strip-inner" id="ps-kpi-strip">
         <div class="ps-kpi ps-kpi-total" id="ps-kpi-total" data-resp="">
@@ -2779,9 +3017,15 @@
           </div>
         </div>
       </div>
-    </div>
+    </div><!-- /ps-kpi-strip legado -->
+    </div><!-- /ps-kpi-strip oculto wrapper -->
 
-    <!-- Toolbar -->
+    <!-- Section header dos filtros -->
+    <div class="pp-section-header" style="margin-top:16px; margin-bottom:0;">
+      <h2>Filtros</h2>
+      <div class="pp-section-line"></div>
+    </div>
+    <!-- Toolbar (filtros — Visão Geral) -->
     <div class="ps-toolbar">
       <!-- Linha sempre visível: busca + responsável + botão de filtros + contador -->
       <div class="ps-toolbar-row ps-toolbar-row-primary">
@@ -2896,10 +3140,15 @@
         </div>
       </div>
 
-      <!-- Lista (gantt + cards) -->
+      <!-- Lista (gantt — Visão Geral) + cards (Status Report) -->
       <div id="ps-list-content">
-      <!-- Gantt timeline -->
-      <div class="ps-gantt-section">
+      <!-- Gantt timeline — visível na aba Visão Geral -->
+      <div id="vg-gantt-wrap">
+      <div class="pp-section-header">
+        <h2>📅 Cronograma dos Projetos</h2>
+        <div class="pp-section-line"></div>
+      </div>
+      <div class="ps-gantt-section" style="margin:0 40px 20px;">
         <div class="ps-gantt-card">
           <div style="overflow-x:auto;">
             <div id="ps-gantt-container" style="min-width:100%; width:max-content;">
@@ -2912,11 +3161,12 @@
           </div>
         </div>
         <div id="ps-gantt-legend" style="display:flex;gap:12px;flex-wrap:wrap;padding:10px 16px;border-top:1px solid var(--border);background:var(--bg);"></div>
-      </div>
+      </div><!-- /ps-gantt-section -->
+      </div><!-- /vg-gantt-wrap -->
       </div>
 
-      <!-- Cards -->
-      <div class="ps-cards-section">
+      <!-- Cards — visível na aba Status Report -->
+      <div class="ps-cards-section" id="sr-cards-wrap">
         <div class="ps-cards-title">
           <span>📋</span> Projetos · clique em um card para gerar o Status Report
         </div>
@@ -2925,7 +3175,90 @@
       </div><!-- /ps-list-content -->
     </div><!-- /ps-content -->
 
-  <!-- ============ KANBAN SECTION ============ -->
+    <!-- Conquistas & Quick Wins (Visão Geral) -->
+    <div id="vg-conquistas-section" style="padding-bottom:8px;">
+      <div class="pp-section-header">
+        <h2>🏆 Conquistas &amp; Quick Wins</h2>
+        <div class="pp-section-line"></div>
+        <span class="pp-section-count" id="vg-conquistas-count">0</span>
+      </div>
+      <div class="vg-conquistas-grid" id="vg-conquistas-grid">
+        <div class="vg-empty">Aguardando dados dos projetos...</div>
+      </div>
+    </div>
+
+    <!-- Riscos — histórias/tarefas bloqueadas (Visão Geral) -->
+    <div id="vg-riscos-section" style="padding-bottom:32px;">
+      <div class="pp-section-header">
+        <h2>⚠️ Riscos</h2>
+        <div class="pp-section-line"></div>
+        <span class="pp-section-count" id="vg-riscos-count">0</span>
+      </div>
+      <div class="vg-riscos-list">
+        <div class="vg-riscos-card">
+          <div id="vg-riscos-body">
+            <div class="vg-empty">Aguardando dados dos projetos...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    </div><!-- /pp-content-vg (tab Visão Geral) -->
+
+    <!-- ═══ TAB: FINANCEIRO ═══ -->
+    <div id="pp-content-fin" class="pp-tab-content" style="display:none;">
+      <div class="pp-section-header" style="margin-top:24px;">
+        <h2>💰 Receita e Custo por Projeto</h2>
+        <div class="pp-section-line"></div>
+        <span class="pp-section-count" id="fin-proj-count">0 projetos</span>
+      </div>
+      <div class="fin-wrap">
+        <div class="fin-table-card">
+          <table class="fin-table" id="fin-table">
+            <thead>
+              <tr>
+                <th style="min-width:220px;">Projeto</th>
+                <th>Status</th>
+                <th>Diretoria</th>
+                <th class="num">Receita</th>
+                <th class="num">Custo</th>
+              </tr>
+            </thead>
+            <tbody id="fin-tbody">
+              <tr><td colspan="5" class="vg-empty">Aguardando dados...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div><!-- /pp-content-fin (tab Financeiro) -->
+
+    <!-- ═══ TAB: STATUS REPORT (cards) ═══ -->
+    <div id="pp-content-sr" class="pp-tab-content" style="display:none;">
+      <!-- Toolbar de filtros para Status Report (cópia funcional) -->
+      <div class="ps-toolbar" id="sr-toolbar" style="padding-top:8px;">
+        <div class="ps-toolbar-row ps-toolbar-row-primary">
+          <div class="ps-search-wrap">
+            <span class="ps-search-icon">🔍</span>
+            <input type="text" id="sr-search" class="ps-search-input" placeholder="Buscar projeto..." autocomplete="off" />
+            <button type="button" class="ps-clear-btn" id="sr-clear-search" style="display:none;">×</button>
+          </div>
+        </div>
+        <div class="ps-toolbar-row ps-toolbar-row-secondary" id="sr-filter-bar" style="padding:6px 16px 10px;">
+          <div class="ps-filter-chips" id="sr-diretoria-chips"></div>
+          <div class="ps-filter-chips" id="sr-status-chips"></div>
+        </div>
+      </div>
+      <!-- Cards do portfólio -->
+      <div class="ps-cards-section sr-cards-inner">
+        <div class="ps-cards-title">
+          <span>📋</span> Projetos · clique em um card para gerar o Status Report
+        </div>
+        <div class="ps-list" id="sr-list"></div>
+      </div>
+    </div><!-- /pp-content-sr (tab Status Report) -->
+
+  <!-- ═══ TAB: KANBAN ═══ -->
+  <div id="pp-content-kb" class="pp-tab-content" style="display:none;">
   <div id="ps-kanban-section">
 
     <!-- KPI STRIP -->
@@ -3005,6 +3338,7 @@
       </div>
     </div>
   </div><!-- /ps-kanban-section -->
+  </div><!-- /pp-content-kb (tab Kanban) -->
 
   <!-- Modal Kanban -->
   <div class="kb-overlay" id="kb-overlay" onclick="closeKanbanModal(event)">
@@ -7650,6 +7984,28 @@
         if (!listEl) return;
         if (filtered.length === 0) { showState('empty'); return; }
 
+        // ── Atualizar KPIs do novo grid (Visão Geral) ─────────────────
+        const allProj = Object.values(projectsMap).filter(p =>
+          _matchesResp(p) && _matchesMeta(p) && _matchesDiretoria(p) && _matchesStatus(p)
+        );
+        const nTotal    = allProj.length;
+        const nAndamento= allProj.filter(p => { const st=_normalizeApiStatus((p.extra&&p.extra.status)||''); return st==='Em andamento'; }).length;
+        const nConcluido= allProj.filter(p => { const st=_normalizeApiStatus((p.extra&&p.extra.status)||''); return st==='Concluído'; }).length;
+        const nRisco    = allProj.filter(p => { const sc=_computeSemaforoCalc(p); return sc==='vermelho'; }).length;
+        const _setKpi = (id, val, sub) => { const el=document.getElementById(id); if(el) el.textContent=val; const se=document.getElementById(id.replace('n-','sub-')); if(se&&sub) se.textContent=sub; };
+        _setKpi('pp-kpi-n-total',     nTotal,     nTotal===1?'projeto':'projetos');
+        _setKpi('pp-kpi-n-andamento', nAndamento, Math.round(nTotal>0?nAndamento/nTotal*100:0)+'% do portfólio');
+        _setKpi('pp-kpi-n-concluido', nConcluido, Math.round(nTotal>0?nConcluido/nTotal*100:0)+'% do portfólio');
+        _setKpi('pp-kpi-n-risco',     nRisco,     nRisco > 0 ? 'requer atenção' : 'sem alertas');
+        // ── Render conquistas e riscos (Visão Geral) ───────────────────
+        renderConquistas(allProj);
+        renderRiscos(allProj);
+        // ── Render financeiro ──────────────────────────────────────────
+        renderFinanceiro(allProj);
+        // ── Render Status Report (se aba ativa) ────────────────────────
+        const activeTab = document.querySelector('.pp-tab.active')?.id?.replace('pp-tab-','');
+        if (activeTab === 'sr') renderStatusReportTab();
+
         listEl.innerHTML = filtered.map(p => {
           const s = p.stats;
           const ex = p.extra;
@@ -8923,52 +9279,219 @@
         applyKanbanFilters();
       }
 
-      function switchPortalTab(tab) {
-        const tabPortfolio = document.getElementById('ps-tab-portfolio');
-        const tabKanban    = document.getElementById('ps-tab-kanban');
-        const kpiStrip     = document.querySelector('.ps-kpi-strip');
-        const toolbar      = document.querySelector('.ps-toolbar');
-        const psContent    = document.getElementById('ps-content');
-        const kanbanSec    = document.getElementById('ps-kanban-section');
+      // ── switchMainTab: controla as 4 abas ────────────────────────────
+      function switchMainTab(tab) {
+        // Atualizar tabs nav
+        ['vg','fin','kb','sr'].forEach(t => {
+          const btn = document.getElementById('pp-tab-' + t);
+          if (btn) btn.classList.toggle('active', t === tab);
+        });
 
-        if (tab === 'kanban') {
-          // Esconder conteúdo do portfólio
-          if (kpiStrip)  kpiStrip.style.display  = 'none';
-          if (toolbar)   toolbar.style.display    = 'none';
-          if (psContent) psContent.style.display  = 'none';
-
-          // Medir hero + tabs ANTES de mostrar o kanban (ainda estão no DOM)
-          const heroH  = document.querySelector('.ps-hero')?.offsetHeight   || 80;
-          const tabsH  = document.querySelector('.ps-view-tabs-wrap')?.offsetHeight || 45;
-          const topOff = heroH + tabsH;
-
-          // Mostrar kanban como overlay fixo — sai do fluxo, sem herança de altura
+        // Mostrar/ocultar painéis de conteúdo
+        const panels = { vg:'pp-content-vg', fin:'pp-content-fin', kb:'pp-content-kb', sr:'pp-content-sr' };
+        Object.entries(panels).forEach(([t, id]) => {
+          const el = document.getElementById(id);
+          if (el) el.style.display = (t === tab) ? 'block' : 'none';
+        });
+        // Aba Kanban usa flex
+        if (tab === 'kb') {
+          const kbPanel = document.getElementById('pp-content-kb');
+          if (kbPanel) kbPanel.style.display = 'block';
+          const kanbanSec = document.getElementById('ps-kanban-section');
           if (kanbanSec) {
-            kanbanSec.style.cssText =
-              'display:flex; flex-direction:column;' +
-              'position:fixed; top:' + topOff + 'px; left:0; right:0; bottom:0;' +
-              'background:var(--bg); overflow:hidden; z-index:5001;';
+            kanbanSec.style.cssText = 'display:flex; flex-direction:column; height:calc(100vh - 130px); overflow:hidden;';
           }
-
-          tabPortfolio?.classList.remove('active');
-          tabKanban?.classList.add('active');
           if (Object.keys(projectsMap).length > 0 && !kbDataLoaded) renderKanban();
           else if (kbDataLoaded) applyKanbanFilters();
         } else {
-          // Restaurar portfólio
-          if (kpiStrip)  kpiStrip.style.display  = '';
-          if (toolbar)   toolbar.style.display    = '';
-          if (kanbanSec) kanbanSec.style.cssText  = 'display:none;';
-          if (psContent) {
-            psContent.style.display = Object.keys(projectsMap).length > 0 ? 'flex' : 'none';
-          }
-          tabPortfolio?.classList.add('active');
-          tabKanban?.classList.remove('active');
+          const kanbanSec = document.getElementById('ps-kanban-section');
+          if (kanbanSec) kanbanSec.style.cssText = 'display:none;';
         }
+
+        // Aba Visão Geral: mostrar gantt, ocultar cards do ps-list
+        const ganttWrap  = document.getElementById('vg-gantt-wrap');
+        const srWrap     = document.getElementById('sr-cards-wrap');
+        if (ganttWrap) ganttWrap.style.display = (tab === 'vg') ? '' : 'none';
+        if (srWrap)    srWrap.style.display    = 'none'; // cards sempre no tab SR
+
+        // ps-content (loading/error/states): visível em VG e SR
+        const psContent = document.getElementById('ps-content');
+        if (psContent && Object.keys(projectsMap).length > 0) {
+          psContent.style.display = (tab === 'vg' || tab === 'sr') ? 'flex' : 'none';
+        }
+
+        // Aba Status Report: renderizar sr-list
+        if (tab === 'sr') renderStatusReportTab();
+      }
+
+      // ── renderStatusReportTab: cards na aba SR ─────────────────────
+      let srSearchQuery = '';
+      function renderStatusReportTab() {
+        const filtered = Object.values(projectsMap).filter(p =>
+          _matchesResp(p) && _matchesMeta(p) && _matchesDiretoria(p) && _matchesStatus(p) && _matchesKpi(p)
+        );
+        const srList = document.getElementById('sr-list');
+        if (!srList) return;
+        if (filtered.length === 0) {
+          srList.innerHTML = '<div class="vg-empty" style="padding:40px 20px;">Nenhum projeto encontrado para os filtros ativos.</div>';
+          return;
+        }
+        // Reusar a função renderCards adaptada para sr-list
+        srList.innerHTML = filtered.map(p => {
+          const s = p.stats; const ex = p.extra;
+          const resp = (ex && ex.responsavel) ? String(ex.responsavel).trim() : s.responsavelPrincipal;
+          const iniciais = _avatarIniciais(resp);
+          const _semCalc = _computeSemaforoCalc(p);
+          const farolColor = _semCalc === 'verde' ? 'green' : _semCalc === 'amarelo' ? 'yellow' : _semCalc === 'vermelho' ? 'red' : 'gray';
+          const statusApi = ex ? (ex.status || '') : '';
+          const statusNorm = _normalizeApiStatus(statusApi) || _projetoStatusNorm(p);
+          const badgeMap = { 'Concluído':['green','✓ Concluído'],'Em andamento':['blue','▶ Em andamento'],'Backlog':['gray','📋 Backlog'],'Aguardando':['yellow','⏸ Aguardando'],'Não iniciado':['gray','○ Não iniciado'],'Homologação':['yellow','🔍 Homologação'],'Cancelado':['gray','✕ Cancelado'] };
+          const [badgeCls, badgeTxt] = badgeMap[statusNorm] || ['gray', statusNorm];
+          let start = s.minStart, end = s.maxEnd;
+          if (ex && ex.dataInicio) { const d = _parseFlexDate(ex.dataInicio); if(d) start=d; }
+          if (ex && ex.dataFim)    { const d = _parseFlexDate(ex.dataFim);    if(d) end=d;   }
+          const dataIni = start ? _fmtDate(start) : '–'; const dataFim = end ? _fmtDate(end) : '–';
+          let prog = s.progresso;
+          if (ex && ex.progresso != null && String(ex.progresso).trim() !== '') { const v = parseFloat(ex.progresso); if (!isNaN(v)) prog = Math.max(0,Math.min(100,v<=1?Math.round(v*100):Math.round(v))); }
+          const metaLabel = (ex && ex.meta === 'Meta') ? '<span class="ps-card-badge ps-card-badge-blue">🎯 Meta</span>' : '';
+          const desc = (ex && ex.descricao && ex.descricao !== 'Sem Descrição') ? String(ex.descricao).trim().replace(/^DESCRIÇÃO:\s*\[?/i,'').replace(/\].*/,'') : '';
+          // Delta
+          let deltaHtml = '';
+          if (ex && ex.progressoAnterior != null && String(ex.progressoAnterior).trim() !== '') {
+            const vAnt = parseFloat(String(ex.progressoAnterior).replace('%','').trim());
+            if (!isNaN(vAnt)) { const vAntN = vAnt<=1?Math.round(vAnt*100):Math.round(vAnt); const diff=prog-vAntN; const cls=diff>0?'up':diff<0?'down':'flat'; const icon=diff>0?'▲':diff<0?'▼':'─'; deltaHtml='<span class="ps-card-delta '+cls+'">'+icon+' '+(diff>0?'+':'')+diff+'%</span>'; }
+          }
+          return '<button type="button" class="ps-card" data-projeto="'+escapeAttr(p.nome)+'">' +
+            '<div class="ps-card-farol-strip '+farolColor+'"></div>' +
+            '<div class="ps-card-top">' +
+              '<div class="ps-card-header"><div class="ps-card-title">'+escapeText(p.nome)+'</div>'+metaLabel+'</div>' +
+              (desc ? '<div class="ps-card-desc">'+escapeText(desc)+'</div>' : '') +
+              '<div class="ps-card-prog-wrap"><div class="ps-card-prog-top"><span class="ps-card-prog-label">Progresso</span><span class="ps-card-prog-pct">'+prog+'%'+deltaHtml+'</span></div>' +
+              '<div class="ps-card-bar"><div class="ps-card-bar-fill '+(prog>=70?'pct-high':prog>=30?'pct-mid':'pct-low')+'" style="width:'+prog+'%;"></div></div></div>' +
+              '<div class="ps-card-info-row"><span class="ps-card-info"><span class="ps-card-info-icon">📅</span>'+escapeText(dataIni)+' → '+escapeText(dataFim)+'</span><span class="ps-card-info"><span class="ps-card-info-icon">📦</span>'+s.total+' itens</span></div>' +
+              '<span class="ps-card-badge ps-card-badge-'+badgeCls+'">'+badgeTxt+'</span>' +
+            '</div>' +
+            '<div class="ps-card-bottom">' +
+              (resp ? '<div class="ps-card-avatar">'+escapeText(iniciais)+'</div><div class="ps-card-resp-name">'+escapeText(resp)+'</div>' : '<div style="flex:1;font-size:11px;color:var(--text-muted);">Sem responsável</div>') +
+              '<span class="ps-card-cta">Ver relatório →</span>' +
+            '</div></button>';
+        }).join('');
+        srList.querySelectorAll('.ps-card').forEach(card => {
+          card.addEventListener('click', () => generateDirectFromProject(card.dataset.projeto));
+        });
+      }
+
+      // ── renderConquistas: projetos concluídos ──────────────────────
+      function renderConquistas(filtered) {
+        const concluidos = filtered.filter(p => {
+          const st = _normalizeApiStatus((p.extra && p.extra.status) || '');
+          return st === 'Concluído';
+        });
+        const grid = document.getElementById('vg-conquistas-grid');
+        const cnt  = document.getElementById('vg-conquistas-count');
+        if (!grid) return;
+        if (cnt) cnt.textContent = concluidos.length;
+        if (concluidos.length === 0) {
+          grid.innerHTML = '<div class="vg-empty">Nenhum projeto concluído no período.</div>';
+          return;
+        }
+        grid.innerHTML = concluidos.map(p => {
+          const ex = p.extra || {};
+          const resp = ex.responsavel || p.stats.responsavelPrincipal || '—';
+          const dir  = ex.cliente || ex.diretoria || '—';
+          // Data de conclusão: DataFimReal → DataFim
+          const dtConc = ex.dataFimReal || ex.dataFim || '';
+          const dtFmt  = dtConc ? (() => { const d = _parseFlexDate(dtConc); return d ? _fmtDate(d) : dtConc; })() : '—';
+          return '<div class="vg-conquest-card">' +
+            '<div class="vg-conquest-nome">'+escapeText(p.nome)+'</div>' +
+            '<div class="vg-conquest-meta">' +
+              '<div class="vg-conquest-row"><span class="vg-conquest-icon">👤</span><span>'+escapeText(resp)+'</span></div>' +
+              '<div class="vg-conquest-row"><span class="vg-conquest-icon">🏢</span><span>'+escapeText(dir)+'</span></div>' +
+              '<div class="vg-conquest-row"><span class="vg-conquest-icon">📅</span><span>Concluído em '+escapeText(dtFmt)+'</span></div>' +
+            '</div>' +
+            '<span class="vg-conquest-badge">✓ Concluído</span>' +
+          '</div>';
+        }).join('');
+      }
+
+      // ── renderRiscos: itens bloqueados ─────────────────────────────
+      function renderRiscos(filtered) {
+        const body = document.getElementById('vg-riscos-body');
+        const cnt  = document.getElementById('vg-riscos-count');
+        if (!body) return;
+        // Coletar itens BLOQUEADOS dos projetos filtrados
+        const bloqueados = [];
+        filtered.forEach(p => {
+          (p.itens || []).forEach(it => {
+            const m = String(it.momento || '').toUpperCase().replace(/\s+/g,'');
+            if (m.includes('BLOQUEADO')) {
+              bloqueados.push({ ...it, _projeto: p.nome });
+            }
+          });
+        });
+        if (cnt) cnt.textContent = bloqueados.length;
+        if (bloqueados.length === 0) {
+          body.innerHTML = '<div class="vg-empty">Nenhum item bloqueado nos projetos visíveis. 🎉</div>';
+          return;
+        }
+        body.innerHTML = bloqueados.map(it => {
+          const titulo = it.item || it.historia || it.descricao || '(sem título)';
+          const resp   = it.responsavel || '—';
+          return '<div class="vg-risco-row">' +
+            '<div class="vg-risco-dot"></div>' +
+            '<div><div class="vg-risco-desc">'+escapeText(titulo)+'</div>' +
+               '<div class="vg-risco-proj">'+escapeText(it._projeto)+'</div></div>' +
+            '<div class="vg-risco-resp">'+escapeText(resp)+'</div>' +
+            '<div class="vg-risco-badge">Bloqueado</div>' +
+          '</div>';
+        }).join('');
+      }
+
+      // ── renderFinanceiro: receita e custo por projeto ──────────────
+      function renderFinanceiro(filtered) {
+        const tbody = document.getElementById('fin-tbody');
+        const cnt   = document.getElementById('fin-proj-count');
+        if (!tbody) return;
+        // Ordenar: maior receita primeiro; sem receita vai ao final
+        const sorted = [...filtered].sort((a, b) => {
+          const ra = (a.extra && a.extra.receita != null) ? Number(a.extra.receita) : -Infinity;
+          const rb = (b.extra && b.extra.receita != null) ? Number(b.extra.receita) : -Infinity;
+          return rb - ra;
+        });
+        if (cnt) cnt.textContent = sorted.length + ' projeto' + (sorted.length!==1?'s':'');
+        let totRec = 0, totCus = 0, hasAny = false;
+        const rows = sorted.map(p => {
+          const ex = p.extra || {};
+          const rec = (ex.receita != null && ex.receita !== '' && !isNaN(Number(ex.receita))) ? Number(ex.receita) : null;
+          const cus = (ex.custo  != null && ex.custo  !== '' && !isNaN(Number(ex.custo)))  ? Number(ex.custo)  : null;
+          if (rec != null) { totRec += rec; hasAny = true; }
+          if (cus != null) { totCus += cus; hasAny = true; }
+          const recTxt = rec != null ? Number(rec).toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0}) : '—';
+          const cusTxt = cus != null ? Number(cus).toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0}) : '—';
+          const st = _normalizeApiStatus(ex.status || '') || ex.status || '—';
+          const dir = ex.cliente || ex.diretoria || '—';
+          const resp = ex.responsavel || '—';
+          return '<tr>' +
+            '<td><div class="fin-nome">'+escapeText(p.nome)+'</div><div class="fin-resp">'+escapeText(resp)+'</div></td>' +
+            '<td><span class="ps-card-badge ps-card-badge-blue" style="font-size:10px;">'+escapeText(st)+'</span></td>' +
+            '<td style="font-size:12px;color:#6B7280;">'+escapeText(dir)+'</td>' +
+            '<td class="num '+(rec!=null?'fin-receita':'fin-vazio')+'">'+recTxt+'</td>' +
+            '<td class="num '+(cus!=null?'fin-custo':'fin-vazio')+'">'+cusTxt+'</td>' +
+          '</tr>';
+        }).join('');
+        const totRecTxt = totRec > 0 ? totRec.toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0}) : '—';
+        const totCusTxt = totCus > 0 ? totCus.toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0}) : '—';
+        tbody.innerHTML = rows +
+          '<tr class="fin-total-row">' +
+            '<td colspan="3" style="font-size:12px;">Total</td>' +
+            '<td class="num fin-receita">'+totRecTxt+'</td>' +
+            '<td class="num fin-custo">'+totCusTxt+'</td>' +
+          '</tr>';
       }
 
       // Expor funções chamadas via onclick (fora do IIFE)
-      window.switchPortalTab  = switchPortalTab;
+      window.switchMainTab    = switchMainTab;
+      window.switchPortalTab  = function(t) { switchMainTab(t === 'kanban' ? 'kb' : 'vg'); };
       window.openKanbanModal  = openKanbanModal;
       window.closeKanbanModal = closeKanbanModal;
       // Reposicionar o overlay ao redimensionar janela
