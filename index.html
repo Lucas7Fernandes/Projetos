@@ -2188,6 +2188,16 @@
     }
     /* Farol topo (tira colorida) */
     .ps-card-farol-strip { height:5px; width:100%; }
+    /* Delta de progresso semanal */
+    .ps-card-delta { display:inline-flex; align-items:center; gap:3px; font-size:10px; font-weight:700; padding:1px 6px; border-radius:10px; margin-left:6px; }
+    .ps-card-delta.up   { color:#16a34a; background:rgba(22,163,74,.10); }
+    .ps-card-delta.down { color:#dc2626; background:rgba(220,38,38,.10); }
+    .ps-card-delta.flat { color:var(--text-muted); background:var(--border); }
+    /* Linha financeira */
+    .ps-card-fin { display:flex; gap:10px; flex-wrap:wrap; margin-top:6px; padding-top:6px; border-top:1px solid var(--border); }
+    .ps-card-fin-item { display:flex; align-items:center; gap:4px; font-size:10px; color:var(--text-muted); font-weight:500; }
+    .ps-card-fin-val { font-weight:700; color:var(--primary); }
+    .ps-card-fin-neg { font-weight:700; color:#dc2626; }
     .ps-card-farol-strip.green  { background:linear-gradient(90deg,#16a34a,#4ade80); }
     .ps-card-farol-strip.yellow { background:linear-gradient(90deg,#d97706,#fbbf24); }
     .ps-card-farol-strip.red    { background:linear-gradient(90deg,#dc2626,#f87171); }
@@ -7016,21 +7026,72 @@
               responsaveisSet:   new Set([responsavel].filter(Boolean)),
               responsaveisCount: responsavel ? {[responsavel]: Math.max(itens.length, 1)} : {},
               extra: {
-                id:         proj['Codigo'] || null,
-                descricao:  proj['Descricao'] || proj['Descrição'] || '',
-                ganhos:     proj['Justificativa Principal'] || '',
+                // ── Identificação ──────────────────────────────────────────
+                id:            proj['Codigo']     || null,
+                origem:        proj['Origem']     || '',
+                nome:          proj['Nome']       || '',
+
+                // ── Pessoas ────────────────────────────────────────────────
                 responsavel,
-                owner:      proj['Dono'] || '',
-                dataInicio: proj['DataInicio'] || proj['DataInicioReal'] || '',
-                dataFim:    proj['DataFim'] || proj['DataFimReal'] || proj['DataProjetada'] || '',
-                status:     proj['StatusProjeto'] || proj['Status'] || '',
-                cor:        proj['Semaforo'] != null ? String(proj['Semaforo']) : '',
-                progresso:  proj['Percentual atual (%)'] || proj['Progresso'] || '',
-                meta:       isMeta ? 'Meta' : 'Não Meta',
+                owner:         proj['Dono']                  || '',
+                gerenteProjeto:proj['Gerente do Projeto']    || '',
+                liderancaTI:   proj['Liderança de TI']       || '',
+                usuarioChave:  proj['Usuário Chave']         || '',
+
+                // ── Classificação ──────────────────────────────────────────
+                tipo:          proj['Tipo']          || '',
+                nivel:         proj['Nivel']         || '',
+                classificacao: proj['Classificação'] || '',
+                grupo:         proj['Grupo']         || '',
+                iniciativa:    proj['Iniciativa']    || '',
+                baseInicial:   proj['Base Inicial']  || '',
+                areaTI:        proj['Area de TI']    || '',
+                cliente:       proj['Cliente']       || '',
+                times:         proj['Times']         || '',
+                diretoria:     proj['Diretoria'] || proj['diretoria'] || '',
+
+                // ── Status e semáforo ──────────────────────────────────────
+                status:        proj['StatusProjeto'] || proj['Status'] || '',
+                cor:           proj['Semaforo'] != null ? String(proj['Semaforo']) : '',
+
+                // ── Datas ──────────────────────────────────────────────────
+                dataInicio:    proj['DataInicio']     || proj['DataInicioReal'] || '',
+                dataFim:       proj['DataFim']        || proj['DataFimReal']    || proj['DataProjetada'] || '',
+                dataInicioReal:proj['DataInicioReal'] || '',
+                dataFimReal:   proj['DataFimReal']    || '',
+                dataProjetada: proj['DataProjetada']  || '',
+                dataCriacao:   proj['DataCriacao']    || '',
+
+                // ── Progresso ──────────────────────────────────────────────
+                progresso:          proj['Percentual atual (%)']             || proj['Progresso'] || '',
+                progressoAnterior:  proj['Percentual da semana anterior (%)'] || '',
+                progressoEsperado:  proj['Percentual esperado (%)']           || '',
+
+                // ── Conteúdo ──────────────────────────────────────────────
+                descricao:         proj['Descricao'] || proj['Descrição'] || '',
+                ganhos:            proj['Justificativa Principal'] || '',
+                resumoExecutivo:   proj['Resumo Executivo'] || '',
+
+                // ── Portfolio / Meta ───────────────────────────────────────
+                meta:              isMeta ? 'Meta' : 'Não Meta',
+                metaDirecta:       proj['Meta']          || '',
+                meta2:             proj['Meta (2)']      || '',
+                metasPortfolio:    proj['MetasPortfolio'] || '',
                 tags,
-                times:      proj['Times'] || '',
-                diretoria:  proj['Diretoria'] || proj['diretoria'] || '',
-                _raw:       proj
+
+                // ── Financeiro ────────────────────────────────────────────
+                receita:           proj['Receita'] != null ? proj['Receita'] : null,
+                custo:             proj['Custo']   != null ? proj['Custo']   : null,
+                capex:             proj['Número do Ativo (CAPEX)'] || '',
+
+                // ── Contagens da API ───────────────────────────────────────
+                qtdEpicos:         proj['Epicos']         || '0',
+                qtdHistorias:      proj['Historias']      || '0',
+                qtdTarefas:        proj['Tarefas']        || '0',
+                qtdBugs:           proj['Bugs']           || '0',
+
+                // ── Raw completo ───────────────────────────────────────────
+                _raw: proj
               }
             };
           });
@@ -7594,6 +7655,35 @@
             ? String(ex.descricao).trim().replace(/^DESCRIÇÃO:\s*\[?/i,'').replace(/\].*$/,'')
             : '';
 
+          // ── Delta de progresso semanal ──────────────────────────────────
+          let deltaHtml = '';
+          if (ex && ex.progressoAnterior != null && String(ex.progressoAnterior).trim() !== '') {
+            const vAnt = parseFloat(String(ex.progressoAnterior).replace('%','').trim());
+            if (!isNaN(vAnt)) {
+              const vAntNorm = vAnt <= 1 ? Math.round(vAnt * 100) : Math.round(vAnt);
+              const diff = prog - vAntNorm;
+              const cls  = diff > 0 ? 'up' : diff < 0 ? 'down' : 'flat';
+              const icon = diff > 0 ? '▲' : diff < 0 ? '▼' : '─';
+              const lbl  = diff > 0 ? '+'+diff+'%' : diff < 0 ? diff+'%' : '0%';
+              deltaHtml = '<span class="ps-card-delta '+cls+'" title="Semana anterior: '+vAntNorm+'%">'+icon+' '+lbl+'</span>';
+            }
+          }
+
+          // ── Dados financeiros ──────────────────────────────────────────
+          let finHtml = '';
+          if (ex) {
+            const recFmt  = _fmtBRL(ex.receita);
+            const custFmt = _fmtBRL(ex.custo);
+            const capex   = ex.capex && String(ex.capex).trim() ? String(ex.capex).trim() : null;
+            if (recFmt || custFmt || capex) {
+              finHtml = '<div class="ps-card-fin">' +
+                (recFmt  ? '<span class="ps-card-fin-item">💰 Receita <span class="ps-card-fin-val">'+escapeText(recFmt)+'</span></span>' : '') +
+                (custFmt ? '<span class="ps-card-fin-item">📊 Custo <span class="ps-card-fin-neg">'+escapeText(custFmt)+'</span></span>' : '') +
+                (capex   ? '<span class="ps-card-fin-item">🏦 CAPEX <span class="ps-card-fin-val">'+escapeText(capex)+'</span></span>' : '') +
+              '</div>';
+            }
+          }
+
           return '<button type="button" class="ps-card" data-projeto="'+escapeAttr(p.nome)+'">' +
             '<div class="ps-card-farol-strip '+farolColor+'"></div>' +
             '<div class="ps-card-top">' +
@@ -7605,10 +7695,11 @@
               '<div class="ps-card-prog-wrap">' +
                 '<div class="ps-card-prog-top">' +
                   '<span class="ps-card-prog-label">Progresso</span>' +
-                  '<span class="ps-card-prog-pct">'+prog+'%</span>' +
+                  '<span class="ps-card-prog-pct">'+prog+'%'+deltaHtml+'</span>' +
                 '</div>' +
                 '<div class="ps-card-bar"><div class="ps-card-bar-fill ' + (prog>=70 ? 'pct-high' : prog>=30 ? 'pct-mid' : 'pct-low') + '" style="width:'+prog+'%;"></div></div>' +
               '</div>' +
+              finHtml +
               '<div class="ps-card-info-row">' +
                 '<span class="ps-card-info"><span class="ps-card-info-icon">📅</span>'+escapeText(dataIni)+' → '+escapeText(dataFim)+'</span>' +
                 '<span class="ps-card-info"><span class="ps-card-info-icon">📦</span>'+s.total+' itens</span>' +
@@ -7921,6 +8012,10 @@
       }
 
       // ── HTML helpers ───────────────────────────────────────────────────────
+      function _fmtBRL(v) {
+        if (v == null || v === '' || isNaN(Number(v))) return null;
+        return Number(v).toLocaleString('pt-BR', { style:'currency', currency:'BRL', maximumFractionDigits:0 });
+      }
       function escapeText(s) { if (s==null) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
       function escapeAttr(s) { if (s==null) return ''; return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
 
