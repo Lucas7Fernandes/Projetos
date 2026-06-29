@@ -2736,7 +2736,6 @@
       background:linear-gradient(90deg,#E8584F,#FF7A72,#E8584F);
     }
     .pp-header-inner {
-      max-width:1440px; margin:0 auto;
       display:flex; align-items:center; justify-content:space-between;
       gap:16px; flex-wrap:wrap; position:relative; z-index:1;
     }
@@ -2781,8 +2780,8 @@
     .pp-tab.active { color:#1B2A4A; background:#F4F3F0; font-weight:600; }
 
     /* ── Tab content ────────────────────────────────────── */
-    .pp-tab-content { display:none; animation:ppFadeIn .25s ease; }
-    .pp-tab-content.active { display:block; }
+    .pp-tab-content { display:none; }
+    .pp-tab-content.pp-active { display:block !important; }
     @keyframes ppFadeIn {
       from { opacity:0; transform:translateY(5px); }
       to   { opacity:1; transform:translateY(0); }
@@ -2791,7 +2790,7 @@
     /* ── Section header (h2 serif + linha) ─────────────── */
     .pp-section-header {
       display:flex; align-items:center; gap:10px;
-      margin:24px 40px 14px; padding:0;
+      margin:24px 32px 14px; padding:0;
     }
     .pp-section-header h2 {
       font-family:'DM Serif Display',serif; font-size:18px;
@@ -2958,7 +2957,7 @@
     </nav>
 
     <!-- ═══ TAB: VISÃO GERAL ═══ -->
-    <div id="pp-content-vg" class="pp-tab-content active">
+    <div id="pp-content-vg" class="pp-tab-content pp-active">
 
     <!-- KPIs redesenhados (Visão Geral) -->
     <div class="pp-kpi-grid" id="pp-kpi-grid">
@@ -3148,7 +3147,7 @@
         <h2>📅 Cronograma dos Projetos</h2>
         <div class="pp-section-line"></div>
       </div>
-      <div class="ps-gantt-section" style="margin:0 40px 20px;">
+      <div class="ps-gantt-section" style="margin:0 0 20px;">
         <div class="ps-gantt-card">
           <div style="overflow-x:auto;">
             <div id="ps-gantt-container" style="min-width:100%; width:max-content;">
@@ -3163,7 +3162,6 @@
         <div id="ps-gantt-legend" style="display:flex;gap:12px;flex-wrap:wrap;padding:10px 16px;border-top:1px solid var(--border);background:var(--bg);"></div>
       </div><!-- /ps-gantt-section -->
       </div><!-- /vg-gantt-wrap -->
-      </div>
 
       <!-- Cards — visível na aba Status Report -->
       <div class="ps-cards-section" id="sr-cards-wrap">
@@ -9287,12 +9285,10 @@
           if (btn) btn.classList.toggle('active', t === tab);
         });
 
-        // Mostrar/ocultar painéis de conteúdo
-        const panels = { vg:'pp-content-vg', fin:'pp-content-fin', kb:'pp-content-kb', sr:'pp-content-sr' };
-        Object.entries(panels).forEach(([t, id]) => {
-          const el = document.getElementById(id);
-          if (el) el.style.display = (t === tab) ? 'block' : 'none';
-        });
+        // Mostrar/ocultar painéis via pp-active
+        document.querySelectorAll('.pp-tab-content').forEach(el => el.classList.remove('pp-active'));
+        const activePanel = document.getElementById('pp-content-' + tab);
+        if (activePanel) activePanel.classList.add('pp-active');
         // Aba Kanban usa flex
         if (tab === 'kb') {
           const kbPanel = document.getElementById('pp-content-kb');
@@ -9308,17 +9304,7 @@
           if (kanbanSec) kanbanSec.style.cssText = 'display:none;';
         }
 
-        // Aba Visão Geral: mostrar gantt, ocultar cards do ps-list
-        const ganttWrap  = document.getElementById('vg-gantt-wrap');
-        const srWrap     = document.getElementById('sr-cards-wrap');
-        if (ganttWrap) ganttWrap.style.display = (tab === 'vg') ? '' : 'none';
-        if (srWrap)    srWrap.style.display    = 'none'; // cards sempre no tab SR
-
-        // ps-content (loading/error/states): visível em VG e SR
-        const psContent = document.getElementById('ps-content');
-        if (psContent && Object.keys(projectsMap).length > 0) {
-          psContent.style.display = (tab === 'vg' || tab === 'sr') ? 'flex' : 'none';
-        }
+        // Conteúdo controlado por pp-active CSS class
 
         // Aba Status Report: renderizar sr-list
         if (tab === 'sr') renderStatusReportTab();
