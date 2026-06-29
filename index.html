@@ -3205,8 +3205,35 @@
 
     <!-- ═══ TAB: FINANCEIRO ═══ -->
     <div id="pp-content-fin" class="pp-tab-content" style="display:none;">
-      <div class="pp-section-header" style="margin-top:24px;">
-        <h2>💰 Receita e Custo por Projeto</h2>
+
+      <!-- KPI Cards superiores -->
+      <div class="fin-kpi-row">
+        <div class="fin-kpi-card fk-receita">
+          <div class="fin-kpi-label">💰 Receita Total</div>
+          <div class="fin-kpi-value" id="fin-kpi-rec-val">—</div>
+          <div class="fin-kpi-sub neutral" id="fin-kpi-rec-sub">Receita prevista dos projetos</div>
+        </div>
+        <div class="fin-kpi-card fk-custo">
+          <div class="fin-kpi-label">📊 Custo Total</div>
+          <div class="fin-kpi-value" id="fin-kpi-cus-val">—</div>
+          <div class="fin-kpi-sub neutral" id="fin-kpi-cus-sub">Custo realizado dos projetos</div>
+        </div>
+        <div class="fin-kpi-card fk-saldo">
+          <div class="fin-kpi-label">⚖️ Saldo Disponível</div>
+          <div class="fin-kpi-value" id="fin-kpi-sal-val">—</div>
+          <div class="fin-kpi-sub neutral" id="fin-kpi-sal-sub">Receita menos Custo</div>
+        </div>
+      </div>
+
+      <!-- Filtros ativos -->
+      <div class="fin-filter-bar">
+        <span style="font-size:11px;color:#6B7280;font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Filtros ativos:</span>
+        <div id="fin-filter-display"></div>
+      </div>
+
+      <!-- Seção da tabela -->
+      <div class="pp-section-header">
+        <h2>Receita e Custo por Projeto</h2>
         <div class="pp-section-line"></div>
         <span class="pp-section-count" id="fin-proj-count">0 projetos</span>
       </div>
@@ -7905,74 +7932,91 @@
         };
         const sortedByPeriod = filteredByPeriod.slice().sort((a, b) => _startOf(a) - _startOf(b));
 
-        // Rows
-        grid.innerHTML = sortedByPeriod.map(p => {
-          const ex = p.extra;
+        // ── Rows redesenhadas: baseline/actual/delay/épicos ──────────────
+        grid.innerHTML = sortedByPeriod.map((p, idx) => {
+          const ex = p.extra || {};
           const s = p.stats;
-          let start = s.minStart, end = s.maxEnd;
-          if (ex && ex.dataInicio) { const d = _parseFlexDate(ex.dataInicio); if (d) start=d; }
-          if (ex && ex.dataFim)    { const d = _parseFlexDate(ex.dataFim);    if (d) end=d;   }
-          const resp = (ex && ex.responsavel) ? String(ex.responsavel).trim() : s.responsavelPrincipal;
 
-          // Status visual — StatusProjeto da API é mandante
-          let barClass = 'b-andamento';
-          let statusLabel = 'Em andamento';
-          const apiStatus = ex ? _normalizeApiStatus(ex.status || '') : null;
-          if (apiStatus) {
-            // API define tudo
-            statusLabel = apiStatus;
-            if      (apiStatus === 'Concluído')    { barClass = 'b-concluido'; }
-            else if (apiStatus === 'Não iniciado') { barClass = 'b-nao-iniciado'; }
-            else if (apiStatus === 'Cancelado')    { barClass = 'b-cancelado'; }
-            else if (apiStatus === 'Backlog')      { barClass = 'b-backlog'; }
-            // Em andamento, Homologação, Aguardando → b-andamento (padrão)
-          } else {
-            // Fallback pelos itens (quando não há API de projetos)
-            const naoCancelados = s.total - s.cancelado;
-            if (s.progresso >= 100 || (s.finalizado === naoCancelados && naoCancelados > 0)) { barClass='b-concluido'; statusLabel='Concluído'; }
-            else if (s.bloqueado > 0) { barClass='b-backlog'; statusLabel='Bloqueado'; }
+          let planStart = s.minStart, planEnd = s.maxEnd;
+          if (ex.dataInicio) { const d=_parseFlexDate(ex.dataInicio); if(d) planStart=d; }
+          if (ex.dataFim)    { const d=_parseFlexDate(ex.dataFim);    if(d) planEnd=d;   }
+          let realStart=null, realEnd=null;
+          if (ex.dataInicioReal) { const d=_parseFlexDate(ex.dataInicioReal); if(d) realStart=d; }
+          if (ex.dataFimReal)    { const d=_parseFlexDate(ex.dataFimReal);    if(d) realEnd=d;   }
+          const dispStart = realStart||planStart, dispEnd = realEnd||planEnd;
+
+          const apiStatus = _normalizeApiStatus(ex.status||'');
+          let barClass='b-andamento';
+          if(apiStatus==='Concluído') barClass='b-concluido';
+          else if(apiStatus==='Cancelado') barClass='b-cancelado';
+          else if(apiStatus==='Não iniciado') barClass='b-nao-iniciado';
+          const imutavel = barClass==='b-concluido'||barClass==='b-cancelado';
+          if(!imutavel){const sc=_computeSemaforoCalc(p);if(sc==='vermelho')barClass='b-risco';else if(sc==='amarelo')barClass='b-backlog';}
+
+          const resp = ex.responsavel?String(ex.responsavel).trim():s.responsavelPrincipal;
+          const metaTag = ex.meta?'<span class="pg-meta-tag">'+escapeText(String(ex.meta).trim())+'</span>':'';
+          const apiPct = ex.progresso?parseInt(String(ex.progresso).replace('%','').trim()):NaN;
+          const prog = !isNaN(apiPct)?apiPct:s.progresso;
+
+          // Baseline (planejado)
+          let baseHtml='';
+          if(planStart&&planEnd){const bL=pct(planStart),bR=pct(planEnd),bW=Math.max(0.5,bR-bL);baseHtml='<div class="pg-baseline" style="left:'+bL.toFixed(2)+'%;width:'+bW.toFixed(2)+'%;"></div>';}
+
+          // Barra principal (real ou planejado)
+          let actualHtml='';
+          if(dispStart&&dispEnd){
+            const aL=pct(dispStart),aR=pct(dispEnd),aW=Math.max(0.5,aR-aL);
+            const bt=aW>5?prog+'%':'';
+            actualHtml='<div class="pg-bar '+barClass+'" style="left:'+aL.toFixed(2)+'%;width:'+aW.toFixed(2)+'%;" title="'+escapeAttr(p.nome+' · '+(apiStatus||'Em andamento')+' · '+_fmtDate(dispStart)+' → '+_fmtDate(dispEnd))+'">'+escapeText(bt)+'</div>';
           }
-          // Semáforo de atraso — sobrescreve cor exceto para Concluído e Cancelado
-          { const sc = _computeSemaforoCalc(p); const imutavel = barClass==='b-concluido'||barClass==='b-cancelado'; if (!imutavel && sc==='vermelho') barClass='b-risco'; else if (!imutavel && sc==='amarelo') barClass='b-backlog'; }
 
-          const left = (start && end) ? pct(start) : 0;
-          const right = (start && end) ? pct(end) : 0;
-          const width = Math.max(0.5, right - left);
-          const apiPct = ex && ex.progresso ? parseInt(String(ex.progresso).replace('%','').trim()) : NaN;
-          const pctFinal = !isNaN(apiPct) ? apiPct : s.progresso;
-          const barTxt = width > 6 ? pctFinal + '%' : '';
+          // Delay / advance
+          let devHtml='';
+          if(planEnd&&realEnd){
+            const diff=Math.round((realEnd-planEnd)/(86400000));
+            if(diff>3){const dF=pct(planEnd),dT=pct(realEnd),dW=Math.max(0.3,dT-dF);devHtml='<div class="pg-delay" style="left:'+dF.toFixed(2)+'%;width:'+dW.toFixed(2)+'%;"></div><div class="pg-deviation pg-late" style="left:'+dT.toFixed(2)+'%;">+'+diff+'d</div>';}
+            else if(diff<-3){devHtml='<div class="pg-deviation pg-early" style="left:'+pct(realEnd).toFixed(2)+'%;">'+diff+'d</div>';}
+          }
 
-          const metaTag = (ex && ex.meta) ? '<span style="font-size:9px;background:var(--primary-50);color:var(--primary);border:1px solid var(--primary-200);padding:1px 6px;border-radius:4px;font-weight:600;">'+escapeText(String(ex.meta).trim())+'</span>' : '';
+          // Épicos
+          const epicMap={};
+          (p.itens||[]).forEach(it=>{const en=it.epico||'';if(!en)return;if(!epicMap[en])epicMap[en]=[];epicMap[en].push(it);});
+          const epicsArr=Object.entries(epicMap);
+          const hasEpics=epicsArr.length>0;
+          const epicRowsHtml=epicsArr.map(([en,its])=>{
+            const dates=its.flatMap(it=>[it.dataInicio&&_parseFlexDate(it.dataInicio),it.dataEntregaPrevista&&_parseFlexDate(it.dataEntregaPrevista),it.dataFinalizacao&&_parseFlexDate(it.dataFinalizacao)]).filter(Boolean);
+            if(!dates.length)return'';
+            const eS=new Date(Math.min(...dates.map(d=>d.getTime()))),eE=new Date(Math.max(...dates.map(d=>d.getTime())));
+            const eL=pct(eS),eR=pct(eE),eW=Math.max(0.5,eR-eL);
+            const done=its.filter(i=>String(i.momento||'').toUpperCase().includes('FINALIZ')).length;
+            const ePct=its.length>0?Math.round(done/its.length*100):0;
+            const nm=en.length>34?en.slice(0,33)+'…':en;
+            return'<div class="pg-epic-row"><div class="pg-row-left pg-epic-left"><span class="pg-epic-bullet">◆</span><span class="pg-epic-name" title="'+escapeAttr(en)+'">'+escapeText(nm)+'</span></div><div class="pg-row-right"><div class="pg-lane"><div class="pg-bar b-epic" style="left:'+eL.toFixed(2)+'%;width:'+eW.toFixed(2)+'%;">'+(eW>5?ePct+'%':'')+'</div><div class="pg-today" style="left:'+hojeLeft.toFixed(2)+'%;"></div></div></div></div>';
+          }).filter(Boolean).join('');
 
-          return '<div class="ps-gantt-row" data-projeto="' + escapeAttr(p.nome) + '">' +
-            '<div class="ps-gantt-row-left">' +
-              '<div class="ps-gantt-name">' + escapeText(p.nome) + '</div>' +
-              '<div class="ps-gantt-meta">' + metaTag +
-                '<span class="ps-gantt-resp">' + escapeText(resp||'–') + '</span>' +
-              '</div>' +
-            '</div>' +
-            '<div class="ps-gantt-row-right">' +
-              '<div class="ps-gantt-lane">' +
-                (start && end ? '<div class="ps-gantt-bar ' + barClass + '" style="left:' + left.toFixed(2) + '%;width:' + width.toFixed(2) + '%;" title="' + escapeAttr(p.nome + ' · ' + statusLabel + ' · ' + _fmtDate(start) + ' → ' + _fmtDate(end)) + '">' + escapeText(barTxt) + '</div>' : '') +
-                '<div class="ps-gantt-today" style="left:' + hojeLeft.toFixed(2) + '%;"></div>' +
-              '</div>' +
-            '</div>' +
-          '</div>';
+          const nomeTxt=p.nome.length>34?p.nome.slice(0,33)+'…':p.nome;
+          return '<div class="pg-project-row" data-projeto="'+escapeAttr(p.nome)+'">' +
+            '<div class="pg-row-left"><button class="pg-expand-btn" data-pgidx="'+idx+'" title="'+(hasEpics?'Ver épicos':'Sem épicos')+'">'+(hasEpics?'▸':'–')+'</button><div class="pg-row-info"><div class="pg-proj-name" title="'+escapeAttr(p.nome)+'">'+escapeText(nomeTxt)+'</div><div class="pg-proj-meta">'+metaTag+'<span class="pg-proj-resp">'+escapeText(resp||'–')+'</span></div></div></div>' +
+            '<div class="pg-row-right"><div class="pg-lane">'+baseHtml+actualHtml+devHtml+'<div class="pg-today" style="left:'+hojeLeft.toFixed(2)+'%;"></div></div></div>' +
+          '</div>' +
+          (hasEpics?'<div class="pg-epics-container" id="pg-ep-'+idx+'" style="display:none;">'+epicRowsHtml+'</div>':'');
         }).join('');
 
-        // Legenda do Gantt
-        const legendEl = document.getElementById('ps-gantt-legend');
-        if (legendEl) legendEl.innerHTML =
-          '<span class="ps-gantt-leg b-andamento">Em andamento</span>' +
-          '<span class="ps-gantt-leg b-concluido">Concluído</span>' +
-          '<span class="ps-gantt-leg b-backlog">Bloqueado / Backlog</span>' +
-          '<span class="ps-gantt-leg b-nao-iniciado">Não iniciado</span>' +
-          '<span class="ps-gantt-leg b-aguardando">Aguardando</span>' +
-          '<span class="ps-gantt-leg-today">⬤ Hoje</span>';
+        // Legenda
+        const legendEl=document.getElementById('ps-gantt-legend');
+        if(legendEl)legendEl.innerHTML='<div class="pg-legend-item"><div class="pg-legend-bar b-andamento"></div>Em andamento</div><div class="pg-legend-item"><div class="pg-legend-bar b-concluido"></div>Concluído</div><div class="pg-legend-item"><div class="pg-legend-bar b-risco"></div>Em risco</div><div class="pg-legend-item"><div class="pg-legend-bar b-nao-iniciado"></div>Não iniciado</div><div class="pg-legend-item"><div class="pg-baseline-leg"></div>Planejado</div><div class="pg-legend-item"><div class="pg-delay-leg"></div>Atraso</div><div class="pg-legend-item"><span style="color:#E8584F;font-size:11px;">⬤</span> Hoje</div>';
 
-        // Click em row do gantt → abrir modal
-        grid.querySelectorAll('.ps-gantt-row').forEach(row => {
-          row.addEventListener('click', () => generateDirectFromProject(row.dataset.projeto));
+        // Expand/collapse (sem abrir one pager)
+        grid.querySelectorAll('.pg-expand-btn').forEach(btn=>{
+          btn.addEventListener('click',e=>{
+            e.stopPropagation();
+            const cont=document.getElementById('pg-ep-'+btn.dataset.pgidx);
+            if(!cont)return;
+            const open=cont.style.display!=='none';
+            cont.style.display=open?'none':'block';
+            btn.textContent=open?'▸':'▾';
+            btn.classList.toggle('open',!open);
+          });
         });
       }
 
@@ -9433,11 +9477,43 @@
         }).join('');
       }
 
-      // ── renderFinanceiro: receita e custo por projeto ──────────────
+      // ── renderFinanceiro: cards superiores + tabela ──────────────
       function renderFinanceiro(filtered) {
         const tbody = document.getElementById('fin-tbody');
         const cnt   = document.getElementById('fin-proj-count');
         if (!tbody) return;
+
+        // ── KPIs superiores ─────────────────────────────────────────
+        let totRec=0, totCus=0, nRec=0, nCus=0;
+        filtered.forEach(p => {
+          const ex = p.extra||{};
+          if(ex.receita!=null&&ex.receita!==''&&!isNaN(Number(ex.receita))){totRec+=Number(ex.receita);nRec++;}
+          if(ex.custo!=null&&ex.custo!==''&&!isNaN(Number(ex.custo))){totCus+=Number(ex.custo);nCus++;}
+        });
+        const saldo = totRec - totCus;
+        const fBRL = v => v==0?'—':Math.abs(v).toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0});
+        const fKpi = v => { const a=Math.abs(v); if(a>=1e6)return(v<0?'-':'')+'R$ '+(a/1e6).toFixed(1).replace('.',',')+' MM'; if(a>=1e3)return(v<0?'-':'')+'R$ '+Math.round(a/1e3)+' mil'; return(v<0?'-':'')+'R$ '+Math.round(a).toLocaleString('pt-BR'); };
+        const recEl=document.getElementById('fin-kpi-rec-val'), cusEl=document.getElementById('fin-kpi-cus-val'), salEl=document.getElementById('fin-kpi-sal-val');
+        const recSub=document.getElementById('fin-kpi-rec-sub'), cusSub=document.getElementById('fin-kpi-cus-sub'), salSub=document.getElementById('fin-kpi-sal-sub');
+        if(recEl){recEl.textContent=nRec>0?fKpi(totRec):'—';}
+        if(cusEl){cusEl.textContent=nCus>0?fKpi(totCus):'—';}
+        if(salEl){salEl.textContent=(nRec>0||nCus>0)?fKpi(saldo):'—'; salEl.className='fin-kpi-value'+(saldo<0?' neg':'');}
+        if(recSub){recSub.textContent=nRec>0?nRec+' projeto'+(nRec!==1?'s':'')+'com receita':'Nenhum com receita'; recSub.className='fin-kpi-sub neutral';}
+        if(cusSub){cusSub.textContent=nCus>0?nCus+' projeto'+(nCus!==1?'s':'')+'com custo':'Nenhum com custo'; cusSub.className='fin-kpi-sub neutral';}
+        if(salSub){const pct=totRec>0?Math.round(totCus/totRec*100):0; salSub.textContent=(nRec>0||nCus>0)?pct+'% do orçamento realizado':'—'; salSub.className='fin-kpi-sub '+(saldo>=0?'pos':'neg');}
+
+        // ── Filtros ativos exibidos ──────────────────────────────────
+        const filBadge = document.getElementById('fin-filter-display');
+        if (filBadge) {
+          const parts = [];
+          if (currentDiretoriaFilter && currentDiretoriaFilter !== '__branco__') parts.push('🏢 '+currentDiretoriaFilter);
+          else if (currentDiretoriaFilter === '__branco__') parts.push('🏢 Sem diretoria');
+          if (currentStatusFilter) parts.push('📌 '+currentStatusFilter);
+          if (searchQuery) parts.push('🔍 "'+searchQuery+'"');
+          filBadge.innerHTML = parts.length>0
+            ? parts.map(t=>'<span class="fin-filter-badge">'+escapeText(t)+'</span>').join('')
+            : '<span style="color:#9CA3AF;font-size:11px;">Nenhum filtro ativo · mostrando todos os projetos</span>';
+        }
         // Ordenar: maior receita primeiro; sem receita vai ao final
         const sorted = [...filtered].sort((a, b) => {
           const ra = (a.extra && a.extra.receita != null) ? Number(a.extra.receita) : -Infinity;
@@ -9577,3 +9653,181 @@
   </script>
 </body>
 </html>
+<!-- ===== PATCH CSS — GANTT REDESIGN + FIN CARDS ===== -->
+<style>
+/* ── Ocultar sempre sr-cards-wrap (cards ficam só no tab SR) ── */
+#sr-cards-wrap { display:none !important; }
+
+/* ── body[data-tab] controla toolbar ── */
+body[data-tab="kb"] .ps-toolbar { display:none !important; }
+body:not([data-tab]) .ps-toolbar { display:flex; }
+
+/* ════════════════════════════════════════════
+   GANTT PORTFOLIO REDESIGN (pg-*)
+════════════════════════════════════════════ */
+.pg-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+#ps-gantt-container { min-width:100%; }
+
+.pg-project-row, .pg-epic-row {
+  display:grid; grid-template-columns:280px 1fr;
+  align-items:center; border-bottom:1px solid #F4F3F0;
+  transition:background .15s; min-height:36px;
+}
+.pg-project-row:hover { background:rgba(27,42,74,.025); }
+.pg-epic-row { background:#FAFAF8; min-height:28px; }
+.pg-epic-row:hover { background:#F0F3FA; }
+
+.pg-row-left {
+  display:flex; align-items:center; gap:8px;
+  padding:7px 12px; min-height:inherit;
+  border-right:1px solid #ECEAE6;
+}
+.pg-epic-left { padding-left:28px; }
+
+.pg-expand-btn {
+  width:18px; height:18px; border-radius:4px;
+  border:1px solid #ECEAE6; background:#fff;
+  display:flex; align-items:center; justify-content:center;
+  font-size:10px; color:#6B7280; flex-shrink:0;
+  cursor:pointer; transition:all .2s; line-height:1;
+  font-family:monospace;
+}
+.pg-expand-btn:hover { border-color:#1B2A4A; color:#1B2A4A; }
+.pg-expand-btn.open { background:#1B2A4A; color:white; border-color:#1B2A4A; }
+.pg-row-info { flex:1; min-width:0; }
+.pg-proj-name { font-size:12px; font-weight:600; color:#1B2A4A; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.pg-proj-meta { display:flex; gap:6px; align-items:center; margin-top:2px; }
+.pg-meta-tag { font-size:8px; background:rgba(27,42,74,.08); color:#1B2A4A; border:1px solid rgba(27,42,74,.12); padding:1px 6px; border-radius:4px; font-weight:600; }
+.pg-proj-resp { font-size:9px; color:#6B7280; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+.pg-epic-bullet { font-size:7px; color:#E8584F; flex-shrink:0; }
+.pg-epic-name { font-size:11px; color:#374151; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+.pg-row-right { position:relative; }
+.pg-lane {
+  position:relative; height:36px;
+  display:flex; align-items:center;
+}
+.pg-epic-row .pg-lane { height:28px; }
+
+/* Baseline (planejado — dashed) */
+.pg-baseline {
+  position:absolute; height:10px; top:13px; border-radius:3px;
+  border:2px dashed rgba(27,42,74,.3);
+  background:transparent; pointer-events:none;
+}
+/* Actual bar */
+.pg-bar {
+  position:absolute; height:16px; top:10px; border-radius:4px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:8px; font-weight:700; color:white; letter-spacing:.3px;
+  cursor:default; transition:height .2s, top .2s;
+}
+.pg-bar:hover { height:20px; top:8px; filter:brightness(1.08); }
+.pg-epic-row .pg-bar { height:10px; top:9px; border-radius:3px; font-size:0; }
+.pg-epic-row .pg-bar:hover { height:14px; top:7px; }
+
+/* Bar colors using existing vars */
+.pg-bar.b-andamento, .pg-bar.b-epic { background:linear-gradient(90deg,#1B2A4A,#2A3F6B); }
+.pg-bar.b-concluido   { background:linear-gradient(90deg,#10B981,#34D399); }
+.pg-bar.b-risco       { background:linear-gradient(90deg,#DC2626,#F87171); }
+.pg-bar.b-backlog     { background:linear-gradient(90deg,#D97706,#FBBF24); }
+.pg-bar.b-nao-iniciado{ background:linear-gradient(90deg,#9CA3AF,#D1D5DB); }
+.pg-bar.b-cancelado   { background:linear-gradient(90deg,#6B7280,#9CA3AF); }
+.pg-bar.b-epic        { background:linear-gradient(90deg,#6366F1,#818CF8); }
+
+/* Delay bar (atraso — hatching vermelho) */
+.pg-delay {
+  position:absolute; height:14px; top:11px;
+  border-radius:0 4px 4px 0;
+  background:repeating-linear-gradient(135deg,#EF4444,#EF4444 2px,rgba(220,38,38,.5) 2px,rgba(220,38,38,.5) 4px);
+  opacity:.75; pointer-events:none;
+}
+/* Advance bar (adiantado — hatching verde) */
+.pg-advance {
+  position:absolute; height:14px; top:11px;
+  border-radius:4px;
+  background:repeating-linear-gradient(135deg,#10B981,#10B981 2px,rgba(16,185,129,.5) 2px,rgba(16,185,129,.5) 4px);
+  opacity:.55; pointer-events:none;
+}
+/* Deviation label */
+.pg-deviation {
+  position:absolute; top:2px; font-size:8px; font-weight:700;
+  white-space:nowrap; transform:translateX(4px);
+}
+.pg-late  { color:#DC2626; }
+.pg-early { color:#10B981; }
+
+/* Today line */
+.pg-today {
+  position:absolute; top:0; bottom:0; width:2px;
+  background:#E8584F; pointer-events:none; z-index:5;
+}
+.pg-today::before {
+  content:'HOJE'; position:absolute; top:2px; left:50%; transform:translateX(-50%);
+  font-size:7px; font-weight:700; color:#E8584F; letter-spacing:1px;
+  background:white; padding:0 2px;
+}
+
+/* Epics container */
+.pg-epics-container { overflow:hidden; transition:max-height .3s ease; }
+
+/* Grid lines */
+.pg-grid-line { position:absolute; top:0; bottom:0; width:1px; background:rgba(0,0,0,.04); pointer-events:none; }
+
+/* Legend */
+#ps-gantt-legend { display:flex; gap:16px; flex-wrap:wrap; padding:10px 16px; border-top:1px solid #ECEAE6; background:#FAFAF8; }
+.pg-legend-item { display:flex; align-items:center; gap:5px; font-size:10px; color:#6B7280; }
+.pg-legend-bar { width:24px; height:8px; border-radius:3px; }
+.pg-baseline-leg { border:2px dashed rgba(27,42,74,.35); background:transparent; height:8px; width:24px; }
+.pg-delay-leg { width:20px; height:8px; border-radius:3px; background:repeating-linear-gradient(135deg,#EF4444,#EF4444 2px,rgba(220,38,38,.4) 2px,rgba(220,38,38,.4) 4px); }
+.pg-advance-leg { width:20px; height:8px; border-radius:3px; background:repeating-linear-gradient(135deg,#10B981,#10B981 2px,rgba(16,185,129,.4) 2px,rgba(16,185,129,.4) 4px); }
+
+/* Gantt header meses */
+.ps-gantt-header { display:grid; grid-template-columns:280px 1fr; border-bottom:2px solid #ECEAE6; position:relative; }
+.ps-gantt-header-months { position:relative; display:flex; }
+.ps-gantt-header-month { flex:1; text-align:center; font-size:8px; color:#9CA3AF; padding:6px 0; font-weight:600; text-transform:uppercase; letter-spacing:.4px; border-left:1px solid #F4F3F0; }
+
+/* ════════════════════════════════════════════
+   FINANCEIRO — Cards superiores
+════════════════════════════════════════════ */
+.fin-kpi-row {
+  display:grid; grid-template-columns:repeat(3,1fr); gap:16px;
+  padding:24px 40px 0; margin-bottom:20px;
+}
+.fin-kpi-card {
+  background:#fff; border-radius:12px; padding:20px 24px;
+  box-shadow:0 1px 4px rgba(27,42,74,.07);
+  border:1px solid rgba(0,0,0,.05); position:relative; overflow:hidden;
+}
+.fin-kpi-card::after {
+  content:''; position:absolute; bottom:0; left:0; right:0; height:3px;
+}
+.fin-kpi-card.fk-receita::after { background:linear-gradient(90deg,#10B981,#34D399); }
+.fin-kpi-card.fk-custo::after   { background:linear-gradient(90deg,#E8584F,#FF7A72); }
+.fin-kpi-card.fk-saldo::after   { background:linear-gradient(90deg,#1B2A4A,#2A3F6B); }
+.fin-kpi-label { font-size:9px; text-transform:uppercase; letter-spacing:1px; color:#6B7280; font-weight:600; margin-bottom:8px; }
+.fin-kpi-value { font-family:'DM Serif Display',serif; font-size:26px; color:#1B2A4A; line-height:1.1; }
+.fin-kpi-value.neg { color:#DC2626; }
+.fin-kpi-sub { font-size:11px; margin-top:4px; }
+.fin-kpi-sub.pos { color:#10B981; font-weight:600; }
+.fin-kpi-sub.neg { color:#DC2626; font-weight:600; }
+.fin-kpi-sub.neutral { color:#6B7280; }
+
+/* Fin table melhorado */
+.fin-wrap { padding:0 40px 40px; }
+.fin-table-card { background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 1px 3px rgba(27,42,74,.06); border:1px solid rgba(0,0,0,.04); }
+.fin-table thead th { background:#1B2A4A; color:rgba(255,255,255,.8); }
+.fin-table thead th.num { text-align:right; }
+
+/* Filtros compartilhados no Financeiro */
+.fin-filter-bar {
+  display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+  padding:12px 40px; background:#fff; border-bottom:1px solid #ECEAE6;
+  font-size:11px; color:#6B7280;
+}
+.fin-filter-badge {
+  display:inline-flex; align-items:center; gap:4px; padding:3px 10px;
+  background:#F4F3F0; border-radius:20px; font-size:11px; color:#1B2A4A; font-weight:500;
+}
+</style>
