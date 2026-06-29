@@ -9484,23 +9484,22 @@
         if (!tbody) return;
 
         // ── KPIs superiores ─────────────────────────────────────────
-        let totRec=0, totCus=0, nRec=0, nCus=0;
+        let kpiRec=0, kpiCus=0, nRec=0, nCus=0;
         filtered.forEach(p => {
           const ex = p.extra||{};
-          if(ex.receita!=null&&ex.receita!==''&&!isNaN(Number(ex.receita))){totRec+=Number(ex.receita);nRec++;}
-          if(ex.custo!=null&&ex.custo!==''&&!isNaN(Number(ex.custo))){totCus+=Number(ex.custo);nCus++;}
+          if(ex.receita!=null&&ex.receita!==''&&!isNaN(Number(ex.receita))){kpiRec+=Number(ex.receita);nRec++;}
+          if(ex.custo!=null&&ex.custo!==''&&!isNaN(Number(ex.custo))){kpiCus+=Number(ex.custo);nCus++;}
         });
-        const saldo = totRec - totCus;
-        const fBRL = v => v==0?'—':Math.abs(v).toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0});
+        const saldo = kpiRec - kpiCus;
         const fKpi = v => { const a=Math.abs(v); if(a>=1e6)return(v<0?'-':'')+'R$ '+(a/1e6).toFixed(1).replace('.',',')+' MM'; if(a>=1e3)return(v<0?'-':'')+'R$ '+Math.round(a/1e3)+' mil'; return(v<0?'-':'')+'R$ '+Math.round(a).toLocaleString('pt-BR'); };
         const recEl=document.getElementById('fin-kpi-rec-val'), cusEl=document.getElementById('fin-kpi-cus-val'), salEl=document.getElementById('fin-kpi-sal-val');
         const recSub=document.getElementById('fin-kpi-rec-sub'), cusSub=document.getElementById('fin-kpi-cus-sub'), salSub=document.getElementById('fin-kpi-sal-sub');
-        if(recEl){recEl.textContent=nRec>0?fKpi(totRec):'—';}
-        if(cusEl){cusEl.textContent=nCus>0?fKpi(totCus):'—';}
+        if(recEl){recEl.textContent=nRec>0?fKpi(kpiRec):'—';}
+        if(cusEl){cusEl.textContent=nCus>0?fKpi(kpiCus):'—';}
         if(salEl){salEl.textContent=(nRec>0||nCus>0)?fKpi(saldo):'—'; salEl.className='fin-kpi-value'+(saldo<0?' neg':'');}
         if(recSub){recSub.textContent=nRec>0?nRec+' projeto'+(nRec!==1?'s':'')+'com receita':'Nenhum com receita'; recSub.className='fin-kpi-sub neutral';}
         if(cusSub){cusSub.textContent=nCus>0?nCus+' projeto'+(nCus!==1?'s':'')+'com custo':'Nenhum com custo'; cusSub.className='fin-kpi-sub neutral';}
-        if(salSub){const pct=totRec>0?Math.round(totCus/totRec*100):0; salSub.textContent=(nRec>0||nCus>0)?pct+'% do orçamento realizado':'—'; salSub.className='fin-kpi-sub '+(saldo>=0?'pos':'neg');}
+        if(salSub){const sp=kpiRec>0?Math.round(kpiCus/kpiRec*100):0; salSub.textContent=(nRec>0||nCus>0)?sp+'% do orçamento realizado':'—'; salSub.className='fin-kpi-sub '+(saldo>=0?'pos':'neg');}
 
         // ── Filtros ativos exibidos ──────────────────────────────────
         const filBadge = document.getElementById('fin-filter-display');
