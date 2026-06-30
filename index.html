@@ -1997,7 +1997,7 @@
     .project-selector-body { flex:1; overflow:hidden; }
 
     /* === GANTT DA TELA INICIAL === */
-    .ps-gantt-section { padding:0 32px 20px; max-width:1280px; margin:0 auto; }
+    .ps-gantt-section { padding:0 32px 20px; }
     .ps-gantt-card { background:white; border:1px solid var(--border); border-radius:14px; overflow:hidden; box-shadow:var(--shadow-sm); }
     .ps-gantt-header { background:var(--gradient-primary-dark); color:white; padding:12px 16px; display:grid; grid-template-columns:var(--ps-gantt-left) 1fr; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; overflow:visible; }
     .ps-gantt-header-months { display:flex; min-width:400px; position:relative; overflow:visible; }
@@ -2919,8 +2919,348 @@
     /* ── Wrapper de padding do portfólio e gantt ─────────── */
     .pp-main-inner { max-width:1440px; margin:0 auto; padding:0; }
 
+    /* ═══════════════════════════════════════════════════════
+       PATCH: GANTT REDESIGN + FIN CARDS (movido para o <head> em auditoria QA)
+    ═══════════════════════════════════════════════════════ */
+/* ── Ocultar sempre sr-cards-wrap (cards ficam só no tab SR) ── */
+#sr-cards-wrap { display:none !important; }
+
+/* ── body[data-tab] controla toolbar ── */
+body[data-tab="kb"] .ps-toolbar { display:none !important; }
+body:not([data-tab]) .ps-toolbar { display:flex; }
+
+/* ════════════════════════════════════════════
+   GANTT PORTFOLIO REDESIGN (pg-*)
+════════════════════════════════════════════ */
+.pg-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+#ps-gantt-container { min-width:100%; }
+
+.pg-project-row, .pg-epic-row {
+  display:grid; grid-template-columns:var(--ps-gantt-left, 280px) 1fr;
+  align-items:center; border-bottom:1px solid #F4F3F0;
+  transition:background .15s; min-height:36px;
+}
+.pg-project-row:hover { background:rgba(27,42,74,.025); }
+.pg-epic-row { background:#FAFAF8; min-height:28px; }
+.pg-epic-row:hover { background:#F0F3FA; }
+
+.pg-row-left {
+  display:flex; align-items:center; gap:8px;
+  padding:7px 12px; min-height:inherit;
+  border-right:1px solid #ECEAE6;
+}
+.pg-epic-left { padding-left:28px; }
+
+.pg-expand-btn {
+  width:18px; height:18px; border-radius:4px;
+  border:1px solid #ECEAE6; background:#fff;
+  display:flex; align-items:center; justify-content:center;
+  font-size:10px; color:#6B7280; flex-shrink:0;
+  cursor:pointer; transition:all .2s; line-height:1;
+  font-family:monospace;
+}
+.pg-expand-btn:hover { border-color:#1B2A4A; color:#1B2A4A; }
+.pg-expand-btn.open { background:#1B2A4A; color:white; border-color:#1B2A4A; }
+.pg-row-info { flex:1; min-width:0; }
+.pg-proj-name { font-size:12px; font-weight:600; color:#1B2A4A; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.pg-proj-meta { display:flex; gap:6px; align-items:center; margin-top:2px; }
+.pg-meta-tag { font-size:8px; background:rgba(27,42,74,.08); color:#1B2A4A; border:1px solid rgba(27,42,74,.12); padding:1px 6px; border-radius:4px; font-weight:600; }
+.pg-proj-resp { font-size:9px; color:#6B7280; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+.pg-epic-bullet { font-size:7px; color:#E8584F; flex-shrink:0; }
+.pg-epic-name { font-size:11px; color:#374151; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+.pg-row-right { position:relative; }
+.pg-lane {
+  position:relative; height:36px;
+  display:flex; align-items:center;
+}
+.pg-epic-row .pg-lane { height:28px; }
+
+/* Baseline (planejado — dashed) */
+.pg-baseline {
+  position:absolute; height:10px; top:13px; border-radius:3px;
+  border:2px dashed rgba(27,42,74,.3);
+  background:transparent; pointer-events:none;
+}
+/* Actual bar */
+.pg-bar {
+  position:absolute; height:16px; top:10px; border-radius:4px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:8px; font-weight:700; color:white; letter-spacing:.3px;
+  cursor:default; transition:height .2s, top .2s;
+}
+.pg-bar:hover { height:20px; top:8px; filter:brightness(1.08); }
+.pg-epic-row .pg-bar { height:10px; top:9px; border-radius:3px; font-size:0; }
+.pg-epic-row .pg-bar:hover { height:14px; top:7px; }
+
+/* Bar colors using existing vars */
+.pg-bar.b-andamento, .pg-bar.b-epic { background:linear-gradient(90deg,#1B2A4A,#2A3F6B); }
+.pg-bar.b-concluido   { background:linear-gradient(90deg,#10B981,#34D399); }
+.pg-bar.b-risco       { background:linear-gradient(90deg,#DC2626,#F87171); }
+.pg-bar.b-backlog     { background:linear-gradient(90deg,#D97706,#FBBF24); }
+.pg-bar.b-nao-iniciado{ background:linear-gradient(90deg,#9CA3AF,#D1D5DB); }
+.pg-bar.b-cancelado   { background:linear-gradient(90deg,#6B7280,#9CA3AF); }
+.pg-bar.b-epic        { background:linear-gradient(90deg,#6366F1,#818CF8); }
+
+/* Delay bar (atraso — hatching vermelho) */
+.pg-delay {
+  position:absolute; height:14px; top:11px;
+  border-radius:0 4px 4px 0;
+  background:repeating-linear-gradient(135deg,#EF4444,#EF4444 2px,rgba(220,38,38,.5) 2px,rgba(220,38,38,.5) 4px);
+  opacity:.75; pointer-events:none;
+}
+/* Advance bar (adiantado — hatching verde) */
+.pg-advance {
+  position:absolute; height:14px; top:11px;
+  border-radius:4px;
+  background:repeating-linear-gradient(135deg,#10B981,#10B981 2px,rgba(16,185,129,.5) 2px,rgba(16,185,129,.5) 4px);
+  opacity:.55; pointer-events:none;
+}
+/* Deviation label */
+.pg-deviation {
+  position:absolute; top:2px; font-size:8px; font-weight:700;
+  white-space:nowrap; transform:translateX(4px);
+}
+.pg-late  { color:#DC2626; }
+.pg-early { color:#10B981; }
+
+/* Today line */
+.pg-today {
+  position:absolute; top:0; bottom:0; width:2px;
+  background:#E8584F; pointer-events:none; z-index:5;
+}
+.pg-today::before {
+  content:'HOJE'; position:absolute; top:2px; left:50%; transform:translateX(-50%);
+  font-size:7px; font-weight:700; color:#E8584F; letter-spacing:1px;
+  background:white; padding:0 2px;
+}
+
+/* Epics container */
+.pg-epics-container { overflow:hidden; transition:max-height .3s ease; }
+
+/* Grid lines */
+.pg-grid-line { position:absolute; top:0; bottom:0; width:1px; background:rgba(0,0,0,.04); pointer-events:none; }
+
+/* Legend */
+#ps-gantt-legend { display:flex; gap:16px; flex-wrap:wrap; padding:10px 16px; border-top:1px solid #ECEAE6; background:#FAFAF8; }
+.pg-legend-item { display:flex; align-items:center; gap:5px; font-size:10px; color:#6B7280; }
+.pg-legend-bar { width:24px; height:8px; border-radius:3px; }
+.pg-baseline-leg { border:2px dashed rgba(27,42,74,.35); background:transparent; height:8px; width:24px; }
+.pg-delay-leg { width:20px; height:8px; border-radius:3px; background:repeating-linear-gradient(135deg,#EF4444,#EF4444 2px,rgba(220,38,38,.4) 2px,rgba(220,38,38,.4) 4px); }
+.pg-advance-leg { width:20px; height:8px; border-radius:3px; background:repeating-linear-gradient(135deg,#10B981,#10B981 2px,rgba(16,185,129,.4) 2px,rgba(16,185,129,.4) 4px); }
+
+/* Gantt header meses */
+.ps-gantt-header { display:grid; grid-template-columns:var(--ps-gantt-left, 280px) 1fr; border-bottom:2px solid #ECEAE6; position:relative; }
+.ps-gantt-header-months { position:relative; display:flex; }
+.ps-gantt-header-month { flex:1; text-align:center; font-size:8px; color:#9CA3AF; padding:6px 0; font-weight:600; text-transform:uppercase; letter-spacing:.4px; border-left:1px solid #F4F3F0; }
+
+/* ════════════════════════════════════════════
+   FINANCEIRO — Cards superiores
+════════════════════════════════════════════ */
+.fin-kpi-row {
+  display:grid; grid-template-columns:repeat(3,1fr); gap:16px;
+  padding:24px 40px 0; margin-bottom:20px;
+}
+.fin-kpi-card {
+  background:#fff; border-radius:12px; padding:20px 24px;
+  box-shadow:0 1px 4px rgba(27,42,74,.07);
+  border:1px solid rgba(0,0,0,.05); position:relative; overflow:hidden;
+}
+.fin-kpi-card::after {
+  content:''; position:absolute; bottom:0; left:0; right:0; height:3px;
+}
+.fin-kpi-card.fk-receita::after { background:linear-gradient(90deg,#10B981,#34D399); }
+.fin-kpi-card.fk-custo::after   { background:linear-gradient(90deg,#E8584F,#FF7A72); }
+.fin-kpi-card.fk-saldo::after   { background:linear-gradient(90deg,#1B2A4A,#2A3F6B); }
+.fin-kpi-label { font-size:9px; text-transform:uppercase; letter-spacing:1px; color:#6B7280; font-weight:600; margin-bottom:8px; }
+.fin-kpi-value { font-family:'DM Serif Display',serif; font-size:26px; color:#1B2A4A; line-height:1.1; }
+.fin-kpi-value.neg { color:#DC2626; }
+.fin-kpi-sub { font-size:11px; margin-top:4px; }
+.fin-kpi-sub.pos { color:#10B981; font-weight:600; }
+.fin-kpi-sub.neg { color:#DC2626; font-weight:600; }
+.fin-kpi-sub.neutral { color:#6B7280; }
+
+/* Fin table melhorado */
+.fin-wrap { padding:0 40px 40px; }
+.fin-table-card { background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 1px 3px rgba(27,42,74,.06); border:1px solid rgba(0,0,0,.04); }
+.fin-table thead th { background:#1B2A4A; color:rgba(255,255,255,.8); }
+.fin-table thead th.num { text-align:right; }
+
+/* Filtros compartilhados no Financeiro */
+.fin-filter-bar {
+  display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+  padding:12px 40px; background:#fff; border-bottom:1px solid #ECEAE6;
+  font-size:11px; color:#6B7280;
+}
+.fin-filter-badge {
+  display:inline-flex; align-items:center; gap:4px; padding:3px 10px;
+  background:#F4F3F0; border-radius:20px; font-size:11px; color:#1B2A4A; font-weight:500;
+}
+
+    /* ═══════════════════════════════════════════════════════
+       PATCH QA: header sticky/ano, linha Hoje única, legenda,
+       filtros (limpar/multiselect/saúde), a11y, responsividade
+    ═══════════════════════════════════════════════════════ */
+
+    /* ── Scroll wrapper do Gantt: header sticky + altura máxima ── */
+    .pg-scroll-wrap { overflow:auto; max-height:min(620px, 68vh); }
+    .ps-gantt-header { position:sticky; top:0; z-index:8; }
+    .pg-header-stack { display:flex; flex-direction:column; }
+    .pg-years-row { display:flex; }
+    .pg-year-group {
+      text-align:center; font-size:9px; font-weight:800; color:rgba(255,255,255,.55);
+      letter-spacing:1px; padding:3px 0; border-left:1px solid rgba(255,255,255,.08);
+    }
+    .pg-year-group:first-child { border-left:none; }
+    .ps-gantt-header-month { display:flex; flex-direction:column; align-items:center; line-height:1.3; padding:5px 2px; }
+    .pg-month-year { font-size:8px; opacity:.6; font-weight:500; }
+    .pg-month-current { background:rgba(232,88,79,.22); border-radius:4px 4px 0 0; color:#fff; font-weight:800; }
+
+    /* ── Linha "Hoje" única (substitui as N linhas repetidas) ── */
+    #ps-gantt-grid { position:relative; }
+    .pg-today-overlay {
+      position:absolute; top:0; bottom:0; width:2px;
+      background:#E8584F; z-index:6; pointer-events:none;
+    }
+    .pg-today-overlay-label {
+      position:sticky; top:4px; display:inline-block; transform:translateX(-50%);
+      background:#E8584F; color:#fff; font-size:8px; font-weight:800;
+      letter-spacing:.5px; padding:2px 6px; border-radius:3px; white-space:nowrap;
+    }
+
+    /* ── Legenda redesenhada ── */
+    .pg-legend-bar { display:flex; align-items:center; gap:14px; flex-wrap:wrap; padding:10px 16px; border-top:1px solid #ECEAE6; background:#FAFAF8; }
+    .pg-legend-group { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+    .pg-legend-group-title { font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:.6px; color:#9CA3AF; margin-right:2px; }
+    .pg-legend-sep { width:1px; height:16px; background:#E5E1DA; }
+    .pg-legend-item { display:flex; align-items:center; gap:5px; font-size:10.5px; color:#4B5563; }
+    .pg-legend-swatch { width:18px; height:8px; border-radius:3px; display:inline-block; flex-shrink:0; }
+    .pg-legend-swatch.b-andamento { background:linear-gradient(90deg,#1B2A4A,#2A3F6B); }
+    .pg-legend-swatch.b-concluido { background:linear-gradient(90deg,#10B981,#34D399); }
+    .pg-legend-swatch.b-risco { background:linear-gradient(90deg,#DC2626,#F87171); }
+    .pg-legend-swatch.b-nao-iniciado { background:linear-gradient(90deg,#9CA3AF,#D1D5DB); }
+    .pg-legend-swatch.pg-baseline-leg { border:2px dashed rgba(27,42,74,.4); background:transparent; height:6px; }
+    .pg-legend-swatch.pg-delay-leg { background:repeating-linear-gradient(135deg,#EF4444,#EF4444 2px,rgba(220,38,38,.4) 2px,rgba(220,38,38,.4) 4px); }
+    .pg-legend-today-dot { width:8px; height:8px; border-radius:50%; background:#E8584F; display:inline-block; flex-shrink:0; }
+
+    /* ── KPI card: estado ativo (clicável como filtro) ── */
+    .pp-kpi-card.pp-kpi-active { box-shadow:0 0 0 2px #1B2A4A, 0 4px 16px rgba(27,42,74,.15); transform:translateY(-1px); }
+    .pp-kpi-card:focus-visible { outline:2px solid #1B2A4A; outline-offset:2px; }
+
+    /* ── Botão "Limpar filtros" (3 abas) ── */
+    .pp-clear-filters-btn {
+      display:inline-flex; align-items:center; gap:5px;
+      background:#fff; border:1px solid #E5E1DA; color:#6B7280;
+      font-size:11px; font-weight:600; padding:6px 12px; border-radius:8px;
+      cursor:pointer; transition:all .15s; white-space:nowrap; font-family:'DM Sans',sans-serif;
+    }
+    .pp-clear-filters-btn:hover { background:#FEF2F2; border-color:#FCA5A5; color:#DC2626; }
+    .pp-clear-filters-btn:focus-visible { outline:2px solid #1B2A4A; outline-offset:2px; }
+
+    /* ── Painel de filtros do Financeiro ── */
+    .fin-filters-panel {
+      display:flex; flex-wrap:wrap; gap:18px; align-items:flex-start;
+      padding:14px 40px; background:#fff; border-bottom:1px solid #ECEAE6;
+    }
+    .fin-filter-group { display:flex; flex-direction:column; gap:6px; min-width:160px; }
+    .fin-filter-label { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.6px; color:#9CA3AF; }
+
+    /* ── Multi-select de Projeto ── */
+    .fin-multiselect { position:relative; min-width:220px; }
+    .fin-multiselect-btn {
+      display:flex; align-items:center; justify-content:space-between; gap:8px;
+      width:100%; background:#fff; border:1px solid #E5E1DA; border-radius:8px;
+      padding:7px 12px; font-size:12px; color:#1B2A4A; cursor:pointer; font-family:'DM Sans',sans-serif;
+    }
+    .fin-multiselect-btn:hover { border-color:#1B2A4A; }
+    .fin-ms-arrow { font-size:10px; color:#9CA3AF; }
+    .fin-multiselect-panel {
+      position:absolute; top:calc(100% + 4px); left:0; min-width:280px; max-width:360px;
+      background:#fff; border:1px solid #E5E1DA; border-radius:10px;
+      box-shadow:0 8px 24px rgba(27,42,74,.14); z-index:30; overflow:hidden;
+    }
+    .fin-ms-actions { display:flex; gap:8px; padding:8px 10px; border-bottom:1px solid #F4F3F0; }
+    .fin-ms-actions button {
+      flex:1; font-size:10px; font-weight:600; color:#1B2A4A; background:#F4F3F0;
+      border:none; border-radius:6px; padding:5px 8px; cursor:pointer;
+    }
+    .fin-ms-actions button:hover { background:#E5E1DA; }
+    .fin-ms-list { max-height:240px; overflow-y:auto; padding:4px 0; }
+    .fin-ms-item { display:flex; align-items:center; gap:8px; padding:6px 12px; font-size:12px; color:#374151; cursor:pointer; }
+    .fin-ms-item:hover { background:#FAFAF8; }
+    .fin-ms-item input { flex-shrink:0; cursor:pointer; }
+
+    /* ── Indicador de saúde + linha crítica + barra inline (tabela Financeiro) ── */
+    .fin-health { display:inline-flex; align-items:center; gap:5px; font-size:11px; white-space:nowrap; }
+    .fin-health-txt { color:#6B7280; font-size:10.5px; }
+    .fin-row-critico { background:rgba(220,38,38,.045); border-left:3px solid #DC2626; }
+    .fin-row-critico:hover { background:rgba(220,38,38,.08) !important; }
+    .fin-mini-bar { width:100px; height:4px; background:#ECEAE6; border-radius:2px; overflow:hidden; margin-top:5px; }
+    .fin-mini-bar-fill { height:100%; border-radius:2px; }
+    .fin-mini-bar-fill.pct-high { background:#10B981; }
+    .fin-mini-bar-fill.pct-mid  { background:#F59E0B; }
+    .fin-mini-bar-fill.pct-low  { background:#DC2626; }
+
+    /* ── % orçamento consumido (badge nos cards do Status Report) ── */
+    .ps-card-budget-badge {
+      display:inline-flex; align-items:center; gap:3px; font-size:9px; font-weight:700;
+      padding:1px 7px; border-radius:10px; margin-left:6px; white-space:nowrap;
+    }
+    .ps-card-budget-badge.bud-ok   { color:#059669; background:rgba(16,185,129,.10); }
+    .ps-card-budget-badge.bud-warn { color:#D97706; background:rgba(217,119,6,.10); }
+    .ps-card-budget-badge.bud-over { color:#DC2626; background:rgba(220,38,38,.10); }
+
+    /* ── Financeiro: mini-bloco no Resumo Executivo (One Pager) ── */
+    .project-fin-grid {
+      display:none; grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+      gap:10px; margin:10px 0 4px;
+    }
+    .project-fin-item {
+      padding:10px 12px; border-radius:8px; border:1px solid var(--border, #E5E1DA);
+      background:rgba(0,0,0,.015);
+    }
+    .project-fin-item .pfi-label { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:#9CA3AF; margin-bottom:4px; }
+    .project-fin-item .pfi-value { font-size:16px; font-weight:800; color:#1e293b; }
+    .project-fin-item .pfi-value.pfi-muted { font-size:12px; font-weight:600; color:#9CA3AF; font-style:italic; }
+    .project-fin-item.pfi-receita .pfi-value { color:#059669; }
+    .project-fin-item.pfi-custo .pfi-value { color:#DC2626; }
+    .project-fin-item.pfi-pct .pfi-value { color:#1B2A4A; }
+
+    /* ── Acessibilidade: foco visível consistente em controles novos ── */
+    .ps-filter-chip:focus-visible, .pg-expand-btn:focus-visible,
+    .fin-ms-item input:focus-visible, .pp-tab:focus-visible { outline:2px solid #1B2A4A; outline-offset:2px; }
+
+    /* ═══════════════════════════════════════════════════════
+       RESPONSIVIDADE — dashboard novo (zero cobertura antes)
+    ═══════════════════════════════════════════════════════ */
+    @media (max-width: 1024px) {
+      .pp-header { padding:16px 20px; }
+      .pp-nav { padding:0 20px; }
+      .pp-kpi-grid { grid-template-columns:repeat(2,1fr); padding:16px 20px 0; gap:10px; }
+      .pp-section-header { margin-left:20px; margin-right:20px; }
+      .ps-gantt-section { padding:0 20px 20px; }
+      .vg-conquistas-grid, .vg-riscos-list { padding:0 20px; }
+      .fin-kpi-row { grid-template-columns:1fr; padding:20px 20px 0; }
+      .fin-wrap, .fin-filters-panel, .fin-filter-bar { padding-left:20px; padding-right:20px; }
+      .pg-project-row, .pg-epic-row { grid-template-columns:180px 1fr; }
+    }
+    @media (max-width: 768px) {
+      .pp-header-inner { flex-direction:column; align-items:flex-start; gap:10px; }
+      .pp-kpi-grid { grid-template-columns:1fr 1fr; }
+      .fin-table thead th:nth-child(3), .fin-table tbody td:nth-child(3) { display:none; } /* Diretoria oculta em telas pequenas */
+      .fin-filters-panel { flex-direction:column; gap:12px; }
+      .fin-multiselect { min-width:0; width:100%; }
+      .vg-conquistas-grid { grid-template-columns:1fr; }
+      .pg-project-row, .pg-epic-row { grid-template-columns:140px 1fr; }
+      .pg-proj-resp { display:none; }
+    }
+    @media (max-width: 480px) {
+      .pp-kpi-grid { grid-template-columns:1fr; }
+      .pp-tab { padding:10px 12px; font-size:11px; }
+    }
+
   </style>
-</head>
 </head>
 <body>
   <!-- ============ DASHBOARD PRINCIPAL ============ -->
@@ -3050,6 +3390,8 @@
           <span class="ps-filter-toggle-chevron">▾</span>
         </button>
 
+        <button type="button" class="pp-clear-filters-btn" id="ps-clear-filters" hidden>✕ Limpar filtros</button>
+
         <div class="ps-counter" id="ps-counter">0 projetos</div>
       </div>
 
@@ -3149,17 +3491,20 @@
       </div>
       <div class="ps-gantt-section" style="margin:0 0 20px;">
         <div class="ps-gantt-card">
-          <div style="overflow-x:auto;">
+          <div class="pg-scroll-wrap">
             <div id="ps-gantt-container" style="min-width:100%; width:max-content;">
               <div class="ps-gantt-header" id="ps-gantt-header">
                 <div class="ps-gantt-header-label">PROJETO</div>
-                <div class="ps-gantt-header-months" id="ps-gantt-months"></div>
+                <div class="pg-header-stack">
+                  <div class="pg-years-row" id="ps-gantt-years"></div>
+                  <div class="ps-gantt-header-months" id="ps-gantt-months"></div>
+                </div>
               </div>
               <div id="ps-gantt-grid"></div>
             </div>
           </div>
         </div>
-        <div id="ps-gantt-legend" style="display:flex;gap:12px;flex-wrap:wrap;padding:10px 16px;border-top:1px solid var(--border);background:var(--bg);"></div>
+        <div id="ps-gantt-legend" class="pg-legend-bar"></div>
       </div><!-- /ps-gantt-section -->
       </div><!-- /vg-gantt-wrap -->
 
@@ -3225,8 +3570,47 @@
         </div>
       </div>
 
-      <!-- Filtros ativos -->
-      <div class="fin-filter-bar">
+      <!-- Filtros da aba Financeiro (compartilham estado com Visão Geral) -->
+      <div class="pp-section-header" style="margin-top:8px;">
+        <h2>Filtros</h2>
+        <div class="pp-section-line"></div>
+        <button type="button" class="pp-clear-filters-btn" id="fin-clear-filters">✕ Limpar filtros</button>
+      </div>
+      <div class="fin-filters-panel">
+        <div class="fin-filter-group">
+          <label class="fin-filter-label">Buscar projeto</label>
+          <div class="ps-search-wrap" style="max-width:280px;">
+            <span class="ps-search-icon">🔍</span>
+            <input type="text" id="fin-search" class="ps-search-input" placeholder="Buscar projeto..." autocomplete="off" />
+            <button type="button" class="ps-clear-btn" id="fin-clear-search" style="display:none;">×</button>
+          </div>
+        </div>
+        <div class="fin-filter-group">
+          <label class="fin-filter-label">Projeto (seleção múltipla)</label>
+          <div class="fin-multiselect" id="fin-project-multiselect">
+            <button type="button" class="fin-multiselect-btn" id="fin-project-ms-btn">
+              <span id="fin-project-ms-label">Todos os projetos</span>
+              <span class="fin-ms-arrow">▾</span>
+            </button>
+            <div class="fin-multiselect-panel" id="fin-project-ms-panel" hidden>
+              <div class="fin-ms-actions">
+                <button type="button" id="fin-ms-select-all">Selecionar todos</button>
+                <button type="button" id="fin-ms-clear-all">Limpar</button>
+              </div>
+              <div class="fin-ms-list" id="fin-project-ms-list"></div>
+            </div>
+          </div>
+        </div>
+        <div class="fin-filter-group">
+          <label class="fin-filter-label">Diretoria</label>
+          <div class="ps-filter-chips" id="fin-diretoria-chips"></div>
+        </div>
+        <div class="fin-filter-group">
+          <label class="fin-filter-label">Status</label>
+          <div class="ps-filter-chips" id="fin-status-chips"></div>
+        </div>
+      </div>
+      <div class="fin-filter-bar" id="fin-active-filters-bar">
         <span style="font-size:11px;color:#6B7280;font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Filtros ativos:</span>
         <div id="fin-filter-display"></div>
       </div>
@@ -3243,6 +3627,7 @@
             <thead>
               <tr>
                 <th style="min-width:220px;">Projeto</th>
+                <th>Saúde</th>
                 <th>Status</th>
                 <th>Diretoria</th>
                 <th class="num">Receita</th>
@@ -3267,6 +3652,7 @@
             <input type="text" id="sr-search" class="ps-search-input" placeholder="Buscar projeto..." autocomplete="off" />
             <button type="button" class="ps-clear-btn" id="sr-clear-search" style="display:none;">×</button>
           </div>
+          <button type="button" class="pp-clear-filters-btn" id="sr-clear-filters">✕ Limpar filtros</button>
         </div>
         <div class="ps-toolbar-row ps-toolbar-row-secondary" id="sr-filter-bar" style="padding:6px 16px 10px;">
           <div class="ps-filter-chips" id="sr-diretoria-chips"></div>
@@ -3494,9 +3880,26 @@
             <span class="ganhos-title" id="ganhos-title" style="display:none;">Ganhos do Projeto:</span>
             <span id="project-ganhos-text"></span>
           </div>
-          <div class="project-receita-wrap" id="project-receita-wrap">
-            <span class="project-receita-label">💰 Receita do Projeto</span>
-            <span class="project-receita-value" id="project-receita-value"></span>
+          <div class="project-receita-wrap" id="project-receita-wrap" style="display:none;">
+            <span class="project-receita-label">💰 Resumo Financeiro do Projeto</span>
+          </div>
+          <div class="project-fin-grid" id="project-fin-grid">
+            <div class="project-fin-item pfi-receita">
+              <div class="pfi-label">Orçamento Total (Receita)</div>
+              <div class="pfi-value" id="pfi-orcamento">—</div>
+            </div>
+            <div class="project-fin-item pfi-custo">
+              <div class="pfi-label">Custo Realizado</div>
+              <div class="pfi-value" id="pfi-custo">—</div>
+            </div>
+            <div class="project-fin-item">
+              <div class="pfi-label">Valor Comprometido</div>
+              <div class="pfi-value pfi-muted" id="pfi-comprometido">Não disponível na origem</div>
+            </div>
+            <div class="project-fin-item pfi-pct">
+              <div class="pfi-label">% do Orçamento Consumido</div>
+              <div class="pfi-value" id="pfi-pct-consumido">—</div>
+            </div>
           </div>
           <div class="project-dates">
             <div class="date-box"><span class="label">Data de Início</span><span class="value" id="project-start-date">--/--/----</span></div>
@@ -4511,16 +4914,40 @@
         ganhosEl.textContent = '';
       }
       
-      // Receita
+      // ── Resumo financeiro: Orçamento (Receita) / Custo Realizado / Valor
+      //    Comprometido / % do Orçamento Consumido ──────────────────────────
       const receitaWrap = document.getElementById('project-receita-wrap');
-      const receitaVal  = document.getElementById('project-receita-value');
-      if (receitaWrap && receitaVal) {
-        if (meta.Receita != null && meta.Receita !== '') {
-          const recFmt = Number(meta.Receita).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
-          receitaVal.textContent = recFmt;
-          receitaWrap.style.display = 'flex';
-        } else {
-          receitaWrap.style.display = 'none';
+      const finGrid      = document.getElementById('project-fin-grid');
+      const temReceita = meta.Receita != null && meta.Receita !== '' && !isNaN(Number(meta.Receita));
+      const temCusto   = meta.Custo   != null && meta.Custo   !== '' && !isNaN(Number(meta.Custo));
+      const temAlgumDado = temReceita || temCusto;
+
+      if (receitaWrap) receitaWrap.style.display = temAlgumDado ? 'flex' : 'none';
+      if (finGrid)      finGrid.style.display     = temAlgumDado ? 'grid' : 'none';
+
+      if (temAlgumDado) {
+        const fmtBRLFull = v => Number(v).toLocaleString('pt-BR', { style:'currency', currency:'BRL', maximumFractionDigits:0 });
+
+        const orcEl = document.getElementById('pfi-orcamento');
+        if (orcEl) orcEl.textContent = temReceita ? fmtBRLFull(meta.Receita) : '—';
+
+        const cusEl = document.getElementById('pfi-custo');
+        if (cusEl) cusEl.textContent = temCusto ? fmtBRLFull(meta.Custo) : '—';
+
+        // Valor Comprometido: campo ainda não existe na API Goobee (a confirmar com a origem)
+        const compEl = document.getElementById('pfi-comprometido');
+        if (compEl) { compEl.textContent = 'Não disponível na origem'; compEl.title = 'Este campo ainda não é fornecido pela API Goobee. Assim que for populado na origem, passa a ser exibido aqui automaticamente.'; }
+
+        const pctEl = document.getElementById('pfi-pct-consumido');
+        if (pctEl) {
+          if (temReceita && temCusto && Number(meta.Receita) > 0) {
+            const pctC = Math.round((Number(meta.Custo) / Number(meta.Receita)) * 100);
+            pctEl.textContent = pctC + '%';
+            pctEl.style.color = pctC >= 100 ? '#DC2626' : pctC >= 80 ? '#D97706' : '#1B2A4A';
+          } else {
+            pctEl.textContent = '—';
+            pctEl.style.color = '';
+          }
         }
       }
 
@@ -7227,6 +7654,7 @@
       let searchQuery = '';
       let allMetas = [];
       let allDiretorias = [];
+      let finProjectFilter = new Set(); // vazio = todos os projetos (filtro próprio da aba Financeiro)
 
       function updateLoadingMsg(msg) {
         const el = document.getElementById('ps-loading-step');
@@ -7563,6 +7991,8 @@
         });
       }
 
+      // Containers de chips de Status sincronizados entre as 3 abas
+      const STATUS_CHIP_CONTAINERS = ['ps-status-chips', 'fin-status-chips', 'sr-status-chips'];
       function buildStatusChips() {
         // Coletar todos os valores únicos de StatusProjeto da API
         const statusSet = new Set();
@@ -7581,45 +8011,44 @@
           'Inativo':    '🚫',
         };
 
-        const container = document.getElementById('ps-status-chips');
-        if (!container) return;
+        const statusList = Array.from(statusSet).sort();
 
-        // Botão "Todos" sempre primeiro
-        container.innerHTML = '<button type="button" class="ps-filter-chip' +
-          (currentStatusFilter === '' ? ' active' : '') +
-          '" data-status="">🗂 Todos</button>';
+        STATUS_CHIP_CONTAINERS.forEach(containerId => {
+          const container = document.getElementById(containerId);
+          if (!container) return;
 
-        // Um chip por valor raw encontrado na API, ordenado alfabeticamente
-        Array.from(statusSet).sort().forEach(status => {
-          const icon = iconMap[status] || '●';
-          // Contar projetos com esse status (respeitando outros filtros ativos)
-          const prevStatus = currentStatusFilter;
-          currentStatusFilter = status;
-          const count = Object.values(projectsMap).filter(p =>
-            _matchesResp(p) && _matchesMeta(p) && _matchesSearch(p) && _matchesStatus(p)
-          ).length;
-          currentStatusFilter = prevStatus;
+          container.innerHTML = '<button type="button" class="ps-filter-chip' +
+            (currentStatusFilter === '' ? ' active' : '') +
+            '" data-status="" aria-pressed="' + (currentStatusFilter === '' ? 'true' : 'false') + '">🗂 Todos</button>';
 
-          const btn = document.createElement('button');
-          btn.type = 'button';
-          btn.className = 'ps-filter-chip' + (currentStatusFilter === status ? ' active' : '');
-          btn.dataset.status = status;
-          btn.innerHTML = icon + ' ' + escapeText(status) + ' <span class="ps-chip-count">' + count + '</span>';
-          btn.addEventListener('click', () => {
+          statusList.forEach(status => {
+            const icon = iconMap[status] || '●';
+            const prevStatus = currentStatusFilter;
             currentStatusFilter = status;
-            document.querySelectorAll('#ps-status-chips .ps-filter-chip').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
+            const count = Object.values(projectsMap).filter(p =>
+              _matchesResp(p) && _matchesMeta(p) && _matchesSearch(p) && _matchesStatus(p)
+            ).length;
+            currentStatusFilter = prevStatus;
+
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'ps-filter-chip' + (currentStatusFilter === status ? ' active' : '');
+            btn.setAttribute('aria-pressed', currentStatusFilter === status ? 'true' : 'false');
+            btn.dataset.status = status;
+            btn.innerHTML = icon + ' ' + escapeText(status) + ' <span class="ps-chip-count">' + count + '</span>';
+            btn.addEventListener('click', () => {
+              currentStatusFilter = (currentStatusFilter === status) ? '' : status;
+              buildStatusChips(); // re-renderiza todos os containers em sincronia
+              renderAll();
+            });
+            container.appendChild(btn);
+          });
+
+          container.querySelector('[data-status=""]').addEventListener('click', function() {
+            currentStatusFilter = '';
+            buildStatusChips();
             renderAll();
           });
-          container.appendChild(btn);
-        });
-
-        // Wiring do botão "Todos"
-        container.querySelector('[data-status=""]').addEventListener('click', function() {
-          currentStatusFilter = '';
-          document.querySelectorAll('#ps-status-chips .ps-filter-chip').forEach(b => b.classList.remove('active'));
-          this.classList.add('active');
-          renderAll();
         });
       }
 
@@ -7698,6 +8127,9 @@
       }
 
       // ── Populate Diretoria chips (campo "Times" da API) ──────────────────────
+      // Containers de chips de Diretoria que devem ficar sempre em sincronia
+      // (Visão Geral, Financeiro e Status Report compartilham o MESMO estado)
+      const DIRETORIA_CHIP_CONTAINERS = ['ps-diretoria-chips', 'fin-diretoria-chips', 'sr-diretoria-chips'];
       function populateDiretoriaChips() {
         const diretSet = new Set();
         let temBranco = false;
@@ -7707,24 +8139,27 @@
           else temBranco = true;
         });
         allDiretorias = Array.from(diretSet).sort();
-        const container = document.getElementById('ps-diretoria-chips');
-        if (!container) return;
-        container.innerHTML = '';
         const opcoes = ['', ...allDiretorias, ...(temBranco ? ['__branco__'] : [])];
-        opcoes.forEach(val => {
-          const btn = document.createElement('button');
-          btn.type = 'button';
-          btn.className = 'ps-filter-chip' + (currentDiretoriaFilter === val ? ' active' : '');
-          btn.dataset.diretoria = val;
-          btn.textContent = val === '' ? '🏢 Todas' : val === '__branco__' ? '— Sem diretoria' : val;
-          btn.addEventListener('click', () => {
-            currentDiretoriaFilter = val;
-            container.querySelectorAll('.ps-filter-chip').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            updateFilterToggleBadge();
-            renderAll();
+
+        DIRETORIA_CHIP_CONTAINERS.forEach(containerId => {
+          const container = document.getElementById(containerId);
+          if (!container) return;
+          container.innerHTML = '';
+          opcoes.forEach(val => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'ps-filter-chip' + (currentDiretoriaFilter === val ? ' active' : '');
+            btn.setAttribute('aria-pressed', currentDiretoriaFilter === val ? 'true' : 'false');
+            btn.dataset.diretoria = val;
+            btn.textContent = val === '' ? '🏢 Todas' : val === '__branco__' ? '— Sem diretoria' : val;
+            btn.addEventListener('click', () => {
+              currentDiretoriaFilter = (currentDiretoriaFilter === val) ? '' : val;
+              populateDiretoriaChips(); // re-renderiza TODOS os containers em sincronia
+              updateFilterToggleBadge();
+              renderAll();
+            });
+            container.appendChild(btn);
           });
-          container.appendChild(btn);
         });
       }
 
@@ -7765,7 +8200,9 @@
       }
       function _matchesKpi(p) {
         if (!currentKpiFilter) return true;
-        return _projetoStatusNorm(p) === currentKpiFilter;
+        if (currentKpiFilter === '__risco__') return _computeSemaforoCalc(p) === 'vermelho';
+        const apiStatus = (p.extra && p.extra.status) ? _normalizeApiStatus(p.extra.status) : null;
+        return (apiStatus || _projetoStatusNorm(p)) === currentKpiFilter;
       }
       function _matchesDiretoria(p) {
         if (!currentDiretoriaFilter) return true;
@@ -7817,17 +8254,88 @@
         });
       }
 
+      // Mapa dos 4 cards de KPI novos (Visão Geral) → valor de filtro
+      const KPI_CARD_MAP = {
+        'pp-kpi-total':      '',
+        'pp-kpi-andamento':  'Em andamento',
+        'pp-kpi-concluido':  'Concluído',
+        'pp-kpi-risco':      '__risco__'
+      };
       function _wireKpiFilters() {
-        const map = { 'ps-kpi-total':'', 'ps-kpi-andamento':'Em andamento', 'ps-kpi-concluido':'Concluído', 'ps-kpi-bloqueado':'Não iniciado' };
-        Object.entries(map).forEach(([id, val]) => {
+        Object.entries(KPI_CARD_MAP).forEach(([id, val]) => {
+          const el = document.getElementById(id);
+          if (!el || el.dataset.kpiWired) return; // evita listener duplicado em re-chamadas
+          el.dataset.kpiWired = '1';
+          el.setAttribute('role', 'button');
+          el.setAttribute('tabindex', '0');
+          el.setAttribute('aria-pressed', 'false');
+          const toggle = () => {
+            currentKpiFilter = (currentKpiFilter === val) ? '' : val;
+            _refreshKpiActiveStates();
+            renderAll();
+          };
+          el.addEventListener('click', toggle);
+          el.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } });
+        });
+        _refreshKpiActiveStates();
+      }
+      function _refreshKpiActiveStates() {
+        Object.entries(KPI_CARD_MAP).forEach(([id, val]) => {
           const el = document.getElementById(id);
           if (!el) return;
-          el.style.cursor = 'pointer';
-          el.addEventListener('click', () => {
-            // Toggle: clica no mesmo → limpa filtro
-            currentKpiFilter = (currentKpiFilter === val) ? '' : val;
-            renderAll();
-          });
+          const isActive = currentKpiFilter === val && val !== '';
+          el.classList.toggle('pp-kpi-active', isActive);
+          el.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+        });
+      }
+
+      // ── Limpar todos os filtros (botão presente nas 3 abas) ────────────────
+      function clearAllFilters() {
+        currentRespFilter      = '';
+        currentMetaFilter      = '';
+        currentStatusFilter    = '';
+        currentDiretoriaFilter = '';
+        currentKpiFilter       = '';
+        searchQuery             = '';
+        currentGanttPeriod      = '2026'; // volta ao padrão da tela
+        if (typeof finProjectFilter !== 'undefined') finProjectFilter.clear();
+
+        // Resetar chips de período do Gantt
+        document.querySelectorAll('[data-period]').forEach(b => b.classList.toggle('active', b.dataset.period === '2026'));
+
+        // Resetar campos de busca visíveis
+        ['ps-search','fin-search','sr-search'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.value = '';
+        });
+        ['ps-clear-search','fin-clear-search','sr-clear-search'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.style.display = 'none';
+        });
+
+        // Resetar chip "Responsável" para "Todos"
+        document.querySelectorAll('#ps-resp-chips .ps-filter-chip').forEach(b => b.classList.toggle('active', b.dataset.resp === ''));
+        // Resetar chip "Meta"
+        const metaAll = document.getElementById('ps-filter-meta');
+        if (metaAll) { document.querySelectorAll('#ps-meta-chips .ps-filter-chip').forEach(b=>b.classList.remove('active')); metaAll.classList.add('active'); }
+
+        populateDiretoriaChips();
+        buildStatusChips();
+        _refreshKpiActiveStates();
+        if (typeof _refreshFinProjectMultiselect === 'function') _refreshFinProjectMultiselect();
+        updateFilterToggleBadge();
+        renderAll();
+      }
+
+      // ── Indicador de filtros ativos (mostra/oculta botões "Limpar filtros") ──
+      function updateActiveFiltersIndicator() {
+        const periodChanged = currentGanttPeriod && currentGanttPeriod !== '2026';
+        const hasFilters = !!(searchQuery || currentRespFilter || currentMetaFilter || currentStatusFilter ||
+          currentDiretoriaFilter || currentKpiFilter || periodChanged ||
+          (typeof finProjectFilter !== 'undefined' && finProjectFilter.size > 0));
+        ['ps-clear-filters','fin-clear-filters','sr-clear-filters'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.hidden = !hasFilters;
         });
       }
 
@@ -7873,21 +8381,22 @@
         return s <= range.max && e >= range.min;
       }
 
+      const MESES_ABREV = ['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ'];
+
       function renderGanttPS(filtered) {
         const container = document.getElementById('ps-gantt-container');
         const grid = document.getElementById('ps-gantt-grid');
         const monthsEl = document.getElementById('ps-gantt-months');
+        const yearsEl = document.getElementById('ps-gantt-years');
         if (!grid || !monthsEl) return;
 
-        // Aplicar filtro de período ANTES de qualquer uso de filteredByPeriod
         const periodRange = _getPeriodRange(currentGanttPeriod);
         const filteredByPeriod = periodRange
           ? filtered.filter(p => _projectOverlapsPeriod(p, periodRange))
           : filtered;
 
-        if (filteredByPeriod.length === 0) { grid.innerHTML = '<div class="ps-gantt-empty">Nenhum projeto no período selecionado.</div>'; return; }
+        if (filteredByPeriod.length === 0) { grid.innerHTML = '<div class="ps-gantt-empty">Nenhum projeto no período selecionado.</div>'; if(yearsEl) yearsEl.innerHTML=''; monthsEl.innerHTML=''; return; }
 
-        // Calcular range de datas
         const hoje = new Date(); hoje.setHours(0,0,0,0);
         const _pr = _getPeriodRange(currentGanttPeriod);
         let minDate = _pr ? new Date(_pr.min) : new Date(hoje.getFullYear(), hoje.getMonth() - 1, 1);
@@ -7914,16 +8423,35 @@
         const totalMs = maxDate - minDate;
         const pct = d => totalMs > 0 ? Math.max(0, Math.min(100, ((d - minDate) / totalMs) * 100)) : 0;
         const hojeLeft = pct(hoje);
+        const hojeVisible = hoje >= minDate && hoje <= maxDate;
 
-        // Largura total do container (calculada antes do header para usar no label "HOJE")
-        const minWidth = Math.max(700, 260 + months.length * 70);
+        // Largura: usa 100% da área visível; só ultrapassa se houver muitos meses
+        const parentW = (container && container.parentElement) ? container.parentElement.clientWidth : 0;
+        const availW = parentW > 0 ? parentW : (window.innerWidth - 320);
+        const minWidth = Math.max(availW, 260 + months.length * 58);
+        container.style.minWidth = '100%';
         container.style.width = minWidth + 'px';
 
-        // Header meses + linha de hoje no header
-        monthsEl.innerHTML = months.map(m => '<div class="ps-gantt-header-month">' + m.toLocaleDateString('pt-BR',{month:'short',year:'2-digit'}).replace(' de ','\'') + '</div>').join('') +
-          '<div class="ps-gantt-today-header" style="left:' + hojeLeft.toFixed(2) + '%"></div>';
+        // ── Header: faixa de anos (agrupada) + faixa de meses (legível, mês atual destacado) ──
+        if (yearsEl) {
+          const yearGroups = [];
+          months.forEach(m => {
+            const y = m.getFullYear();
+            const last = yearGroups[yearGroups.length - 1];
+            if (last && last.year === y) last.count++;
+            else yearGroups.push({ year: y, count: 1 });
+          });
+          yearsEl.innerHTML = yearGroups.map(g =>
+            '<div class="pg-year-group" style="flex:' + g.count + ';">' + g.year + '</div>'
+          ).join('');
+        }
+        monthsEl.innerHTML = months.map(m => {
+          const isCurrent = m.getFullYear() === hoje.getFullYear() && m.getMonth() === hoje.getMonth();
+          return '<div class="ps-gantt-header-month' + (isCurrent ? ' pg-month-current' : '') + '">' +
+            MESES_ABREV[m.getMonth()] + '<span class="pg-month-year">/' + String(m.getFullYear()).slice(-2) + '</span>' +
+          '</div>';
+        }).join('');
 
-        // Ordenar por data de início (mais antigo primeiro); projetos sem data vão ao fim
         const _startOf = (p) => {
           const ex = p.extra;
           let start = p.stats.minStart;
@@ -7932,7 +8460,7 @@
         };
         const sortedByPeriod = filteredByPeriod.slice().sort((a, b) => _startOf(a) - _startOf(b));
 
-        // ── Rows redesenhadas: baseline/actual/delay/épicos ──────────────
+        // ── Rows: baseline/actual/delay/épicos (SEM linha "Hoje" por linha) ──
         grid.innerHTML = sortedByPeriod.map((p, idx) => {
           const ex = p.extra || {};
           const s = p.stats;
@@ -7958,11 +8486,9 @@
           const apiPct = ex.progresso?parseInt(String(ex.progresso).replace('%','').trim()):NaN;
           const prog = !isNaN(apiPct)?apiPct:s.progresso;
 
-          // Baseline (planejado)
           let baseHtml='';
           if(planStart&&planEnd){const bL=pct(planStart),bR=pct(planEnd),bW=Math.max(0.5,bR-bL);baseHtml='<div class="pg-baseline" style="left:'+bL.toFixed(2)+'%;width:'+bW.toFixed(2)+'%;"></div>';}
 
-          // Barra principal (real ou planejado)
           let actualHtml='';
           if(dispStart&&dispEnd){
             const aL=pct(dispStart),aR=pct(dispEnd),aW=Math.max(0.5,aR-aL);
@@ -7970,7 +8496,6 @@
             actualHtml='<div class="pg-bar '+barClass+'" style="left:'+aL.toFixed(2)+'%;width:'+aW.toFixed(2)+'%;" title="'+escapeAttr(p.nome+' · '+(apiStatus||'Em andamento')+' · '+_fmtDate(dispStart)+' → '+_fmtDate(dispEnd))+'">'+escapeText(bt)+'</div>';
           }
 
-          // Delay / advance
           let devHtml='';
           if(planEnd&&realEnd){
             const diff=Math.round((realEnd-planEnd)/(86400000));
@@ -7978,7 +8503,6 @@
             else if(diff<-3){devHtml='<div class="pg-deviation pg-early" style="left:'+pct(realEnd).toFixed(2)+'%;">'+diff+'d</div>';}
           }
 
-          // Épicos
           const epicMap={};
           (p.itens||[]).forEach(it=>{const en=it.epico||'';if(!en)return;if(!epicMap[en])epicMap[en]=[];epicMap[en].push(it);});
           const epicsArr=Object.entries(epicMap);
@@ -7991,22 +8515,48 @@
             const done=its.filter(i=>String(i.momento||'').toUpperCase().includes('FINALIZ')).length;
             const ePct=its.length>0?Math.round(done/its.length*100):0;
             const nm=en.length>34?en.slice(0,33)+'…':en;
-            return'<div class="pg-epic-row"><div class="pg-row-left pg-epic-left"><span class="pg-epic-bullet">◆</span><span class="pg-epic-name" title="'+escapeAttr(en)+'">'+escapeText(nm)+'</span></div><div class="pg-row-right"><div class="pg-lane"><div class="pg-bar b-epic" style="left:'+eL.toFixed(2)+'%;width:'+eW.toFixed(2)+'%;">'+(eW>5?ePct+'%':'')+'</div><div class="pg-today" style="left:'+hojeLeft.toFixed(2)+'%;"></div></div></div></div>';
+            return'<div class="pg-epic-row"><div class="pg-row-left pg-epic-left"><span class="pg-epic-bullet">◆</span><span class="pg-epic-name" title="'+escapeAttr(en)+'">'+escapeText(nm)+'</span></div><div class="pg-row-right"><div class="pg-lane"><div class="pg-bar b-epic" style="left:'+eL.toFixed(2)+'%;width:'+eW.toFixed(2)+'%;">'+(eW>5?ePct+'%':'')+'</div></div></div></div>';
           }).filter(Boolean).join('');
 
           const nomeTxt=p.nome.length>34?p.nome.slice(0,33)+'…':p.nome;
           return '<div class="pg-project-row" data-projeto="'+escapeAttr(p.nome)+'">' +
-            '<div class="pg-row-left"><button class="pg-expand-btn" data-pgidx="'+idx+'" title="'+(hasEpics?'Ver épicos':'Sem épicos')+'">'+(hasEpics?'▸':'–')+'</button><div class="pg-row-info"><div class="pg-proj-name" title="'+escapeAttr(p.nome)+'">'+escapeText(nomeTxt)+'</div><div class="pg-proj-meta">'+metaTag+'<span class="pg-proj-resp">'+escapeText(resp||'–')+'</span></div></div></div>' +
-            '<div class="pg-row-right"><div class="pg-lane">'+baseHtml+actualHtml+devHtml+'<div class="pg-today" style="left:'+hojeLeft.toFixed(2)+'%;"></div></div></div>' +
+            '<div class="pg-row-left"><button class="pg-expand-btn" data-pgidx="'+idx+'" aria-label="'+(hasEpics?'Ver épicos de '+escapeAttr(p.nome):'Sem épicos')+'" title="'+(hasEpics?'Ver épicos':'Sem épicos')+'">'+(hasEpics?'▸':'–')+'</button><div class="pg-row-info"><div class="pg-proj-name" title="'+escapeAttr(p.nome)+'">'+escapeText(nomeTxt)+'</div><div class="pg-proj-meta">'+metaTag+'<span class="pg-proj-resp">'+escapeText(resp||'–')+'</span></div></div></div>' +
+            '<div class="pg-row-right"><div class="pg-lane">'+baseHtml+actualHtml+devHtml+'</div></div>' +
           '</div>' +
           (hasEpics?'<div class="pg-epics-container" id="pg-ep-'+idx+'" style="display:none;">'+epicRowsHtml+'</div>':'');
         }).join('');
 
-        // Legenda
-        const legendEl=document.getElementById('ps-gantt-legend');
-        if(legendEl)legendEl.innerHTML='<div class="pg-legend-item"><div class="pg-legend-bar b-andamento"></div>Em andamento</div><div class="pg-legend-item"><div class="pg-legend-bar b-concluido"></div>Concluído</div><div class="pg-legend-item"><div class="pg-legend-bar b-risco"></div>Em risco</div><div class="pg-legend-item"><div class="pg-legend-bar b-nao-iniciado"></div>Não iniciado</div><div class="pg-legend-item"><div class="pg-baseline-leg"></div>Planejado</div><div class="pg-legend-item"><div class="pg-delay-leg"></div>Atraso</div><div class="pg-legend-item"><span style="color:#E8584F;font-size:11px;">⬤</span> Hoje</div>';
+        // ── Linha "Hoje" ÚNICA, sobreposta a toda a grade (não mais por linha) ──
+        const oldOverlay = document.getElementById('pg-today-overlay');
+        if (oldOverlay) oldOverlay.remove();
+        if (hojeVisible) {
+          const overlay = document.createElement('div');
+          overlay.id = 'pg-today-overlay';
+          overlay.className = 'pg-today-overlay';
+          overlay.style.left = 'calc(var(--ps-gantt-left, 280px) + (100% - var(--ps-gantt-left, 280px)) * ' + (hojeLeft/100).toFixed(4) + ')';
+          overlay.innerHTML = '<span class="pg-today-overlay-label">HOJE</span>';
+          grid.style.position = 'relative';
+          grid.appendChild(overlay);
+        }
 
-        // Expand/collapse (sem abrir one pager)
+        // ── Legenda redesenhada: agrupada por categoria, com swatches claros ──
+        const legendEl=document.getElementById('ps-gantt-legend');
+        if(legendEl) legendEl.innerHTML =
+          '<div class="pg-legend-group">' +
+            '<span class="pg-legend-group-title">Status</span>' +
+            '<div class="pg-legend-item"><span class="pg-legend-swatch b-andamento"></span>Em andamento</div>' +
+            '<div class="pg-legend-item"><span class="pg-legend-swatch b-concluido"></span>Concluído</div>' +
+            '<div class="pg-legend-item"><span class="pg-legend-swatch b-risco"></span>Em risco</div>' +
+            '<div class="pg-legend-item"><span class="pg-legend-swatch b-nao-iniciado"></span>Não iniciado</div>' +
+          '</div>' +
+          '<div class="pg-legend-sep"></div>' +
+          '<div class="pg-legend-group">' +
+            '<span class="pg-legend-group-title">Linhas</span>' +
+            '<div class="pg-legend-item"><span class="pg-legend-swatch pg-baseline-leg"></span>Planejado</div>' +
+            '<div class="pg-legend-item"><span class="pg-legend-swatch pg-delay-leg"></span>Atraso vs. plano</div>' +
+            '<div class="pg-legend-item"><span class="pg-legend-today-dot"></span>Hoje</div>' +
+          '</div>';
+
         grid.querySelectorAll('.pg-expand-btn').forEach(btn=>{
           btn.addEventListener('click',e=>{
             e.stopPropagation();
@@ -8015,6 +8565,7 @@
             const open=cont.style.display!=='none';
             cont.style.display=open?'none':'block';
             btn.textContent=open?'▸':'▾';
+            btn.setAttribute('aria-expanded', open ? 'false' : 'true');
             btn.classList.toggle('open',!open);
           });
         });
@@ -8026,135 +8577,155 @@
         if (!listEl) return;
         if (filtered.length === 0) { showState('empty'); return; }
 
-        // ── Atualizar KPIs do novo grid (Visão Geral) ─────────────────
-        const allProj = Object.values(projectsMap).filter(p =>
-          _matchesResp(p) && _matchesMeta(p) && _matchesDiretoria(p) && _matchesStatus(p)
+        // ── Lista canônica totalmente filtrada (mesma usada no Gantt/Cards) ──
+        // Usada por Conquistas, Riscos, Financeiro e Status Report — garante
+        // que TODAS as visualizações reflitam exatamente o mesmo conjunto de
+        // filtros ativos (busca, responsável, meta, status, diretoria, KPI).
+        const allProjFull = filtered;
+
+        // ── Lista p/ contagem dos cards de KPI: tudo MENOS o filtro de KPI ──
+        // (assim o card mostra "quantos eu teria se clicasse aqui", sem se
+        // auto-reduzir quando já está selecionado)
+        const allProjForCounts = Object.values(projectsMap).filter(p =>
+          _matchesResp(p) && _matchesMeta(p) && _matchesDiretoria(p) && _matchesStatus(p) && _matchesSearch(p)
         );
-        const nTotal    = allProj.length;
-        const nAndamento= allProj.filter(p => { const st=_normalizeApiStatus((p.extra&&p.extra.status)||''); return st==='Em andamento'; }).length;
-        const nConcluido= allProj.filter(p => { const st=_normalizeApiStatus((p.extra&&p.extra.status)||''); return st==='Concluído'; }).length;
-        const nRisco    = allProj.filter(p => { const sc=_computeSemaforoCalc(p); return sc==='vermelho'; }).length;
+        const nTotal    = allProjForCounts.length;
+        const nAndamento= allProjForCounts.filter(p => { const st=_normalizeApiStatus((p.extra&&p.extra.status)||''); return st==='Em andamento'; }).length;
+        const nConcluido= allProjForCounts.filter(p => { const st=_normalizeApiStatus((p.extra&&p.extra.status)||''); return st==='Concluído'; }).length;
+        const nRisco    = allProjForCounts.filter(p => { const sc=_computeSemaforoCalc(p); return sc==='vermelho'; }).length;
         const _setKpi = (id, val, sub) => { const el=document.getElementById(id); if(el) el.textContent=val; const se=document.getElementById(id.replace('n-','sub-')); if(se&&sub) se.textContent=sub; };
         _setKpi('pp-kpi-n-total',     nTotal,     nTotal===1?'projeto':'projetos');
         _setKpi('pp-kpi-n-andamento', nAndamento, Math.round(nTotal>0?nAndamento/nTotal*100:0)+'% do portfólio');
         _setKpi('pp-kpi-n-concluido', nConcluido, Math.round(nTotal>0?nConcluido/nTotal*100:0)+'% do portfólio');
         _setKpi('pp-kpi-n-risco',     nRisco,     nRisco > 0 ? 'requer atenção' : 'sem alertas');
-        // ── Render conquistas e riscos (Visão Geral) ───────────────────
-        renderConquistas(allProj);
-        renderRiscos(allProj);
-        // ── Render financeiro ──────────────────────────────────────────
-        renderFinanceiro(allProj);
-        // ── Render Status Report (se aba ativa) ────────────────────────
+        // ── Render conquistas e riscos (Visão Geral) — usa filtro completo ──
+        renderConquistas(allProjFull);
+        renderRiscos(allProjFull);
+        // ── Render financeiro — usa filtro completo ─────────────────────
+        renderFinanceiro(allProjFull);
+        // ── Render Status Report (se aba ativa) — usa filtro completo ───
         const activeTab = document.querySelector('.pp-tab.active')?.id?.replace('pp-tab-','');
         if (activeTab === 'sr') renderStatusReportTab();
+        // Atualizar indicador de filtros ativos (badge "Limpar filtros")
+        updateActiveFiltersIndicator();
 
-        listEl.innerHTML = filtered.map(p => {
-          const s = p.stats;
-          const ex = p.extra;
-          const resp = (ex && ex.responsavel) ? String(ex.responsavel).trim() : s.responsavelPrincipal;
-          const iniciais = _avatarIniciais(resp);
-
-          // Farol: calculado por atraso (não usa campo Semaforo da API)
-          const _semCalc = _computeSemaforoCalc(p);
-          const farolColor = _semCalc === 'verde' ? 'green' : _semCalc === 'amarelo' ? 'yellow' : _semCalc === 'vermelho' ? 'red' : 'gray';
-
-          // Status badge
-          const statusApi = ex ? (ex.status || '') : '';
-          const statusNorm = _normalizeApiStatus(statusApi) || _projetoStatusNorm(p);
-          const badgeMap = {
-            'Concluído':     ['green',  '✓ Concluído'],
-            'Em andamento':  ['blue',   '▶ Em andamento'],
-            'Backlog':       ['gray',   '📋 Backlog'],
-            'Aguardando':    ['yellow', '⏸ Aguardando'],
-            'Não iniciado':  ['gray',   '○ Não iniciado'],
-            'Homologação':   ['yellow', '🔍 Homologação'],
-            'Cancelado':     ['gray',   '✕ Cancelado'],
-          };
-          const [badgeCls, badgeTxt] = badgeMap[statusNorm] || ['gray', statusNorm];
-
-          // Datas
-          let start = s.minStart, end = s.maxEnd;
-          if (ex && ex.dataInicio) { const d = _parseFlexDate(ex.dataInicio); if(d) start=d; }
-          if (ex && ex.dataFim)    { const d = _parseFlexDate(ex.dataFim);    if(d) end=d;   }
-          const dataIni = start ? _fmtDate(start) : '–';
-          const dataFim = end   ? _fmtDate(end)   : '–';
-
-          // Progresso — priorizar "Percentual atual (%)" da API ListarProjetos;
-          // só cai no calculado pelos itens se a API não trouxer
-          let prog = s.progresso;
-          if (ex && ex.progresso != null && String(ex.progresso).trim() !== '') {
-            const v = parseFloat(ex.progresso);
-            if (!isNaN(v)) prog = Math.max(0, Math.min(100, v <= 1 ? Math.round(v * 100) : Math.round(v)));
-          }
-
-          // Meta pill
-          const metaLabel = (ex && ex.meta === 'Meta') ? '<span class="ps-card-badge ps-card-badge-blue">🎯 Meta</span>' : '';
-
-          const desc = (ex && ex.descricao && ex.descricao !== 'Sem Descrição')
-            ? String(ex.descricao).trim().replace(/^DESCRIÇÃO:\s*\[?/i,'').replace(/\].*$/,'')
-            : '';
-
-          // ── Delta de progresso semanal ──────────────────────────────────
-          let deltaHtml = '';
-          if (ex && ex.progressoAnterior != null && String(ex.progressoAnterior).trim() !== '') {
-            const vAnt = parseFloat(String(ex.progressoAnterior).replace('%','').trim());
-            if (!isNaN(vAnt)) {
-              const vAntNorm = vAnt <= 1 ? Math.round(vAnt * 100) : Math.round(vAnt);
-              const diff = prog - vAntNorm;
-              const cls  = diff > 0 ? 'up' : diff < 0 ? 'down' : 'flat';
-              const icon = diff > 0 ? '▲' : diff < 0 ? '▼' : '─';
-              const lbl  = diff > 0 ? '+'+diff+'%' : diff < 0 ? diff+'%' : '0%';
-              deltaHtml = '<span class="ps-card-delta '+cls+'" title="Semana anterior: '+vAntNorm+'%">'+icon+' '+lbl+'</span>';
-            }
-          }
-
-          // ── Dados financeiros ──────────────────────────────────────────
-          let finHtml = '';
-          if (ex) {
-            const recFmt  = _fmtBRL(ex.receita);
-            const custFmt = _fmtBRL(ex.custo);
-            const capex   = ex.capex && String(ex.capex).trim() ? String(ex.capex).trim() : null;
-            if (recFmt || custFmt || capex) {
-              finHtml = '<div class="ps-card-fin">' +
-                (recFmt  ? '<span class="ps-card-fin-item">💰 Receita <span class="ps-card-fin-val">'+escapeText(recFmt)+'</span></span>' : '') +
-                (custFmt ? '<span class="ps-card-fin-item">📊 Custo <span class="ps-card-fin-neg">'+escapeText(custFmt)+'</span></span>' : '') +
-                (capex   ? '<span class="ps-card-fin-item">🏦 CAPEX <span class="ps-card-fin-val">'+escapeText(capex)+'</span></span>' : '') +
-              '</div>';
-            }
-          }
-
-          return '<button type="button" class="ps-card" data-projeto="'+escapeAttr(p.nome)+'">' +
-            '<div class="ps-card-farol-strip '+farolColor+'"></div>' +
-            '<div class="ps-card-top">' +
-              '<div class="ps-card-header">' +
-                '<div class="ps-card-title">'+escapeText(p.nome)+'</div>' +
-                metaLabel +
-              '</div>' +
-              (desc ? '<div class="ps-card-desc">'+escapeText(desc)+'</div>' : '') +
-              '<div class="ps-card-prog-wrap">' +
-                '<div class="ps-card-prog-top">' +
-                  '<span class="ps-card-prog-label">Progresso</span>' +
-                  '<span class="ps-card-prog-pct">'+prog+'%'+deltaHtml+'</span>' +
-                '</div>' +
-                '<div class="ps-card-bar"><div class="ps-card-bar-fill ' + (prog>=70 ? 'pct-high' : prog>=30 ? 'pct-mid' : 'pct-low') + '" style="width:'+prog+'%;"></div></div>' +
-              '</div>' +
-              finHtml +
-              '<div class="ps-card-info-row">' +
-                '<span class="ps-card-info"><span class="ps-card-info-icon">📅</span>'+escapeText(dataIni)+' → '+escapeText(dataFim)+'</span>' +
-                '<span class="ps-card-info"><span class="ps-card-info-icon">📦</span>'+s.total+' itens</span>' +
-              '</div>' +
-              '<span class="ps-card-badge ps-card-badge-'+badgeCls+'">'+badgeTxt+'</span>' +
-            '</div>' +
-            '<div class="ps-card-bottom">' +
-              (resp ? '<div class="ps-card-avatar">'+escapeText(iniciais)+'</div><div class="ps-card-resp-name">'+escapeText(resp)+'</div>' : '<div style="flex:1;font-size:11px;color:var(--text-muted);">Sem responsável</div>') +
-              '<span class="ps-card-cta">Ver relatório →</span>' +
-            '</div>' +
-          '</button>';
-        }).join('');
+        listEl.innerHTML = filtered.map(p => _buildProjectCardHtml(p)).join('');
 
         listEl.querySelectorAll('.ps-card').forEach(card => {
           card.addEventListener('click', () => generateDirectFromProject(card.dataset.projeto));
         });
+      }
+
+      // ════════════════════════════════════════════════════════════════
+      // Template ÚNICO de card de projeto — usado pela Visão Geral (lista
+      // legada oculta) E pela aba Status Report, garantindo que ambas as
+      // telas mostrem exatamente os mesmos dados (sem duplicação/deriva).
+      // ════════════════════════════════════════════════════════════════
+      function _buildProjectCardHtml(p) {
+        const s = p.stats;
+        const ex = p.extra;
+        const resp = (ex && ex.responsavel) ? String(ex.responsavel).trim() : s.responsavelPrincipal;
+        const iniciais = _avatarIniciais(resp);
+
+        const _semCalc = _computeSemaforoCalc(p);
+        const farolColor = _semCalc === 'verde' ? 'green' : _semCalc === 'amarelo' ? 'yellow' : _semCalc === 'vermelho' ? 'red' : 'gray';
+
+        const statusApi = ex ? (ex.status || '') : '';
+        const statusNorm = _normalizeApiStatus(statusApi) || _projetoStatusNorm(p);
+        const badgeMap = {
+          'Concluído':     ['green',  '✓ Concluído'],
+          'Em andamento':  ['blue',   '▶ Em andamento'],
+          'Backlog':       ['gray',   '📋 Backlog'],
+          'Aguardando':    ['yellow', '⏸ Aguardando'],
+          'Não iniciado':  ['gray',   '○ Não iniciado'],
+          'Homologação':   ['yellow', '🔍 Homologação'],
+          'Cancelado':     ['gray',   '✕ Cancelado'],
+        };
+        const [badgeCls, badgeTxt] = badgeMap[statusNorm] || ['gray', statusNorm];
+
+        let start = s.minStart, end = s.maxEnd;
+        if (ex && ex.dataInicio) { const d = _parseFlexDate(ex.dataInicio); if(d) start=d; }
+        if (ex && ex.dataFim)    { const d = _parseFlexDate(ex.dataFim);    if(d) end=d;   }
+        const dataIni = start ? _fmtDate(start) : '–';
+        const dataFim = end   ? _fmtDate(end)   : '–';
+
+        let prog = s.progresso;
+        if (ex && ex.progresso != null && String(ex.progresso).trim() !== '') {
+          const v = parseFloat(ex.progresso);
+          if (!isNaN(v)) prog = Math.max(0, Math.min(100, v <= 1 ? Math.round(v * 100) : Math.round(v)));
+        }
+
+        const metaLabel = (ex && ex.meta === 'Meta') ? '<span class="ps-card-badge ps-card-badge-blue">🎯 Meta</span>' : '';
+
+        const desc = (ex && ex.descricao && ex.descricao !== 'Sem Descrição')
+          ? String(ex.descricao).trim().replace(/^DESCRIÇÃO:\s*\[?/i,'').replace(/\].*$/,'')
+          : '';
+
+        // Delta de progresso semanal
+        let deltaHtml = '';
+        if (ex && ex.progressoAnterior != null && String(ex.progressoAnterior).trim() !== '') {
+          const vAnt = parseFloat(String(ex.progressoAnterior).replace('%','').trim());
+          if (!isNaN(vAnt)) {
+            const vAntNorm = vAnt <= 1 ? Math.round(vAnt * 100) : Math.round(vAnt);
+            const diff = prog - vAntNorm;
+            const cls  = diff > 0 ? 'up' : diff < 0 ? 'down' : 'flat';
+            const icon = diff > 0 ? '▲' : diff < 0 ? '▼' : '─';
+            const lbl  = diff > 0 ? '+'+diff+'%' : diff < 0 ? diff+'%' : '0%';
+            deltaHtml = '<span class="ps-card-delta '+cls+'" title="Semana anterior: '+vAntNorm+'%">'+icon+' '+lbl+'</span>';
+          }
+        }
+
+        // Dados financeiros: Receita / Custo / CAPEX
+        let finHtml = '';
+        let budgetBadge = '';
+        if (ex) {
+          const recFmt  = _fmtBRL(ex.receita);
+          const custFmt = _fmtBRL(ex.custo);
+          const capex   = ex.capex && String(ex.capex).trim() ? String(ex.capex).trim() : null;
+          if (recFmt || custFmt || capex) {
+            finHtml = '<div class="ps-card-fin">' +
+              (recFmt  ? '<span class="ps-card-fin-item">💰 Receita <span class="ps-card-fin-val">'+escapeText(recFmt)+'</span></span>' : '') +
+              (custFmt ? '<span class="ps-card-fin-item">📊 Custo <span class="ps-card-fin-neg">'+escapeText(custFmt)+'</span></span>' : '') +
+              (capex   ? '<span class="ps-card-fin-item">🏦 CAPEX <span class="ps-card-fin-val">'+escapeText(capex)+'</span></span>' : '') +
+            '</div>';
+          }
+          // % do orçamento consumido (Custo / Receita) — só quando ambos existem
+          const recNum  = (ex.receita != null && ex.receita !== '' && !isNaN(Number(ex.receita))) ? Number(ex.receita) : null;
+          const custNum = (ex.custo  != null && ex.custo  !== '' && !isNaN(Number(ex.custo)))  ? Number(ex.custo)  : null;
+          if (recNum != null && recNum > 0 && custNum != null) {
+            const pctOrc = Math.round((custNum / recNum) * 100);
+            const budCls = pctOrc >= 100 ? 'bud-over' : pctOrc >= 80 ? 'bud-warn' : 'bud-ok';
+            budgetBadge = '<span class="ps-card-budget-badge '+budCls+'" title="Custo realizado ÷ Receita">💳 '+pctOrc+'% orçamento</span>';
+          }
+        }
+
+        return '<button type="button" class="ps-card" data-projeto="'+escapeAttr(p.nome)+'">' +
+          '<div class="ps-card-farol-strip '+farolColor+'"></div>' +
+          '<div class="ps-card-top">' +
+            '<div class="ps-card-header">' +
+              '<div class="ps-card-title">'+escapeText(p.nome)+'</div>' +
+              metaLabel +
+            '</div>' +
+            (desc ? '<div class="ps-card-desc">'+escapeText(desc)+'</div>' : '') +
+            '<div class="ps-card-prog-wrap">' +
+              '<div class="ps-card-prog-top">' +
+                '<span class="ps-card-prog-label">Progresso</span>' +
+                '<span class="ps-card-prog-pct">'+prog+'%'+deltaHtml+budgetBadge+'</span>' +
+              '</div>' +
+              '<div class="ps-card-bar"><div class="ps-card-bar-fill ' + (prog>=70 ? 'pct-high' : prog>=30 ? 'pct-mid' : 'pct-low') + '" style="width:'+prog+'%;"></div></div>' +
+            '</div>' +
+            finHtml +
+            '<div class="ps-card-info-row">' +
+              '<span class="ps-card-info"><span class="ps-card-info-icon">📅</span>'+escapeText(dataIni)+' → '+escapeText(dataFim)+'</span>' +
+              '<span class="ps-card-info"><span class="ps-card-info-icon">📦</span>'+s.total+' itens</span>' +
+            '</div>' +
+            '<span class="ps-card-badge ps-card-badge-'+badgeCls+'">'+badgeTxt+'</span>' +
+          '</div>' +
+          '<div class="ps-card-bottom">' +
+            (resp ? '<div class="ps-card-avatar">'+escapeText(iniciais)+'</div><div class="ps-card-resp-name">'+escapeText(resp)+'</div>' : '<div style="flex:1;font-size:11px;color:var(--text-muted);">Sem responsável</div>') +
+            '<span class="ps-card-cta">Ver relatório →</span>' +
+          '</div>' +
+        '</button>';
       }
 
       function renderAll() {
@@ -8305,7 +8876,8 @@
           responsavel: ex.responsavel|| '',
           owner:       ex.owner      || '',
           progresso:   ex.progresso  || '',
-          receita:     ex.receita    != null ? ex.receita : null
+          receita:     ex.receita    != null ? ex.receita : null,
+          custo:       ex.custo      != null ? ex.custo   : null
         };
         let data;
         try {
@@ -8547,7 +9119,8 @@
           DataFimPrevista:       metaInput.dataFim,
           Responsavel:           metaInput.responsavel,
           Owner:                 metaInput.owner,
-          Receita:               metaInput.receita != null ? metaInput.receita : null
+          Receita:               metaInput.receita != null ? metaInput.receita : null,
+          Custo:                 metaInput.custo   != null ? metaInput.custo   : null
         };
         const data = { meta, epicos, itens: itensClean, processos: [], marcos: [], riscos: [], proximos: [], warnings: [] };
         processarDadosDerivados(data);
@@ -8596,6 +9169,7 @@
             btn.classList.add('active');
             const filtered = getFiltered();
             renderGanttPS(filtered);
+            updateActiveFiltersIndicator();
           });
         });
 
@@ -8656,6 +9230,75 @@
         document.getElementById('pm-confirm').addEventListener('click', confirmMetaModal);
         document.addEventListener('keydown', e => { if (e.key==='Escape' && document.getElementById('project-meta-modal').classList.contains('show')) closeMetaModal(); });
         document.querySelector('.pm-backdrop').addEventListener('click', closeMetaModal);
+
+        // ── Busca espelhada entre as 3 abas (Visão Geral / Financeiro / Status Report) ──
+        const _searchInputs = ['ps-search', 'fin-search', 'sr-search'];
+        const _searchClears = ['ps-clear-search', 'fin-clear-search', 'sr-clear-search'];
+        let _searchDebounce = null;
+        _searchInputs.forEach(id => {
+          const input = document.getElementById(id);
+          if (!input) return;
+          input.addEventListener('input', () => {
+            searchQuery = input.value;
+            // Espelhar valor nos outros campos de busca
+            _searchInputs.forEach(otherId => {
+              if (otherId === id) return;
+              const other = document.getElementById(otherId);
+              if (other && other.value !== searchQuery) other.value = searchQuery;
+            });
+            _searchClears.forEach(cid => { const el = document.getElementById(cid); if (el) el.style.display = searchQuery ? 'flex' : 'none'; });
+            clearTimeout(_searchDebounce);
+            _searchDebounce = setTimeout(() => { renderAll(); if (typeof _refreshFinProjectMultiselect === 'function') _refreshFinProjectMultiselect(); }, 180);
+          });
+        });
+        _searchClears.forEach(id => {
+          const btn = document.getElementById(id);
+          if (!btn) return;
+          btn.addEventListener('click', () => {
+            searchQuery = '';
+            _searchInputs.forEach(iid => { const el = document.getElementById(iid); if (el) el.value = ''; });
+            _searchClears.forEach(cid => { const el = document.getElementById(cid); if (el) el.style.display = 'none'; });
+            renderAll();
+            if (typeof _refreshFinProjectMultiselect === 'function') _refreshFinProjectMultiselect();
+          });
+        });
+
+        // ── Botões "Limpar filtros" (Visão Geral / Financeiro / Status Report) ──
+        ['ps-clear-filters', 'fin-clear-filters', 'sr-clear-filters'].forEach(id => {
+          const btn = document.getElementById(id);
+          if (btn) btn.addEventListener('click', clearAllFilters);
+        });
+
+        // ── Multi-select de Projeto (aba Financeiro) ──────────────────────
+        const finMsBtn   = document.getElementById('fin-project-ms-btn');
+        const finMsPanel = document.getElementById('fin-project-ms-panel');
+        if (finMsBtn && finMsPanel) {
+          finMsBtn.addEventListener('click', e => {
+            e.stopPropagation();
+            const willOpen = finMsPanel.hidden;
+            finMsPanel.hidden = !willOpen;
+            finMsBtn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+            if (willOpen) _refreshFinProjectMultiselect();
+          });
+          document.addEventListener('click', e => {
+            if (!finMsPanel.hidden && !finMsPanel.contains(e.target) && e.target !== finMsBtn) {
+              finMsPanel.hidden = true;
+              finMsBtn.setAttribute('aria-expanded', 'false');
+            }
+          });
+          document.addEventListener('keydown', e => { if (e.key === 'Escape' && !finMsPanel.hidden) { finMsPanel.hidden = true; finMsBtn.focus(); } });
+          const selAllBtn   = document.getElementById('fin-ms-select-all');
+          const clearAllBtn = document.getElementById('fin-ms-clear-all');
+          if (selAllBtn)   selAllBtn.addEventListener('click', () => { finProjectFilter.clear(); _refreshFinProjectMultiselect(); updateActiveFiltersIndicator(); renderAll(); });
+          if (clearAllBtn) clearAllBtn.addEventListener('click', () => {
+            // "Limpar" = deselecionar todos os projetos (sentinela que não bate com nenhum nome real,
+            // assim a tabela fica vazia até o usuário marcar algo manualmente)
+            finProjectFilter = new Set(['__none__']);
+            _refreshFinProjectMultiselect();
+            updateActiveFiltersIndicator();
+            renderAll();
+          });
+        }
 
         loadFromApi();
       }
@@ -9355,57 +9998,19 @@
       }
 
       // ── renderStatusReportTab: cards na aba SR ─────────────────────
-      let srSearchQuery = '';
       function renderStatusReportTab() {
-        const filtered = Object.values(projectsMap).filter(p =>
-          _matchesResp(p) && _matchesMeta(p) && _matchesDiretoria(p) && _matchesStatus(p) && _matchesKpi(p)
-        );
+        // Usa a MESMA lista canônica filtrada do Gantt/Cards/Financeiro (busca,
+        // responsável, meta, status, diretoria e KPI), garantindo paridade total
+        // entre abas — corrige a divergência onde a busca não afetava esta aba.
+        const filtered = getFiltered();
         const srList = document.getElementById('sr-list');
         if (!srList) return;
         if (filtered.length === 0) {
           srList.innerHTML = '<div class="vg-empty" style="padding:40px 20px;">Nenhum projeto encontrado para os filtros ativos.</div>';
           return;
         }
-        // Reusar a função renderCards adaptada para sr-list
-        srList.innerHTML = filtered.map(p => {
-          const s = p.stats; const ex = p.extra;
-          const resp = (ex && ex.responsavel) ? String(ex.responsavel).trim() : s.responsavelPrincipal;
-          const iniciais = _avatarIniciais(resp);
-          const _semCalc = _computeSemaforoCalc(p);
-          const farolColor = _semCalc === 'verde' ? 'green' : _semCalc === 'amarelo' ? 'yellow' : _semCalc === 'vermelho' ? 'red' : 'gray';
-          const statusApi = ex ? (ex.status || '') : '';
-          const statusNorm = _normalizeApiStatus(statusApi) || _projetoStatusNorm(p);
-          const badgeMap = { 'Concluído':['green','✓ Concluído'],'Em andamento':['blue','▶ Em andamento'],'Backlog':['gray','📋 Backlog'],'Aguardando':['yellow','⏸ Aguardando'],'Não iniciado':['gray','○ Não iniciado'],'Homologação':['yellow','🔍 Homologação'],'Cancelado':['gray','✕ Cancelado'] };
-          const [badgeCls, badgeTxt] = badgeMap[statusNorm] || ['gray', statusNorm];
-          let start = s.minStart, end = s.maxEnd;
-          if (ex && ex.dataInicio) { const d = _parseFlexDate(ex.dataInicio); if(d) start=d; }
-          if (ex && ex.dataFim)    { const d = _parseFlexDate(ex.dataFim);    if(d) end=d;   }
-          const dataIni = start ? _fmtDate(start) : '–'; const dataFim = end ? _fmtDate(end) : '–';
-          let prog = s.progresso;
-          if (ex && ex.progresso != null && String(ex.progresso).trim() !== '') { const v = parseFloat(ex.progresso); if (!isNaN(v)) prog = Math.max(0,Math.min(100,v<=1?Math.round(v*100):Math.round(v))); }
-          const metaLabel = (ex && ex.meta === 'Meta') ? '<span class="ps-card-badge ps-card-badge-blue">🎯 Meta</span>' : '';
-          const desc = (ex && ex.descricao && ex.descricao !== 'Sem Descrição') ? String(ex.descricao).trim().replace(/^DESCRIÇÃO:\s*\[?/i,'').replace(/\].*/,'') : '';
-          // Delta
-          let deltaHtml = '';
-          if (ex && ex.progressoAnterior != null && String(ex.progressoAnterior).trim() !== '') {
-            const vAnt = parseFloat(String(ex.progressoAnterior).replace('%','').trim());
-            if (!isNaN(vAnt)) { const vAntN = vAnt<=1?Math.round(vAnt*100):Math.round(vAnt); const diff=prog-vAntN; const cls=diff>0?'up':diff<0?'down':'flat'; const icon=diff>0?'▲':diff<0?'▼':'─'; deltaHtml='<span class="ps-card-delta '+cls+'">'+icon+' '+(diff>0?'+':'')+diff+'%</span>'; }
-          }
-          return '<button type="button" class="ps-card" data-projeto="'+escapeAttr(p.nome)+'">' +
-            '<div class="ps-card-farol-strip '+farolColor+'"></div>' +
-            '<div class="ps-card-top">' +
-              '<div class="ps-card-header"><div class="ps-card-title">'+escapeText(p.nome)+'</div>'+metaLabel+'</div>' +
-              (desc ? '<div class="ps-card-desc">'+escapeText(desc)+'</div>' : '') +
-              '<div class="ps-card-prog-wrap"><div class="ps-card-prog-top"><span class="ps-card-prog-label">Progresso</span><span class="ps-card-prog-pct">'+prog+'%'+deltaHtml+'</span></div>' +
-              '<div class="ps-card-bar"><div class="ps-card-bar-fill '+(prog>=70?'pct-high':prog>=30?'pct-mid':'pct-low')+'" style="width:'+prog+'%;"></div></div></div>' +
-              '<div class="ps-card-info-row"><span class="ps-card-info"><span class="ps-card-info-icon">📅</span>'+escapeText(dataIni)+' → '+escapeText(dataFim)+'</span><span class="ps-card-info"><span class="ps-card-info-icon">📦</span>'+s.total+' itens</span></div>' +
-              '<span class="ps-card-badge ps-card-badge-'+badgeCls+'">'+badgeTxt+'</span>' +
-            '</div>' +
-            '<div class="ps-card-bottom">' +
-              (resp ? '<div class="ps-card-avatar">'+escapeText(iniciais)+'</div><div class="ps-card-resp-name">'+escapeText(resp)+'</div>' : '<div style="flex:1;font-size:11px;color:var(--text-muted);">Sem responsável</div>') +
-              '<span class="ps-card-cta">Ver relatório →</span>' +
-            '</div></button>';
-        }).join('');
+        // Mesmo template de card usado na Visão Geral — 100% de paridade visual e de dados
+        srList.innerHTML = filtered.map(p => _buildProjectCardHtml(p)).join('');
         srList.querySelectorAll('.ps-card').forEach(card => {
           card.addEventListener('click', () => generateDirectFromProject(card.dataset.projeto));
         });
@@ -9478,10 +10083,29 @@
       }
 
       // ── renderFinanceiro: cards superiores + tabela ──────────────
-      function renderFinanceiro(filtered) {
+      // Rótulo + classe de "saúde do projeto" — reusa o mesmo cálculo de semáforo
+      // já usado no Gantt (atraso vs. datas planejadas), garantindo 100% de
+      // consistência visual entre Visão Geral, Financeiro e Status Report.
+      function _healthInfo(p) {
+        const sc = _computeSemaforoCalc(p);
+        const ex = p.extra || {};
+        const apiStatus = _normalizeApiStatus(ex.status || '');
+        if (apiStatus === 'Concluído') return { emoji:'✅', label:'Concluído', cls:'health-done' };
+        if (apiStatus === 'Cancelado') return { emoji:'⬛', label:'Cancelado', cls:'health-cancel' };
+        if (sc === 'vermelho') return { emoji:'🔴', label:'Crítico — fora do prazo', cls:'health-red' };
+        if (sc === 'amarelo')  return { emoji:'🟡', label:'Atenção — próximo do prazo', cls:'health-yellow' };
+        return { emoji:'🟢', label:'No prazo', cls:'health-green' };
+      }
+
+      function renderFinanceiro(filteredIn) {
         const tbody = document.getElementById('fin-tbody');
         const cnt   = document.getElementById('fin-proj-count');
         if (!tbody) return;
+
+        // Filtro próprio da aba: seleção múltipla de projetos (em cima do filtro global)
+        const filtered = (finProjectFilter.size > 0)
+          ? filteredIn.filter(p => finProjectFilter.has(p.nome))
+          : filteredIn;
 
         // ── KPIs superiores ─────────────────────────────────────────
         let kpiRec=0, kpiCus=0, nRec=0, nCus=0;
@@ -9497,22 +10121,27 @@
         if(recEl){recEl.textContent=nRec>0?fKpi(kpiRec):'—';}
         if(cusEl){cusEl.textContent=nCus>0?fKpi(kpiCus):'—';}
         if(salEl){salEl.textContent=(nRec>0||nCus>0)?fKpi(saldo):'—'; salEl.className='fin-kpi-value'+(saldo<0?' neg':'');}
-        if(recSub){recSub.textContent=nRec>0?nRec+' projeto'+(nRec!==1?'s':'')+'com receita':'Nenhum com receita'; recSub.className='fin-kpi-sub neutral';}
-        if(cusSub){cusSub.textContent=nCus>0?nCus+' projeto'+(nCus!==1?'s':'')+'com custo':'Nenhum com custo'; cusSub.className='fin-kpi-sub neutral';}
+        if(recSub){recSub.textContent=nRec>0?nRec+' projeto'+(nRec!==1?'s':'')+' com receita':'Nenhum com receita'; recSub.className='fin-kpi-sub neutral';}
+        if(cusSub){cusSub.textContent=nCus>0?nCus+' projeto'+(nCus!==1?'s':'')+' com custo':'Nenhum com custo'; cusSub.className='fin-kpi-sub neutral';}
         if(salSub){const sp=kpiRec>0?Math.round(kpiCus/kpiRec*100):0; salSub.textContent=(nRec>0||nCus>0)?sp+'% do orçamento realizado':'—'; salSub.className='fin-kpi-sub '+(saldo>=0?'pos':'neg');}
 
-        // ── Filtros ativos exibidos ──────────────────────────────────
+        // ── Recap textual dos filtros ativos ──────────────────────────
         const filBadge = document.getElementById('fin-filter-display');
         if (filBadge) {
           const parts = [];
+          if (searchQuery) parts.push('🔍 "'+searchQuery+'"');
+          if (currentRespFilter) parts.push('👤 '+currentRespFilter);
           if (currentDiretoriaFilter && currentDiretoriaFilter !== '__branco__') parts.push('🏢 '+currentDiretoriaFilter);
           else if (currentDiretoriaFilter === '__branco__') parts.push('🏢 Sem diretoria');
           if (currentStatusFilter) parts.push('📌 '+currentStatusFilter);
-          if (searchQuery) parts.push('🔍 "'+searchQuery+'"');
+          if (currentKpiFilter === '__risco__') parts.push('🔴 Em risco');
+          else if (currentKpiFilter) parts.push('📊 '+currentKpiFilter);
+          if (finProjectFilter.size > 0) parts.push('📁 '+finProjectFilter.size+' projeto'+(finProjectFilter.size!==1?'s':'')+' selecionado'+(finProjectFilter.size!==1?'s':''));
           filBadge.innerHTML = parts.length>0
             ? parts.map(t=>'<span class="fin-filter-badge">'+escapeText(t)+'</span>').join('')
             : '<span style="color:#9CA3AF;font-size:11px;">Nenhum filtro ativo · mostrando todos os projetos</span>';
         }
+
         // Ordenar: maior receita primeiro; sem receita vai ao final
         const sorted = [...filtered].sort((a, b) => {
           const ra = (a.extra && a.extra.receita != null) ? Number(a.extra.receita) : -Infinity;
@@ -9520,34 +10149,104 @@
           return rb - ra;
         });
         if (cnt) cnt.textContent = sorted.length + ' projeto' + (sorted.length!==1?'s':'');
-        let totRec = 0, totCus = 0, hasAny = false;
+
+        let totRec = 0, totCus = 0;
         const rows = sorted.map(p => {
           const ex = p.extra || {};
+          const s  = p.stats;
           const rec = (ex.receita != null && ex.receita !== '' && !isNaN(Number(ex.receita))) ? Number(ex.receita) : null;
           const cus = (ex.custo  != null && ex.custo  !== '' && !isNaN(Number(ex.custo)))  ? Number(ex.custo)  : null;
-          if (rec != null) { totRec += rec; hasAny = true; }
-          if (cus != null) { totCus += cus; hasAny = true; }
+          if (rec != null) totRec += rec;
+          if (cus != null) totCus += cus;
           const recTxt = rec != null ? Number(rec).toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0}) : '—';
           const cusTxt = cus != null ? Number(cus).toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0}) : '—';
           const st = _normalizeApiStatus(ex.status || '') || ex.status || '—';
           const dir = ex.cliente || ex.diretoria || '—';
           const resp = ex.responsavel || '—';
-          return '<tr>' +
-            '<td><div class="fin-nome">'+escapeText(p.nome)+'</div><div class="fin-resp">'+escapeText(resp)+'</div></td>' +
+
+          // Saúde do projeto
+          const h = _healthInfo(p);
+          const isCritico = h.cls === 'health-red';
+
+          // % do progresso (para a barrinha de cronograma inline)
+          const apiPct = ex.progresso ? parseInt(String(ex.progresso).replace('%','').trim()) : NaN;
+          const prog = !isNaN(apiPct) ? apiPct : s.progresso;
+          const progCls = prog>=70 ? 'pct-high' : prog>=30 ? 'pct-mid' : 'pct-low';
+
+          return '<tr class="'+(isCritico?'fin-row-critico':'')+'" data-projeto="'+escapeAttr(p.nome)+'">' +
+            '<td>' +
+              '<div class="fin-nome">'+escapeText(p.nome)+'</div>' +
+              '<div class="fin-resp">'+escapeText(resp)+'</div>' +
+              '<div class="fin-mini-bar"><div class="fin-mini-bar-fill '+progCls+'" style="width:'+prog+'%;"></div></div>' +
+            '</td>' +
+            '<td><span class="fin-health" title="'+escapeAttr(h.label)+'">'+h.emoji+' <span class="fin-health-txt">'+escapeText(h.label)+'</span></span></td>' +
             '<td><span class="ps-card-badge ps-card-badge-blue" style="font-size:10px;">'+escapeText(st)+'</span></td>' +
             '<td style="font-size:12px;color:#6B7280;">'+escapeText(dir)+'</td>' +
             '<td class="num '+(rec!=null?'fin-receita':'fin-vazio')+'">'+recTxt+'</td>' +
             '<td class="num '+(cus!=null?'fin-custo':'fin-vazio')+'">'+cusTxt+'</td>' +
           '</tr>';
         }).join('');
+
         const totRecTxt = totRec > 0 ? totRec.toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0}) : '—';
         const totCusTxt = totCus > 0 ? totCus.toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0}) : '—';
-        tbody.innerHTML = rows +
-          '<tr class="fin-total-row">' +
-            '<td colspan="3" style="font-size:12px;">Total</td>' +
+        tbody.innerHTML = (sorted.length === 0
+          ? '<tr><td colspan="6" class="vg-empty">Nenhum projeto encontrado para os filtros ativos.</td></tr>'
+          : rows) +
+          (sorted.length > 0 ? '<tr class="fin-total-row">' +
+            '<td colspan="4" style="font-size:12px;">Total ('+sorted.length+' projeto'+(sorted.length!==1?'s':'')+')</td>' +
             '<td class="num fin-receita">'+totRecTxt+'</td>' +
             '<td class="num fin-custo">'+totCusTxt+'</td>' +
-          '</tr>';
+          '</tr>' : '');
+
+        // Clique na linha → abre o Status Report do projeto (mesma navegação dos cards)
+        tbody.querySelectorAll('tr[data-projeto]').forEach(row => {
+          row.style.cursor = 'pointer';
+          row.addEventListener('click', () => generateDirectFromProject(row.dataset.projeto));
+        });
+      }
+
+      // ── Multi-select de Projeto (filtro próprio da aba Financeiro) ────────
+      function _refreshFinProjectMultiselect() {
+        const list = document.getElementById('fin-project-ms-list');
+        const label = document.getElementById('fin-project-ms-label');
+        if (!list || !label) return;
+
+        // Lista de projetos respeitando os DEMAIS filtros ativos (resp/meta/diretoria/status/busca/kpi)
+        const base = Object.values(projectsMap)
+          .filter(p => _matchesResp(p) && _matchesMeta(p) && _matchesSearch(p) && _matchesStatus(p) && _matchesDiretoria(p) && _matchesKpi(p))
+          .sort((a,b) => a.nome.localeCompare(b.nome,'pt-BR'));
+
+        list.innerHTML = base.map(p => {
+          const checked = finProjectFilter.size === 0 || finProjectFilter.has(p.nome);
+          return '<label class="fin-ms-item">' +
+            '<input type="checkbox" data-proj="'+escapeAttr(p.nome)+'" '+(checked?'checked':'')+' />' +
+            '<span>'+escapeText(p.nome)+'</span>' +
+          '</label>';
+        }).join('') || '<div style="padding:10px;color:#9CA3AF;font-size:12px;">Nenhum projeto disponível com os filtros atuais.</div>';
+
+        list.querySelectorAll('input[type=checkbox]').forEach(cb => {
+          cb.addEventListener('change', () => {
+            const proj = cb.dataset.proj;
+            if (finProjectFilter.size === 0) {
+              // Estava em "todos" → ao desmarcar um, popula o Set com todos MENOS esse
+              base.forEach(p => finProjectFilter.add(p.nome));
+            }
+            if (cb.checked) finProjectFilter.add(proj); else finProjectFilter.delete(proj);
+            // Se voltou a marcar tudo, trata como "todos" (Set vazio = sem filtro)
+            if (base.every(p => finProjectFilter.has(p.nome))) finProjectFilter.clear();
+            _updateFinMsLabel(base.length);
+            updateActiveFiltersIndicator();
+            renderAll();
+          });
+        });
+        _updateFinMsLabel(base.length);
+      }
+      function _updateFinMsLabel(total) {
+        const label = document.getElementById('fin-project-ms-label');
+        if (!label) return;
+        if (finProjectFilter.size === 0) label.textContent = 'Todos os projetos';
+        else if (finProjectFilter.size === 1) label.textContent = Array.from(finProjectFilter)[0];
+        else label.textContent = finProjectFilter.size + ' de ' + total + ' selecionados';
       }
 
       // Expor funções chamadas via onclick (fora do IIFE)
@@ -9652,181 +10351,3 @@
   </script>
 </body>
 </html>
-<!-- ===== PATCH CSS — GANTT REDESIGN + FIN CARDS ===== -->
-<style>
-/* ── Ocultar sempre sr-cards-wrap (cards ficam só no tab SR) ── */
-#sr-cards-wrap { display:none !important; }
-
-/* ── body[data-tab] controla toolbar ── */
-body[data-tab="kb"] .ps-toolbar { display:none !important; }
-body:not([data-tab]) .ps-toolbar { display:flex; }
-
-/* ════════════════════════════════════════════
-   GANTT PORTFOLIO REDESIGN (pg-*)
-════════════════════════════════════════════ */
-.pg-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; }
-#ps-gantt-container { min-width:100%; }
-
-.pg-project-row, .pg-epic-row {
-  display:grid; grid-template-columns:280px 1fr;
-  align-items:center; border-bottom:1px solid #F4F3F0;
-  transition:background .15s; min-height:36px;
-}
-.pg-project-row:hover { background:rgba(27,42,74,.025); }
-.pg-epic-row { background:#FAFAF8; min-height:28px; }
-.pg-epic-row:hover { background:#F0F3FA; }
-
-.pg-row-left {
-  display:flex; align-items:center; gap:8px;
-  padding:7px 12px; min-height:inherit;
-  border-right:1px solid #ECEAE6;
-}
-.pg-epic-left { padding-left:28px; }
-
-.pg-expand-btn {
-  width:18px; height:18px; border-radius:4px;
-  border:1px solid #ECEAE6; background:#fff;
-  display:flex; align-items:center; justify-content:center;
-  font-size:10px; color:#6B7280; flex-shrink:0;
-  cursor:pointer; transition:all .2s; line-height:1;
-  font-family:monospace;
-}
-.pg-expand-btn:hover { border-color:#1B2A4A; color:#1B2A4A; }
-.pg-expand-btn.open { background:#1B2A4A; color:white; border-color:#1B2A4A; }
-.pg-row-info { flex:1; min-width:0; }
-.pg-proj-name { font-size:12px; font-weight:600; color:#1B2A4A; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.pg-proj-meta { display:flex; gap:6px; align-items:center; margin-top:2px; }
-.pg-meta-tag { font-size:8px; background:rgba(27,42,74,.08); color:#1B2A4A; border:1px solid rgba(27,42,74,.12); padding:1px 6px; border-radius:4px; font-weight:600; }
-.pg-proj-resp { font-size:9px; color:#6B7280; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-
-.pg-epic-bullet { font-size:7px; color:#E8584F; flex-shrink:0; }
-.pg-epic-name { font-size:11px; color:#374151; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-
-.pg-row-right { position:relative; }
-.pg-lane {
-  position:relative; height:36px;
-  display:flex; align-items:center;
-}
-.pg-epic-row .pg-lane { height:28px; }
-
-/* Baseline (planejado — dashed) */
-.pg-baseline {
-  position:absolute; height:10px; top:13px; border-radius:3px;
-  border:2px dashed rgba(27,42,74,.3);
-  background:transparent; pointer-events:none;
-}
-/* Actual bar */
-.pg-bar {
-  position:absolute; height:16px; top:10px; border-radius:4px;
-  display:flex; align-items:center; justify-content:center;
-  font-size:8px; font-weight:700; color:white; letter-spacing:.3px;
-  cursor:default; transition:height .2s, top .2s;
-}
-.pg-bar:hover { height:20px; top:8px; filter:brightness(1.08); }
-.pg-epic-row .pg-bar { height:10px; top:9px; border-radius:3px; font-size:0; }
-.pg-epic-row .pg-bar:hover { height:14px; top:7px; }
-
-/* Bar colors using existing vars */
-.pg-bar.b-andamento, .pg-bar.b-epic { background:linear-gradient(90deg,#1B2A4A,#2A3F6B); }
-.pg-bar.b-concluido   { background:linear-gradient(90deg,#10B981,#34D399); }
-.pg-bar.b-risco       { background:linear-gradient(90deg,#DC2626,#F87171); }
-.pg-bar.b-backlog     { background:linear-gradient(90deg,#D97706,#FBBF24); }
-.pg-bar.b-nao-iniciado{ background:linear-gradient(90deg,#9CA3AF,#D1D5DB); }
-.pg-bar.b-cancelado   { background:linear-gradient(90deg,#6B7280,#9CA3AF); }
-.pg-bar.b-epic        { background:linear-gradient(90deg,#6366F1,#818CF8); }
-
-/* Delay bar (atraso — hatching vermelho) */
-.pg-delay {
-  position:absolute; height:14px; top:11px;
-  border-radius:0 4px 4px 0;
-  background:repeating-linear-gradient(135deg,#EF4444,#EF4444 2px,rgba(220,38,38,.5) 2px,rgba(220,38,38,.5) 4px);
-  opacity:.75; pointer-events:none;
-}
-/* Advance bar (adiantado — hatching verde) */
-.pg-advance {
-  position:absolute; height:14px; top:11px;
-  border-radius:4px;
-  background:repeating-linear-gradient(135deg,#10B981,#10B981 2px,rgba(16,185,129,.5) 2px,rgba(16,185,129,.5) 4px);
-  opacity:.55; pointer-events:none;
-}
-/* Deviation label */
-.pg-deviation {
-  position:absolute; top:2px; font-size:8px; font-weight:700;
-  white-space:nowrap; transform:translateX(4px);
-}
-.pg-late  { color:#DC2626; }
-.pg-early { color:#10B981; }
-
-/* Today line */
-.pg-today {
-  position:absolute; top:0; bottom:0; width:2px;
-  background:#E8584F; pointer-events:none; z-index:5;
-}
-.pg-today::before {
-  content:'HOJE'; position:absolute; top:2px; left:50%; transform:translateX(-50%);
-  font-size:7px; font-weight:700; color:#E8584F; letter-spacing:1px;
-  background:white; padding:0 2px;
-}
-
-/* Epics container */
-.pg-epics-container { overflow:hidden; transition:max-height .3s ease; }
-
-/* Grid lines */
-.pg-grid-line { position:absolute; top:0; bottom:0; width:1px; background:rgba(0,0,0,.04); pointer-events:none; }
-
-/* Legend */
-#ps-gantt-legend { display:flex; gap:16px; flex-wrap:wrap; padding:10px 16px; border-top:1px solid #ECEAE6; background:#FAFAF8; }
-.pg-legend-item { display:flex; align-items:center; gap:5px; font-size:10px; color:#6B7280; }
-.pg-legend-bar { width:24px; height:8px; border-radius:3px; }
-.pg-baseline-leg { border:2px dashed rgba(27,42,74,.35); background:transparent; height:8px; width:24px; }
-.pg-delay-leg { width:20px; height:8px; border-radius:3px; background:repeating-linear-gradient(135deg,#EF4444,#EF4444 2px,rgba(220,38,38,.4) 2px,rgba(220,38,38,.4) 4px); }
-.pg-advance-leg { width:20px; height:8px; border-radius:3px; background:repeating-linear-gradient(135deg,#10B981,#10B981 2px,rgba(16,185,129,.4) 2px,rgba(16,185,129,.4) 4px); }
-
-/* Gantt header meses */
-.ps-gantt-header { display:grid; grid-template-columns:280px 1fr; border-bottom:2px solid #ECEAE6; position:relative; }
-.ps-gantt-header-months { position:relative; display:flex; }
-.ps-gantt-header-month { flex:1; text-align:center; font-size:8px; color:#9CA3AF; padding:6px 0; font-weight:600; text-transform:uppercase; letter-spacing:.4px; border-left:1px solid #F4F3F0; }
-
-/* ════════════════════════════════════════════
-   FINANCEIRO — Cards superiores
-════════════════════════════════════════════ */
-.fin-kpi-row {
-  display:grid; grid-template-columns:repeat(3,1fr); gap:16px;
-  padding:24px 40px 0; margin-bottom:20px;
-}
-.fin-kpi-card {
-  background:#fff; border-radius:12px; padding:20px 24px;
-  box-shadow:0 1px 4px rgba(27,42,74,.07);
-  border:1px solid rgba(0,0,0,.05); position:relative; overflow:hidden;
-}
-.fin-kpi-card::after {
-  content:''; position:absolute; bottom:0; left:0; right:0; height:3px;
-}
-.fin-kpi-card.fk-receita::after { background:linear-gradient(90deg,#10B981,#34D399); }
-.fin-kpi-card.fk-custo::after   { background:linear-gradient(90deg,#E8584F,#FF7A72); }
-.fin-kpi-card.fk-saldo::after   { background:linear-gradient(90deg,#1B2A4A,#2A3F6B); }
-.fin-kpi-label { font-size:9px; text-transform:uppercase; letter-spacing:1px; color:#6B7280; font-weight:600; margin-bottom:8px; }
-.fin-kpi-value { font-family:'DM Serif Display',serif; font-size:26px; color:#1B2A4A; line-height:1.1; }
-.fin-kpi-value.neg { color:#DC2626; }
-.fin-kpi-sub { font-size:11px; margin-top:4px; }
-.fin-kpi-sub.pos { color:#10B981; font-weight:600; }
-.fin-kpi-sub.neg { color:#DC2626; font-weight:600; }
-.fin-kpi-sub.neutral { color:#6B7280; }
-
-/* Fin table melhorado */
-.fin-wrap { padding:0 40px 40px; }
-.fin-table-card { background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 1px 3px rgba(27,42,74,.06); border:1px solid rgba(0,0,0,.04); }
-.fin-table thead th { background:#1B2A4A; color:rgba(255,255,255,.8); }
-.fin-table thead th.num { text-align:right; }
-
-/* Filtros compartilhados no Financeiro */
-.fin-filter-bar {
-  display:flex; align-items:center; gap:8px; flex-wrap:wrap;
-  padding:12px 40px; background:#fff; border-bottom:1px solid #ECEAE6;
-  font-size:11px; color:#6B7280;
-}
-.fin-filter-badge {
-  display:inline-flex; align-items:center; gap:4px; padding:3px 10px;
-  background:#F4F3F0; border-radius:20px; font-size:11px; color:#1B2A4A; font-weight:500;
-}
-</style>
