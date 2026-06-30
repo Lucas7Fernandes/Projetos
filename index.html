@@ -4111,6 +4111,10 @@ body:not([data-tab]) .ps-toolbar { display:flex; }
               <span>🚦 Status geral e descrição</span>
             </label>
             <label class="share-checkbox">
+              <input type="checkbox" id="share-section-financeiro" checked />
+              <span>💰 Resumo financeiro</span>
+            </label>
+            <label class="share-checkbox">
               <input type="checkbox" id="share-section-cronograma" checked />
               <span>📋 Cronograma resumido</span>
             </label>
@@ -6485,6 +6489,7 @@ body:not([data-tab]) .ps-toolbar { display:flex; }
         width: target === 'email' ? '640' : '760',
         includeKpis: document.getElementById('share-section-kpis')?.checked !== false,
         includeStatus: document.getElementById('share-section-status')?.checked !== false,
+        includeFinanceiro: document.getElementById('share-section-financeiro')?.checked !== false,
         includeCronograma: document.getElementById('share-section-cronograma')?.checked !== false,
         includeMarcos: document.getElementById('share-section-marcos')?.checked === true,
         includeRiscos: document.getElementById('share-section-riscos')?.checked !== false,
@@ -6551,6 +6556,28 @@ body:not([data-tab]) .ps-toolbar { display:flex; }
         semaforoLabel = '🟡'; semaforoTexto = 'Atenção';
       }
       return { semaforoCor, semaforoBg, semaforoBorder, semaforoLabel, semaforoTexto };
+    }
+
+    // Resumo financeiro reutilizado pelos 3 formatos de exportação (Email, Teams, Slide).
+    // Mesma fonte de verdade (meta.Receita / meta.Custo) usada no Resumo Executivo do
+    // One Pager ao vivo — garante que o que é impresso/compartilhado bate com a tela.
+    function _shareComputeFinanceiro(metaArg) {
+      const meta = metaArg || (currentData && currentData.meta) || {};
+      const temReceita = meta.Receita != null && meta.Receita !== '' && !isNaN(Number(meta.Receita));
+      const temCusto   = meta.Custo   != null && meta.Custo   !== '' && !isNaN(Number(meta.Custo));
+      const fmt = v => Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
+      let pctTxt = '—', pctColor = '#1a1f4e';
+      if (temReceita && temCusto && Number(meta.Receita) > 0) {
+        const pct = Math.round((Number(meta.Custo) / Number(meta.Receita)) * 100);
+        pctTxt = pct + '%';
+        pctColor = pct >= 100 ? '#dc2626' : pct >= 80 ? '#b45309' : '#15803d';
+      }
+      return {
+        temAlgumDado: temReceita || temCusto,
+        orcamentoTxt: temReceita ? fmt(meta.Receita) : '—',
+        custoTxt:     temCusto   ? fmt(meta.Custo)   : '—',
+        pctTxt, pctColor
+      };
     }
     
     function _shareDetectRiscoSeverity(riscoText) {
@@ -6683,7 +6710,55 @@ body:not([data-tab]) .ps-toolbar { display:flex; }
         }
         html += '</td></tr>';
       }
-      
+
+      if (opts.includeFinanceiro) {
+        const fin = _shareComputeFinanceiro(meta);
+        if (fin.temAlgumDado) {
+          html += `
+      <tr>
+        <td style="padding:14px 24px 12px 24px;font-family:Arial,Helvetica,sans-serif;border-top:1px solid #e5e8ef;">
+          <div style="font-size:10px;color:#1a1f4e;font-weight:bold;text-transform:uppercase;letter-spacing:1px;padding-bottom:10px;border-bottom:2px solid #e94e4e;display:inline-block;padding-right:24px;margin-bottom:10px;">💰 Resumo Financeiro</div>
+          <table cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;">
+            <tr>
+              <td width="25%" style="padding:6px 6px 6px 0;vertical-align:top;">
+                <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#f6f7fb;border:1px solid #e5e8ef;">
+                  <tr><td style="padding:10px 12px;font-family:Arial,Helvetica,sans-serif;">
+                    <div style="font-size:9px;color:#64748b;font-weight:bold;text-transform:uppercase;letter-spacing:1px;padding-bottom:4px;">Orçamento Total</div>
+                    <div style="font-size:15px;color:#15803d;font-weight:bold;">${fin.orcamentoTxt}</div>
+                  </td></tr>
+                </table>
+              </td>
+              <td width="25%" style="padding:6px;vertical-align:top;">
+                <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#f6f7fb;border:1px solid #e5e8ef;">
+                  <tr><td style="padding:10px 12px;font-family:Arial,Helvetica,sans-serif;">
+                    <div style="font-size:9px;color:#64748b;font-weight:bold;text-transform:uppercase;letter-spacing:1px;padding-bottom:4px;">Custo Realizado</div>
+                    <div style="font-size:15px;color:#dc2626;font-weight:bold;">${fin.custoTxt}</div>
+                  </td></tr>
+                </table>
+              </td>
+              <td width="25%" style="padding:6px;vertical-align:top;">
+                <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#f6f7fb;border:1px solid #e5e8ef;">
+                  <tr><td style="padding:10px 12px;font-family:Arial,Helvetica,sans-serif;">
+                    <div style="font-size:9px;color:#64748b;font-weight:bold;text-transform:uppercase;letter-spacing:1px;padding-bottom:4px;">Valor Comprometido</div>
+                    <div style="font-size:11px;color:#94a3b8;font-weight:bold;font-style:italic;">Não disponível</div>
+                  </td></tr>
+                </table>
+              </td>
+              <td width="25%" style="padding:6px 0 6px 6px;vertical-align:top;">
+                <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#f6f7fb;border:1px solid #e5e8ef;">
+                  <tr><td style="padding:10px 12px;font-family:Arial,Helvetica,sans-serif;">
+                    <div style="font-size:9px;color:#64748b;font-weight:bold;text-transform:uppercase;letter-spacing:1px;padding-bottom:4px;">% Orçamento Consumido</div>
+                    <div style="font-size:15px;color:${fin.pctColor};font-weight:bold;">${fin.pctTxt}</div>
+                  </td></tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>`;
+        }
+      }
+
       if (opts.includeCronograma && processos.length > 0) {
         html += `
       <tr>
@@ -6948,7 +7023,46 @@ body:not([data-tab]) .ps-toolbar { display:flex; }
         }
         html += '</div>';
       }
-      
+
+      // RESUMO FINANCEIRO
+      if (opts.includeFinanceiro) {
+        const fin = _shareComputeFinanceiro(meta);
+        if (fin.temAlgumDado) {
+          html += `
+      <div style="background:#ffffff;padding:18px 28px;border-bottom:1px solid #e5e8ef;">
+        <div style="font-size:10px;color:#1a1f4e;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;border-bottom:2px solid #e94e4e;display:inline-block;padding-bottom:8px;margin-bottom:12px;">💰 Resumo Financeiro</div>
+        <table cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:separate;border-spacing:8px 0;">
+          <tr>
+            <td width="25%" style="vertical-align:top;">
+              <div style="background:#f6f7fb;border:1px solid #e5e8ef;border-radius:10px;padding:14px;">
+                <div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:4px;">Orçamento Total</div>
+                <div style="font-size:18px;font-weight:800;color:#15803d;letter-spacing:-0.4px;">${fin.orcamentoTxt}</div>
+              </div>
+            </td>
+            <td width="25%" style="vertical-align:top;">
+              <div style="background:#f6f7fb;border:1px solid #e5e8ef;border-radius:10px;padding:14px;">
+                <div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:4px;">Custo Realizado</div>
+                <div style="font-size:18px;font-weight:800;color:#dc2626;letter-spacing:-0.4px;">${fin.custoTxt}</div>
+              </div>
+            </td>
+            <td width="25%" style="vertical-align:top;">
+              <div style="background:#f6f7fb;border:1px solid #e5e8ef;border-radius:10px;padding:14px;">
+                <div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:4px;">Valor Comprometido</div>
+                <div style="font-size:12px;font-weight:700;color:#94a3b8;font-style:italic;">Não disponível</div>
+              </div>
+            </td>
+            <td width="25%" style="vertical-align:top;">
+              <div style="background:#f6f7fb;border:1px solid #e5e8ef;border-radius:10px;padding:14px;">
+                <div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:4px;">% Consumido</div>
+                <div style="font-size:18px;font-weight:800;color:${fin.pctColor};letter-spacing:-0.4px;">${fin.pctTxt}</div>
+              </div>
+            </td>
+          </tr>
+        </table>
+      </div>`;
+        }
+      }
+
       // CRONOGRAMA
       if (opts.includeCronograma && processos.length > 0) {
         html += `
@@ -7194,6 +7308,9 @@ body:not([data-tab]) .ps-toolbar { display:flex; }
         width:           target === 'email' ? 600 : 960,
         includeKpis:     document.getElementById('slide-section-kpis')?.checked !== false,
         includeStatus:   document.getElementById('slide-section-status')?.checked !== false,
+        // Resumo financeiro compacto: segue o toggle de "Status" (é parte da mesma seção
+        // visual "Sobre o Projeto"), sem precisar de mais um checkbox na UI já densa do slide.
+        includeFinanceiro: document.getElementById('slide-section-status')?.checked !== false,
         includeGantt:    document.getElementById('slide-section-gantt')?.checked !== false,
         includeDoing:    document.getElementById('slide-section-doing')?.checked !== false,
         includeProximos: document.getElementById('slide-section-proximos')?.checked !== false,
@@ -7328,11 +7445,36 @@ body:not([data-tab]) .ps-toolbar { display:flex; }
         const rawDesc = (meta.DescricaoProjeto || '').replace(/\\n/g,'\n');
         const linhas = rawDesc.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('%'));
         const ganhos = escapeHtml(meta.GanhosProjeto || '');
+
+        // Resumo financeiro compacto — mesma fonte usada no Email/Teams/One Pager ao vivo
+        let finCompactHTML = '';
+        if (opts.includeFinanceiro) {
+          const fin = _shareComputeFinanceiro(meta);
+          if (fin.temAlgumDado) {
+            finCompactHTML = `
+          <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">
+            <div style="flex:1;min-width:70px;background:#f6f7fb;border:1px solid #e5e8ef;border-radius:5px;padding:6px 8px;">
+              <div style="font-size:7px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;">Orçamento</div>
+              <div style="font-size:11px;font-weight:800;color:#15803d;">${fin.orcamentoTxt}</div>
+            </div>
+            <div style="flex:1;min-width:70px;background:#f6f7fb;border:1px solid #e5e8ef;border-radius:5px;padding:6px 8px;">
+              <div style="font-size:7px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;">Custo</div>
+              <div style="font-size:11px;font-weight:800;color:#dc2626;">${fin.custoTxt}</div>
+            </div>
+            <div style="flex:1;min-width:70px;background:#f6f7fb;border:1px solid #e5e8ef;border-radius:5px;padding:6px 8px;">
+              <div style="font-size:7px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;">% Consumido</div>
+              <div style="font-size:11px;font-weight:800;color:${fin.pctColor};">${fin.pctTxt}</div>
+            </div>
+          </div>`;
+          }
+        }
+
         statusHTML = `
         <div style="margin-bottom:12px;">
           <div style="font-size:9px;font-weight:700;color:#1a1f4e;text-transform:uppercase;letter-spacing:0.08em;border-bottom:2px solid #e94e4e;padding-bottom:5px;margin-bottom:8px;">Sobre o Projeto</div>
           ${linhas.length ? `<div style="font-size:10px;color:#334155;line-height:1.6;">${linhas.map(l => `<div style="margin-bottom:2px;">${escapeHtml(l)}</div>`).join('')}</div>` : ''}
           ${ganhos ? `<div style="margin-top:8px;"><div style="font-size:9px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:3px;">Ganhos Esperados</div><div style="font-size:10px;color:#334155;">${ganhos}</div></div>` : ''}
+          ${finCompactHTML}
         </div>`;
       }
 
