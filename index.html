@@ -3045,7 +3045,7 @@ body:not([data-tab]) .ps-toolbar { display:flex; }
 /* Legend */
 #ps-gantt-legend { display:flex; gap:16px; flex-wrap:wrap; padding:10px 16px; border-top:1px solid #ECEAE6; background:#FAFAF8; }
 .pg-legend-item { display:flex; align-items:center; gap:5px; font-size:10px; color:#6B7280; }
-.pg-legend-bar { width:24px; height:8px; border-radius:3px; }
+.pg-legend-bar-old-swatch { width:24px; height:8px; border-radius:3px; } /* legado — não usado; renomeado para não colidir com container .pg-legend-bar do novo design */
 .pg-baseline-leg { border:2px dashed rgba(27,42,74,.35); background:transparent; height:8px; width:24px; }
 .pg-delay-leg { width:20px; height:8px; border-radius:3px; background:repeating-linear-gradient(135deg,#EF4444,#EF4444 2px,rgba(220,38,38,.4) 2px,rgba(220,38,38,.4) 4px); }
 .pg-advance-leg { width:20px; height:8px; border-radius:3px; background:repeating-linear-gradient(135deg,#10B981,#10B981 2px,rgba(16,185,129,.4) 2px,rgba(16,185,129,.4) 4px); }
@@ -3260,6 +3260,144 @@ body:not([data-tab]) .ps-toolbar { display:flex; }
       .pp-tab { padding:10px 12px; font-size:11px; }
     }
 
+
+    /* ═══════════════════════════════════════════════════════
+       PATCH C-Level: Financeiro executivo, Governança, Kanban limpo
+    ═══════════════════════════════════════════════════════ */
+
+    /* ── Grid de Governança (One Pager ao vivo) ── */
+    .project-gov-grid {
+      display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));
+      gap:10px; margin-top:12px; padding-top:12px;
+      border-top:1px solid var(--border, #E5E1DA);
+    }
+    .project-gov-item {
+      padding:10px 12px; border-radius:8px;
+      background:linear-gradient(135deg, rgba(27,42,74,.03), rgba(27,42,74,.06));
+      border:1px solid rgba(27,42,74,.12);
+    }
+    .project-gov-item .gov-label {
+      font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.5px;
+      color:#6B7280; margin-bottom:4px; display:flex; align-items:center; gap:4px;
+    }
+    .project-gov-item .gov-value {
+      font-size:13px; font-weight:700; color:#1B2A4A; line-height:1.3;
+    }
+
+    /* ── Financeiro executivo: barra de consumo ── */
+    .fin-table-exec { table-layout:auto; }
+    .fin-table-exec thead th {
+      background:#1B2A4A !important; color:rgba(255,255,255,.85) !important;
+      padding:14px 16px; font-size:10px; letter-spacing:.7px;
+      border-bottom:none;
+    }
+    .fin-table-exec tbody td {
+      padding:14px 16px; vertical-align:middle; border-bottom:1px solid #F4F3F0;
+    }
+    .fin-col-projeto { min-width:220px; }
+    .fin-col-projeto .fin-nome { font-weight:700; font-size:13px; color:#1B2A4A; }
+    .fin-col-projeto .fin-resp { font-size:11px; color:#6B7280; margin-top:2px; }
+    .fin-col-diretoria { font-size:12px; color:#374151; white-space:nowrap; }
+    .fin-col-orcamento { min-width:200px; padding:14px 20px; }
+
+    /* Barra de consumo do orçamento — semântica: azul (ok), amarelo (warn), vermelho (over) */
+    .fin-budget-wrap { display:flex; align-items:center; gap:10px; }
+    .fin-budget-bar-outer {
+      flex:1; height:10px; background:#F4F3F0; border-radius:5px;
+      overflow:hidden; position:relative; min-width:80px;
+    }
+    .fin-budget-bar-fill {
+      height:100%; border-radius:5px; transition:width .3s ease;
+      background:linear-gradient(90deg, #3B82F6, #60A5FA);
+    }
+    .fin-budget-bar-fill.budget-ok   { background:linear-gradient(90deg, #2563EB, #3B82F6); }
+    .fin-budget-bar-fill.budget-warn { background:linear-gradient(90deg, #D97706, #F59E0B); }
+    .fin-budget-bar-fill.budget-over { background:linear-gradient(90deg, #DC2626, #EF4444); }
+    .fin-budget-bar-fill.budget-empty { background:#E5E1DA; }
+    .fin-budget-over-marker {
+      position:absolute; top:0; right:0; bottom:0; width:3px;
+      background:#7F1D1D; box-shadow:0 0 4px rgba(220,38,38,.4);
+    }
+    .fin-budget-label {
+      font-size:11px; font-weight:700; min-width:44px; text-align:right;
+      white-space:nowrap;
+    }
+    .fin-budget-label.budget-ok    { color:#2563EB; }
+    .fin-budget-label.budget-warn  { color:#D97706; }
+    .fin-budget-label.budget-over  { color:#DC2626; }
+    .fin-budget-label.budget-empty { color:#9CA3AF; }
+
+    /* Valores numéricos com peso executivo */
+    .fin-col-receita, .fin-col-custo { font-weight:700; font-size:13px; white-space:nowrap; }
+    .fin-col-receita.fin-receita { color:#059669; }
+    .fin-col-custo.fin-custo     { color:#DC2626; }
+    .fin-col-receita.fin-vazio, .fin-col-custo.fin-vazio { color:#9CA3AF; font-weight:400; }
+
+    /* Densificar o Financeiro — reduzir espaços em branco excessivos */
+    #pp-content-fin .fin-kpi-row { padding:16px 40px 4px; margin-bottom:12px; gap:12px; }
+    #pp-content-fin .fin-kpi-card { padding:14px 18px; }
+    #pp-content-fin .fin-kpi-value { font-size:22px; }
+    #pp-content-fin .pp-section-header { margin:14px 40px 8px; }
+    #pp-content-fin .fin-filters-panel { padding:10px 40px; gap:14px; }
+    #pp-content-fin .fin-filter-bar { padding:6px 40px 10px; }
+    #pp-content-fin .fin-wrap { padding:0 40px 24px; }
+
+    /* ── Kanban: paleta de status com semântica clara e consistente ── */
+    /* Substitui as barras coloridas "sem significado" por 5 estados semânticos: */
+    /*   Backlog (cinza), Em andamento (azul), Homologação (amarelo)              */
+    /*   Bloqueado (vermelho), Finalizado (verde)                                 */
+    /* Aplicado como border-left semântica; sobrepõe cores antigas por projeto.   */
+    .kanban-card { border-left-color:#94A3B8 !important; }
+    .kanban-card[data-momento="BACKLOG"] { border-left-color:#94A3B8 !important; }
+    .kanban-card[data-momento="EM_ANDAMENTO"] { border-left-color:#2563EB !important; }
+    .kanban-card[data-momento="HOMOLOGACAO"], .kanban-card[data-momento="HOMOLOGAÇÃO"] { border-left-color:#F59E0B !important; }
+    .kanban-card[data-momento="BLOQUEADO"] { border-left-color:#DC2626 !important; }
+    .kanban-card[data-momento="FINALIZADO"] { border-left-color:#10B981 !important; }
+
+    /* Homogeneizar os "chips" de projeto no Kanban — remover cores aleatórias */
+    /* Mantém legibilidade e a distinção via texto, cor consistente com o design */
+    .kanban-badge-proj {
+      border-color:#CBD5E1 !important;
+      color:#334155 !important;
+      background:#F1F5F9 !important;
+    }
+    .kanban-badge-dir {
+      border-color:#E5E1DA !important;
+      color:#6B7280 !important;
+      background:#F9FAFB !important;
+    }
+
+    /* Responsividade da tabela Financeira e Governança */
+    @media (max-width: 1024px) {
+      .fin-col-diretoria { display:none; }
+      .project-gov-grid { grid-template-columns:1fr; }
+    }
+    @media (max-width: 768px) {
+      #pp-content-fin .fin-kpi-row, #pp-content-fin .pp-section-header,
+      #pp-content-fin .fin-filters-panel, #pp-content-fin .fin-wrap { padding-left:16px; padding-right:16px; }
+      .fin-col-orcamento { min-width:120px; }
+      .fin-budget-label { font-size:10px; min-width:36px; }
+    }
+
+
+    /* ═══════════════════════════════════════════════════════
+       PATCH: Visão Geral — corrigir sobreposição, alinhamento
+    ═══════════════════════════════════════════════════════ */
+    /* Garantir que .pg-legend-bar (container flex) NUNCA seja tratada como uma barra pequena.
+       Reforço da especificidade após o rename da colisão. */
+    #ps-gantt-legend.pg-legend-bar {
+      width:auto !important; height:auto !important; border-radius:0 !important;
+    }
+    /* Isolamento do gantt legend + espaço adequado antes das seções seguintes */
+    #ps-gantt-legend { margin:0 32px 24px; border-radius:0 0 12px 12px; }
+    /* Section header do gantt: garantir clareza */
+    #vg-gantt-wrap .pp-section-header { margin-bottom:12px; }
+    /* Espaçamento entre blocos de Visão Geral */
+    #vg-conquistas-section { margin-top:8px; padding-bottom:16px; }
+    #vg-riscos-section { margin-top:8px; }
+    /* Garantir que o wrapper de conquistas/riscos não colide com o gantt */
+    #vg-conquistas-section, #vg-riscos-section { clear:both; }
+
   </style>
 </head>
 <body>
@@ -3273,7 +3411,7 @@ body:not([data-tab]) .ps-toolbar { display:flex; }
           <div class="pp-header-logo">P&P</div>
           <div>
             <p class="pp-header-title">Portfólio de Projetos</p>
-            <p class="pp-header-sub">Plano&amp;Plano Desenvolvimento Imobiliário</p>
+            <p class="pp-header-sub">Departamento de Tecnologia da Informação</p>
           </div>
         </div>
         <div style="display:flex; align-items:center; gap:12px; flex-shrink:0; flex-wrap:wrap;">
@@ -3617,21 +3755,20 @@ body:not([data-tab]) .ps-toolbar { display:flex; }
 
       <!-- Seção da tabela -->
       <div class="pp-section-header">
-        <h2>Receita e Custo por Projeto</h2>
+        <h2>Consumo do Orçamento por Projeto</h2>
         <div class="pp-section-line"></div>
         <span class="pp-section-count" id="fin-proj-count">0 projetos</span>
       </div>
       <div class="fin-wrap">
         <div class="fin-table-card">
-          <table class="fin-table" id="fin-table">
+          <table class="fin-table fin-table-exec" id="fin-table">
             <thead>
               <tr>
-                <th style="min-width:220px;">Projeto</th>
-                <th>Saúde</th>
-                <th>Status</th>
-                <th>Diretoria</th>
-                <th class="num">Receita</th>
-                <th class="num">Custo</th>
+                <th class="fin-col-projeto">Projeto</th>
+                <th class="fin-col-diretoria">Diretoria</th>
+                <th class="fin-col-orcamento">Consumo do Orçamento</th>
+                <th class="num fin-col-receita">Receita (Budget)</th>
+                <th class="num fin-col-custo">Custo Realizado</th>
               </tr>
             </thead>
             <tbody id="fin-tbody">
@@ -3892,13 +4029,24 @@ body:not([data-tab]) .ps-toolbar { display:flex; }
               <div class="pfi-label">Custo Realizado</div>
               <div class="pfi-value" id="pfi-custo">—</div>
             </div>
-            <div class="project-fin-item">
-              <div class="pfi-label">Valor Comprometido</div>
-              <div class="pfi-value pfi-muted" id="pfi-comprometido">Não disponível na origem</div>
-            </div>
             <div class="project-fin-item pfi-pct">
               <div class="pfi-label">% do Orçamento Consumido</div>
               <div class="pfi-value" id="pfi-pct-consumido">—</div>
+            </div>
+          </div>
+          <!-- Governança do projeto: Líder de TI · Diretoria · Líder de Negócios -->
+          <div class="project-gov-grid" id="project-gov-grid">
+            <div class="project-gov-item gov-liderti">
+              <div class="gov-label">👨‍💼 Líder de TI</div>
+              <div class="gov-value" id="gov-lider-ti">—</div>
+            </div>
+            <div class="project-gov-item gov-diretoria">
+              <div class="gov-label">🏢 Diretoria</div>
+              <div class="gov-value" id="gov-diretoria">—</div>
+            </div>
+            <div class="project-gov-item gov-lidernegocios">
+              <div class="gov-label">🤝 Líder de Negócios</div>
+              <div class="gov-value" id="gov-lider-negocios">—</div>
             </div>
           </div>
           <div class="project-dates">
@@ -4918,8 +5066,7 @@ body:not([data-tab]) .ps-toolbar { display:flex; }
         ganhosEl.textContent = '';
       }
       
-      // ── Resumo financeiro: Orçamento (Receita) / Custo Realizado / Valor
-      //    Comprometido / % do Orçamento Consumido ──────────────────────────
+      // ── Resumo financeiro: Orçamento (Receita) / Custo Realizado / % Consumido ──
       const receitaWrap = document.getElementById('project-receita-wrap');
       const finGrid      = document.getElementById('project-fin-grid');
       const temReceita = meta.Receita != null && meta.Receita !== '' && !isNaN(Number(meta.Receita));
@@ -4938,10 +5085,6 @@ body:not([data-tab]) .ps-toolbar { display:flex; }
         const cusEl = document.getElementById('pfi-custo');
         if (cusEl) cusEl.textContent = temCusto ? fmtBRLFull(meta.Custo) : '—';
 
-        // Valor Comprometido: campo ainda não existe na API Goobee (a confirmar com a origem)
-        const compEl = document.getElementById('pfi-comprometido');
-        if (compEl) { compEl.textContent = 'Não disponível na origem'; compEl.title = 'Este campo ainda não é fornecido pela API Goobee. Assim que for populado na origem, passa a ser exibido aqui automaticamente.'; }
-
         const pctEl = document.getElementById('pfi-pct-consumido');
         if (pctEl) {
           if (temReceita && temCusto && Number(meta.Receita) > 0) {
@@ -4954,6 +5097,16 @@ body:not([data-tab]) .ps-toolbar { display:flex; }
           }
         }
       }
+
+      // ── Governança do projeto: Líder de TI · Diretoria · Líder de Negócios (Dono) ──
+      const govGrid = document.getElementById('project-gov-grid');
+      const govLTIEl  = document.getElementById('gov-lider-ti');
+      const govDirEl  = document.getElementById('gov-diretoria');
+      const govLNEl   = document.getElementById('gov-lider-negocios');
+      const _valOrEm = v => (v && String(v).trim()) ? String(v).trim() : '—';
+      if (govLTIEl) govLTIEl.textContent = _valOrEm(meta.LiderancaTI);
+      if (govDirEl) govDirEl.textContent = _valOrEm(meta.Diretoria);
+      if (govLNEl)  govLNEl.textContent  = _valOrEm(meta.Owner);
 
       const startEl = document.getElementById('project-start-date');
       if (startEl && meta.DataInicio) startEl.textContent = formatDate(meta.DataInicio);
@@ -6720,7 +6873,7 @@ body:not([data-tab]) .ps-toolbar { display:flex; }
           <div style="font-size:10px;color:#1a1f4e;font-weight:bold;text-transform:uppercase;letter-spacing:1px;padding-bottom:10px;border-bottom:2px solid #e94e4e;display:inline-block;padding-right:24px;margin-bottom:10px;">💰 Resumo Financeiro</div>
           <table cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;">
             <tr>
-              <td width="25%" style="padding:6px 6px 6px 0;vertical-align:top;">
+              <td width="33%" style="padding:6px 6px 6px 0;vertical-align:top;">
                 <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#f6f7fb;border:1px solid #e5e8ef;">
                   <tr><td style="padding:10px 12px;font-family:Arial,Helvetica,sans-serif;">
                     <div style="font-size:9px;color:#64748b;font-weight:bold;text-transform:uppercase;letter-spacing:1px;padding-bottom:4px;">Orçamento Total</div>
@@ -6728,7 +6881,7 @@ body:not([data-tab]) .ps-toolbar { display:flex; }
                   </td></tr>
                 </table>
               </td>
-              <td width="25%" style="padding:6px;vertical-align:top;">
+              <td width="33%" style="padding:6px;vertical-align:top;">
                 <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#f6f7fb;border:1px solid #e5e8ef;">
                   <tr><td style="padding:10px 12px;font-family:Arial,Helvetica,sans-serif;">
                     <div style="font-size:9px;color:#64748b;font-weight:bold;text-transform:uppercase;letter-spacing:1px;padding-bottom:4px;">Custo Realizado</div>
@@ -6736,15 +6889,7 @@ body:not([data-tab]) .ps-toolbar { display:flex; }
                   </td></tr>
                 </table>
               </td>
-              <td width="25%" style="padding:6px;vertical-align:top;">
-                <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#f6f7fb;border:1px solid #e5e8ef;">
-                  <tr><td style="padding:10px 12px;font-family:Arial,Helvetica,sans-serif;">
-                    <div style="font-size:9px;color:#64748b;font-weight:bold;text-transform:uppercase;letter-spacing:1px;padding-bottom:4px;">Valor Comprometido</div>
-                    <div style="font-size:11px;color:#94a3b8;font-weight:bold;font-style:italic;">Não disponível</div>
-                  </td></tr>
-                </table>
-              </td>
-              <td width="25%" style="padding:6px 0 6px 6px;vertical-align:top;">
+              <td width="34%" style="padding:6px 0 6px 6px;vertical-align:top;">
                 <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#f6f7fb;border:1px solid #e5e8ef;">
                   <tr><td style="padding:10px 12px;font-family:Arial,Helvetica,sans-serif;">
                     <div style="font-size:9px;color:#64748b;font-weight:bold;text-transform:uppercase;letter-spacing:1px;padding-bottom:4px;">% Orçamento Consumido</div>
@@ -6882,7 +7027,29 @@ body:not([data-tab]) .ps-toolbar { display:flex; }
         html += '</table></td></tr>';
       }
       
+      // Seção de Governança + Rodapé (Período)
       html += `
+      <tr>
+        <td style="padding:14px 24px 4px 24px;font-family:Arial,Helvetica,sans-serif;border-top:1px solid #e5e8ef;">
+          <div style="font-size:10px;color:#1a1f4e;font-weight:bold;text-transform:uppercase;letter-spacing:1px;padding-bottom:10px;border-bottom:2px solid #e94e4e;display:inline-block;padding-right:24px;margin-bottom:10px;">🏛 Governança</div>
+          <table cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;">
+            <tr>
+              <td width="33%" style="padding:6px 6px 6px 0;vertical-align:top;">
+                <div style="font-size:9px;color:#64748b;font-weight:bold;text-transform:uppercase;letter-spacing:1px;padding-bottom:3px;">👨‍💼 Líder de TI</div>
+                <div style="font-size:12px;color:#0f172a;font-weight:600;">${escapeHtml(meta.LiderancaTI || '—')}</div>
+              </td>
+              <td width="33%" style="padding:6px;vertical-align:top;">
+                <div style="font-size:9px;color:#64748b;font-weight:bold;text-transform:uppercase;letter-spacing:1px;padding-bottom:3px;">🏢 Diretoria</div>
+                <div style="font-size:12px;color:#0f172a;font-weight:600;">${escapeHtml(meta.Diretoria || '—')}</div>
+              </td>
+              <td width="34%" style="padding:6px 0 6px 6px;vertical-align:top;">
+                <div style="font-size:9px;color:#64748b;font-weight:bold;text-transform:uppercase;letter-spacing:1px;padding-bottom:3px;">🤝 Líder de Negócios</div>
+                <div style="font-size:12px;color:#0f172a;font-weight:600;">${escapeHtml(meta.Owner || '—')}</div>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
       <tr>
         <td style="background:#1a1f4e;padding:14px 24px;font-family:Arial,Helvetica,sans-serif;">
           <table cellpadding="0" cellspacing="0" border="0" width="100%">
@@ -6892,8 +7059,8 @@ body:not([data-tab]) .ps-toolbar { display:flex; }
                 <div style="color:#ffffff;font-size:11px;font-weight:bold;">${formatDate(meta.DataInicio) || '-'} → ${formatDate(meta.DataFimPrevista) || '-'}</div>
               </td>
               <td align="right">
-                <div style="color:#9da4c9;font-size:9px;font-weight:bold;text-transform:uppercase;letter-spacing:1px;padding-bottom:3px;">Responsável</div>
-                <div style="color:#ffffff;font-size:11px;font-weight:bold;">${escapeHtml(meta.Responsavel || meta.Owner || '-')}</div>
+                <div style="color:#9da4c9;font-size:9px;font-weight:bold;text-transform:uppercase;letter-spacing:1px;padding-bottom:3px;">Responsável (PM)</div>
+                <div style="color:#ffffff;font-size:11px;font-weight:bold;">${escapeHtml(meta.Responsavel || '-')}</div>
               </td>
             </tr>
           </table>
@@ -7033,25 +7200,19 @@ body:not([data-tab]) .ps-toolbar { display:flex; }
         <div style="font-size:10px;color:#1a1f4e;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;border-bottom:2px solid #e94e4e;display:inline-block;padding-bottom:8px;margin-bottom:12px;">💰 Resumo Financeiro</div>
         <table cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:separate;border-spacing:8px 0;">
           <tr>
-            <td width="25%" style="vertical-align:top;">
+            <td width="33%" style="vertical-align:top;">
               <div style="background:#f6f7fb;border:1px solid #e5e8ef;border-radius:10px;padding:14px;">
                 <div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:4px;">Orçamento Total</div>
                 <div style="font-size:18px;font-weight:800;color:#15803d;letter-spacing:-0.4px;">${fin.orcamentoTxt}</div>
               </div>
             </td>
-            <td width="25%" style="vertical-align:top;">
+            <td width="33%" style="vertical-align:top;">
               <div style="background:#f6f7fb;border:1px solid #e5e8ef;border-radius:10px;padding:14px;">
                 <div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:4px;">Custo Realizado</div>
                 <div style="font-size:18px;font-weight:800;color:#dc2626;letter-spacing:-0.4px;">${fin.custoTxt}</div>
               </div>
             </td>
-            <td width="25%" style="vertical-align:top;">
-              <div style="background:#f6f7fb;border:1px solid #e5e8ef;border-radius:10px;padding:14px;">
-                <div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:4px;">Valor Comprometido</div>
-                <div style="font-size:12px;font-weight:700;color:#94a3b8;font-style:italic;">Não disponível</div>
-              </div>
-            </td>
-            <td width="25%" style="vertical-align:top;">
+            <td width="34%" style="vertical-align:top;">
               <div style="background:#f6f7fb;border:1px solid #e5e8ef;border-radius:10px;padding:14px;">
                 <div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:4px;">% Consumido</div>
                 <div style="font-size:18px;font-weight:800;color:${fin.pctColor};letter-spacing:-0.4px;">${fin.pctTxt}</div>
@@ -7193,6 +7354,34 @@ body:not([data-tab]) .ps-toolbar { display:flex; }
         html += '</table></div>';
       }
       
+      // GOVERNANÇA
+      html += `
+      <div style="background:#ffffff;padding:18px 28px;border-bottom:1px solid #e5e8ef;">
+        <div style="font-size:10px;color:#1a1f4e;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;border-bottom:2px solid #e94e4e;display:inline-block;padding-bottom:8px;margin-bottom:12px;">🏛 Governança</div>
+        <table cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:separate;border-spacing:8px 0;">
+          <tr>
+            <td width="33%" style="vertical-align:top;">
+              <div style="background:#f6f7fb;border:1px solid #e5e8ef;border-radius:10px;padding:14px;">
+                <div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:4px;">👨‍💼 Líder de TI</div>
+                <div style="font-size:13px;font-weight:700;color:#1a1f4e;">${escapeHtml(meta.LiderancaTI || '—')}</div>
+              </div>
+            </td>
+            <td width="33%" style="vertical-align:top;">
+              <div style="background:#f6f7fb;border:1px solid #e5e8ef;border-radius:10px;padding:14px;">
+                <div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:4px;">🏢 Diretoria</div>
+                <div style="font-size:13px;font-weight:700;color:#1a1f4e;">${escapeHtml(meta.Diretoria || '—')}</div>
+              </div>
+            </td>
+            <td width="34%" style="vertical-align:top;">
+              <div style="background:#f6f7fb;border:1px solid #e5e8ef;border-radius:10px;padding:14px;">
+                <div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:4px;">🤝 Líder de Negócios</div>
+                <div style="font-size:13px;font-weight:700;color:#1a1f4e;">${escapeHtml(meta.Owner || '—')}</div>
+              </div>
+            </td>
+          </tr>
+        </table>
+      </div>`;
+
       // FOOTER
       html += `
       <div style="background:linear-gradient(135deg,#0f1336 0%,#1a1f4e 100%);padding:18px 28px;">
@@ -7203,8 +7392,8 @@ body:not([data-tab]) .ps-toolbar { display:flex; }
               <div style="color:rgba(255,255,255,0.92);font-size:12px;font-weight:600;">${formatDate(meta.DataInicio) || '-'} <span style="color:rgba(255,255,255,0.4);"> → </span> ${formatDate(meta.DataFimPrevista) || '-'}</div>
             </td>
             <td align="right">
-              <div style="color:rgba(255,255,255,0.55);font-size:9px;text-transform:uppercase;letter-spacing:1px;font-weight:600;margin-bottom:4px;">Responsável</div>
-              <div style="color:rgba(255,255,255,0.92);font-size:12px;font-weight:600;">${escapeHtml(meta.Responsavel || meta.Owner || '-')}</div>
+              <div style="color:rgba(255,255,255,0.55);font-size:9px;text-transform:uppercase;letter-spacing:1px;font-weight:600;margin-bottom:4px;">Responsável (PM)</div>
+              <div style="color:rgba(255,255,255,0.92);font-size:12px;font-weight:600;">${escapeHtml(meta.Responsavel || '-')}</div>
             </td>
           </tr>
         </table>
@@ -7628,14 +7817,28 @@ body:not([data-tab]) .ps-toolbar { display:flex; }
     ${body}
   </div>
   <div style="background:#0f1336;padding:10px 24px;">
-    <div style="display:flex;justify-content:space-between;align-items:center;">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
       <div>
         <div style="color:#9da4c9;font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:2px;">Período</div>
         <div style="color:white;font-size:11px;font-weight:700;">${dataInicio} → ${dataFim}</div>
       </div>
-      <div style="text-align:right;">
-        <div style="color:#9da4c9;font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:2px;">Responsável</div>
-        <div style="color:white;font-size:11px;font-weight:700;">${responsavel}</div>
+      <div style="display:flex;gap:16px;">
+        <div>
+          <div style="color:#9da4c9;font-size:7px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:2px;">👨‍💼 Líder TI</div>
+          <div style="color:white;font-size:10px;font-weight:700;">${escapeHtml(meta.LiderancaTI || '—')}</div>
+        </div>
+        <div>
+          <div style="color:#9da4c9;font-size:7px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:2px;">🏢 Diretoria</div>
+          <div style="color:white;font-size:10px;font-weight:700;">${escapeHtml(meta.Diretoria || '—')}</div>
+        </div>
+        <div>
+          <div style="color:#9da4c9;font-size:7px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:2px;">🤝 Líder Neg.</div>
+          <div style="color:white;font-size:10px;font-weight:700;">${escapeHtml(meta.Owner || '—')}</div>
+        </div>
+        <div>
+          <div style="color:#9da4c9;font-size:7px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:2px;">PM</div>
+          <div style="color:white;font-size:10px;font-weight:700;">${responsavel}</div>
+        </div>
       </div>
     </div>
   </div>
@@ -9017,6 +9220,8 @@ body:not([data-tab]) .ps-toolbar { display:flex; }
           cor:         ex.cor        || '',
           responsavel: ex.responsavel|| '',
           owner:       ex.owner      || '',
+          liderancaTI: ex.liderancaTI|| '',
+          diretoria:   ex.diretoria  || ex.cliente || '',
           progresso:   ex.progresso  || '',
           receita:     ex.receita    != null ? ex.receita : null,
           custo:       ex.custo      != null ? ex.custo   : null
@@ -9261,6 +9466,8 @@ body:not([data-tab]) .ps-toolbar { display:flex; }
           DataFimPrevista:       metaInput.dataFim,
           Responsavel:           metaInput.responsavel,
           Owner:                 metaInput.owner,
+          LiderancaTI:           metaInput.liderancaTI || '',
+          Diretoria:             metaInput.diretoria   || '',
           Receita:               metaInput.receita != null ? metaInput.receita : null,
           Custo:                 metaInput.custo   != null ? metaInput.custo   : null
         };
@@ -9888,7 +10095,7 @@ body:not([data-tab]) .ps-toolbar { display:flex; }
         // Responsável (mostra avatar mesmo se sem nome — usa "?" e cor cinza)
         const respLabel = noResp ? 'Sem responsável' : h.responsavel;
         const respAvBg = noResp ? '#94a3b8' : ac;
-        return '<div class="' + cardCls + '" style="border-left-color:' + pc + '" onclick="openKanbanModal(\'' + sid + '\')">'
+        return '<div class="' + cardCls + '" data-momento="' + (h.momento || '') + '" onclick="openKanbanModal(\'' + sid + '\')">'
           + flagsHtml
           + '<div class="kanban-card-title">' + h.titulo + '</div>'
           + '<div class="kanban-card-badges">'
@@ -10302,40 +10509,60 @@ body:not([data-tab]) .ps-toolbar { display:flex; }
           if (cus != null) totCus += cus;
           const recTxt = rec != null ? Number(rec).toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0}) : '—';
           const cusTxt = cus != null ? Number(cus).toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0}) : '—';
-          const st = _normalizeApiStatus(ex.status || '') || ex.status || '—';
           const dir = ex.cliente || ex.diretoria || '—';
           const resp = ex.responsavel || '—';
 
-          // Saúde do projeto
-          const h = _healthInfo(p);
-          const isCritico = h.cls === 'health-red';
-
-          // % do progresso (para a barrinha de cronograma inline)
-          const apiPct = ex.progresso ? parseInt(String(ex.progresso).replace('%','').trim()) : NaN;
-          const prog = !isNaN(apiPct) ? apiPct : s.progresso;
-          const progCls = prog>=70 ? 'pct-high' : prog>=30 ? 'pct-mid' : 'pct-low';
+          // Cálculo do consumo de orçamento: Custo Realizado / Receita (Budget)
+          // - < 80%  → dentro do orçamento (azul)
+          // - 80–99% → próximo do limite (amarelo)
+          // - ≥ 100% → orçamento ultrapassado (vermelho)
+          let budgetPct = null, budgetCls = 'budget-empty', budgetTxt = '—';
+          const isCritico = _healthInfo(p).cls === 'health-red';
+          if (rec != null && rec > 0 && cus != null) {
+            budgetPct = Math.round((cus / rec) * 100);
+            budgetCls = budgetPct >= 100 ? 'budget-over' : budgetPct >= 80 ? 'budget-warn' : 'budget-ok';
+            budgetTxt = budgetPct + '%';
+          } else if (rec != null && (cus == null || cus === 0)) {
+            budgetPct = 0; budgetCls = 'budget-ok'; budgetTxt = '0%';
+          }
+          // Barra visualmente limitada a 100% de largura, mesmo se estourou
+          const barW = budgetPct != null ? Math.min(100, budgetPct) : 0;
 
           return '<tr class="'+(isCritico?'fin-row-critico':'')+'" data-projeto="'+escapeAttr(p.nome)+'">' +
-            '<td>' +
+            '<td class="fin-col-projeto">' +
               '<div class="fin-nome">'+escapeText(p.nome)+'</div>' +
-              '<div class="fin-resp">'+escapeText(resp)+'</div>' +
-              '<div class="fin-mini-bar"><div class="fin-mini-bar-fill '+progCls+'" style="width:'+prog+'%;"></div></div>' +
+              '<div class="fin-resp">👤 '+escapeText(resp)+'</div>' +
             '</td>' +
-            '<td><span class="fin-health" title="'+escapeAttr(h.label)+'">'+h.emoji+' <span class="fin-health-txt">'+escapeText(h.label)+'</span></span></td>' +
-            '<td><span class="ps-card-badge ps-card-badge-blue" style="font-size:10px;">'+escapeText(st)+'</span></td>' +
-            '<td style="font-size:12px;color:#6B7280;">'+escapeText(dir)+'</td>' +
-            '<td class="num '+(rec!=null?'fin-receita':'fin-vazio')+'">'+recTxt+'</td>' +
-            '<td class="num '+(cus!=null?'fin-custo':'fin-vazio')+'">'+cusTxt+'</td>' +
+            '<td class="fin-col-diretoria">'+escapeText(dir)+'</td>' +
+            '<td class="fin-col-orcamento">' +
+              '<div class="fin-budget-wrap">' +
+                '<div class="fin-budget-bar-outer">' +
+                  '<div class="fin-budget-bar-fill '+budgetCls+'" style="width:'+barW+'%;"></div>' +
+                  (budgetPct != null && budgetPct >= 100 ? '<div class="fin-budget-over-marker" title="Ultrapassou o orçamento em '+(budgetPct-100)+'%"></div>' : '') +
+                '</div>' +
+                '<div class="fin-budget-label '+budgetCls+'">'+budgetTxt+'</div>' +
+              '</div>' +
+            '</td>' +
+            '<td class="num fin-col-receita '+(rec!=null?'fin-receita':'fin-vazio')+'">'+recTxt+'</td>' +
+            '<td class="num fin-col-custo '+(cus!=null?'fin-custo':'fin-vazio')+'">'+cusTxt+'</td>' +
           '</tr>';
         }).join('');
 
         const totRecTxt = totRec > 0 ? totRec.toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0}) : '—';
         const totCusTxt = totCus > 0 ? totCus.toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0}) : '—';
+        // Consumo total agregado
+        let totPctTxt = '—', totPctCls = 'budget-empty';
+        if (totRec > 0) {
+          const tp = Math.round((totCus / totRec) * 100);
+          totPctTxt = tp + '%';
+          totPctCls = tp >= 100 ? 'budget-over' : tp >= 80 ? 'budget-warn' : 'budget-ok';
+        }
         tbody.innerHTML = (sorted.length === 0
-          ? '<tr><td colspan="6" class="vg-empty">Nenhum projeto encontrado para os filtros ativos.</td></tr>'
+          ? '<tr><td colspan="5" class="vg-empty">Nenhum projeto encontrado para os filtros ativos.</td></tr>'
           : rows) +
           (sorted.length > 0 ? '<tr class="fin-total-row">' +
-            '<td colspan="4" style="font-size:12px;">Total ('+sorted.length+' projeto'+(sorted.length!==1?'s':'')+')</td>' +
+            '<td colspan="2" style="font-size:12px;">Total ('+sorted.length+' projeto'+(sorted.length!==1?'s':'')+')</td>' +
+            '<td><span class="fin-budget-label '+totPctCls+'">'+totPctTxt+'</span></td>' +
             '<td class="num fin-receita">'+totRecTxt+'</td>' +
             '<td class="num fin-custo">'+totCusTxt+'</td>' +
           '</tr>' : '');
