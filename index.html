@@ -3496,9 +3496,9 @@ body:not([data-tab]) .ps-toolbar { display:flex; }
       .fin-search-inline, .ms-slot { min-width:100%; flex:1 1 100%; }
     }
 
-    /* Ocultar o botão "Filtros avançados" — agora tudo cabe na barra principal */
-    #pp-content-vg #ps-filter-toggle { display:none; }
-    #pp-content-vg #ps-extra-filters { display:none !important; }
+    /* Filtros avançados: mostrar botão e permitir toggle (Meta e Período) */
+    #pp-content-vg #ps-filter-toggle { display:inline-flex; }
+    /* O painel obedece o atributo [hidden] normalmente */
 
 
     /* ═══════════════════════════════════════════════════════
@@ -3756,7 +3756,9 @@ body:not([data-tab]) .ps-toolbar { display:flex; }
 
       <!-- Filtros avançados (colapsáveis): Diretoria, Meta, Status, Período do Gantt -->
       <div class="ps-toolbar-extra" id="ps-extra-filters" hidden>
-        <div class="ps-toolbar-row">
+        <!-- Diretoria e Status agora estão na barra principal como multi-select.
+             O painel avançado mantém apenas Meta e Período (que não têm equivalente). -->
+        <div class="ps-toolbar-row" style="display:none;" aria-hidden="true">
           <span class="ps-toolbar-label">Diretoria</span>
           <div class="ps-filter-chips" id="ps-diretoria-chips">
             <button type="button" class="ps-filter-chip active" data-diretoria="">🏢 Todas</button>
@@ -3770,7 +3772,7 @@ body:not([data-tab]) .ps-toolbar { display:flex; }
           </div>
         </div>
 
-        <div class="ps-toolbar-row">
+        <div class="ps-toolbar-row" style="display:none;" aria-hidden="true">
           <span class="ps-toolbar-label">Status</span>
           <div class="ps-filter-chips" id="ps-status-chips">
             <button type="button" class="ps-filter-chip active" data-status="">🗂 Todos</button>
@@ -8629,16 +8631,11 @@ body:not([data-tab]) .ps-toolbar { display:flex; }
       }
 
       function _matchesRespFixo(resp) {
-        if (!resp) return false;
-        const rn = _normName(resp);
-        return RESP_FIXOS.some(rf => {
-          const rfn = _normName(rf);
-          if (rn === rfn) return true;
-          const prf = rfn.split(' ').filter(Boolean);
-          const prn = rn.split(' ').filter(Boolean);
-          if (prf.length >= 2) return prn.includes(prf[0]) && prn.includes(prf[prf.length-1]);
-          return rn.includes(rfn);
-        });
+        // Antes: filtrava por lista fixa RESP_FIXOS (4 nomes hardcoded).
+        // Agora: retorna true sempre — todos os projetos passam, independente
+        // do responsável. O filtro por responsável passa a ser 100% dinâmico
+        // via multi-select do usuário na interface.
+        return true;
       }
 
       function buildMetas() {
