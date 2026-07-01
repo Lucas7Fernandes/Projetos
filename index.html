@@ -3398,6 +3398,105 @@ body:not([data-tab]) .ps-toolbar { display:flex; }
     /* Garantir que o wrapper de conquistas/riscos não colide com o gantt */
     #vg-conquistas-section, #vg-riscos-section { clear:both; }
 
+
+    /* ═══════════════════════════════════════════════════════
+       PATCH C-Level (v2): Multi-select genérico + barra compacta
+    ═══════════════════════════════════════════════════════ */
+
+    /* ── Barra compacta do Financeiro (item 1) ── */
+    .fin-filter-bar-compact {
+      display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+      padding:14px 40px; background:#ffffff;
+      border-bottom:1px solid #ECEAE6;
+    }
+    .fin-search-inline { max-width:280px; min-width:200px; }
+    .fin-filter-bar-spacer { flex:1; }
+
+    /* ── Componente Multiselect (item 2) ── */
+    .ms-slot { position:relative; display:inline-block; min-width:170px; }
+    .ms-btn {
+      display:inline-flex; align-items:center; gap:8px;
+      background:#fff; border:1px solid #E5E1DA; border-radius:8px;
+      padding:8px 12px; font-family:'DM Sans',sans-serif;
+      font-size:12px; color:#1B2A4A; cursor:pointer;
+      transition:all .15s; width:100%; justify-content:flex-start;
+    }
+    .ms-btn:hover { border-color:#1B2A4A; }
+    .ms-btn.ms-btn-active { border-color:#1B2A4A; background:#F4F3F0; }
+    .ms-btn:focus-visible { outline:2px solid #1B2A4A; outline-offset:2px; }
+    .ms-btn-label {
+      font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.6px;
+      color:#6B7280; white-space:nowrap;
+    }
+    .ms-btn-active .ms-btn-label { color:#1B2A4A; }
+    .ms-btn-value {
+      flex:1; font-size:12px; font-weight:600; color:#1B2A4A;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+      text-align:left;
+    }
+    .ms-btn-caret { font-size:10px; color:#9CA3AF; flex-shrink:0; }
+
+    .ms-panel {
+      position:absolute; top:calc(100% + 4px); left:0;
+      min-width:260px; max-width:340px;
+      background:#fff; border:1px solid #E5E1DA; border-radius:10px;
+      box-shadow:0 8px 24px rgba(27,42,74,.14); z-index:100;
+      overflow:hidden; display:flex; flex-direction:column;
+    }
+    .ms-panel-search {
+      position:relative; padding:8px 10px; border-bottom:1px solid #F4F3F0;
+    }
+    .ms-panel-search .ms-search-icon {
+      position:absolute; left:20px; top:50%; transform:translateY(-50%);
+      font-size:12px; color:#9CA3AF; pointer-events:none;
+    }
+    .ms-search-input {
+      width:100%; padding:6px 8px 6px 28px; border:1px solid #ECEAE6;
+      border-radius:6px; font-size:12px; font-family:'DM Sans',sans-serif;
+      color:#1B2A4A; outline:none;
+    }
+    .ms-search-input:focus { border-color:#1B2A4A; }
+    .ms-panel-actions {
+      display:flex; gap:6px; padding:6px 10px; border-bottom:1px solid #F4F3F0;
+    }
+    .ms-act {
+      flex:1; font-size:10px; font-weight:600; color:#1B2A4A;
+      background:#F4F3F0; border:none; border-radius:5px;
+      padding:5px 8px; cursor:pointer;
+      font-family:'DM Sans',sans-serif;
+    }
+    .ms-act:hover { background:#E5E1DA; }
+    .ms-panel-list { max-height:280px; overflow-y:auto; padding:4px 0; }
+    .ms-item {
+      display:flex; align-items:center; gap:8px;
+      padding:6px 12px; font-size:12px; color:#374151; cursor:pointer;
+    }
+    .ms-item:hover { background:#FAFAF8; }
+    .ms-item.checked { background:rgba(27,42,74,.04); color:#1B2A4A; font-weight:500; }
+    .ms-item input { flex-shrink:0; cursor:pointer; accent-color:#1B2A4A; }
+    .ms-item-label { flex:1; }
+    .ms-item-count { font-size:10px; color:#9CA3AF; background:#F4F3F0; padding:1px 6px; border-radius:8px; }
+    .ms-empty { padding:12px; text-align:center; color:#9CA3AF; font-size:11px; }
+
+    /* Overrides para o toolbar antigo receber os slots elegantemente */
+    .ps-toolbar-row-primary .ms-slot { min-width:170px; }
+    .fin-filter-bar-compact .ms-slot { min-width:150px; }
+
+    /* Responsividade */
+    @media (max-width: 900px) {
+      .fin-filter-bar-compact { padding:12px 16px; }
+      .fin-search-inline, .ms-slot { min-width:calc(50% - 5px); flex:1 1 calc(50% - 5px); }
+      .fin-filter-bar-spacer { display:none; }
+      .ms-panel { min-width:240px; }
+    }
+    @media (max-width: 600px) {
+      .fin-search-inline, .ms-slot { min-width:100%; flex:1 1 100%; }
+    }
+
+    /* Ocultar o botão "Filtros avançados" — agora tudo cabe na barra principal */
+    #pp-content-vg #ps-filter-toggle { display:none; }
+    #pp-content-vg #ps-extra-filters { display:none !important; }
+
   </style>
 </head>
 <body>
@@ -3512,13 +3611,14 @@ body:not([data-tab]) .ps-toolbar { display:flex; }
           <button type="button" class="ps-clear-btn" id="ps-clear-search" style="display:none;">×</button>
         </div>
 
-        <span class="ps-toolbar-label">Responsável</span>
-        <div class="ps-filter-chips" id="ps-resp-chips">
-          <button type="button" class="ps-filter-chip active" data-resp="">Todos <span class="ps-chip-count" id="ps-chip-count-all">0</span></button>
-          <button type="button" class="ps-filter-chip" data-resp="Lucas Godoy Fernandes">Lucas G. <span class="ps-chip-count">0</span></button>
-          <button type="button" class="ps-filter-chip" data-resp="Lucas Norato de Souza Santos">Lucas N. <span class="ps-chip-count">0</span></button>
-          <button type="button" class="ps-filter-chip" data-resp="Luciano da Rocha Rafael">Luciano <span class="ps-chip-count">0</span></button>
-          <button type="button" class="ps-filter-chip" data-resp="Vinicius Nascimento">Vinicius <span class="ps-chip-count">0</span></button>
+        <div class="ms-slot" id="vg-resp-ms-slot" data-msk="resp" data-mstitle="Responsável"></div>
+        <div class="ms-slot" id="vg-diretoria-ms-slot" data-msk="diretoria" data-mstitle="Diretoria"></div>
+        <div class="ms-slot" id="vg-status-ms-slot" data-msk="status" data-mstitle="Status"></div>
+        <!-- Chips legados ocultos para retrocompatibilidade das funções _matches* -->
+        <div style="display:none;" aria-hidden="true">
+          <div class="ps-filter-chips" id="ps-resp-chips">
+            <button type="button" class="ps-filter-chip active" data-resp="">Todos <span class="ps-chip-count" id="ps-chip-count-all">0</span></button>
+          </div>
         </div>
 
         <button type="button" class="ps-filter-toggle" id="ps-filter-toggle" aria-expanded="false" aria-controls="ps-extra-filters">
@@ -3708,48 +3808,30 @@ body:not([data-tab]) .ps-toolbar { display:flex; }
         </div>
       </div>
 
-      <!-- Filtros da aba Financeiro (compartilham estado com Visão Geral) -->
-      <div class="pp-section-header" style="margin-top:8px;">
-        <h2>Filtros</h2>
-        <div class="pp-section-line"></div>
-        <button type="button" class="pp-clear-filters-btn" id="fin-clear-filters">✕ Limpar filtros</button>
+      <!-- Filtros da aba Financeiro — barra compacta, executiva -->
+      <div class="fin-filter-bar-compact">
+        <div class="ps-search-wrap fin-search-inline">
+          <span class="ps-search-icon">🔍</span>
+          <input type="text" id="fin-search" class="ps-search-input" placeholder="Buscar projeto..." autocomplete="off" />
+          <button type="button" class="ps-clear-btn" id="fin-clear-search" style="display:none;">×</button>
+        </div>
+        <div class="ms-slot" id="fin-project-ms-slot" data-msk="fin-project" data-mstitle="Projeto"></div>
+        <div class="ms-slot" id="fin-diretoria-ms-slot" data-msk="diretoria" data-mstitle="Diretoria"></div>
+        <div class="ms-slot" id="fin-status-ms-slot" data-msk="status" data-mstitle="Status"></div>
+        <div class="fin-filter-bar-spacer"></div>
+        <button type="button" class="pp-clear-filters-btn" id="fin-clear-filters" hidden>✕ Limpar filtros</button>
       </div>
-      <div class="fin-filters-panel">
-        <div class="fin-filter-group">
-          <label class="fin-filter-label">Buscar projeto</label>
-          <div class="ps-search-wrap" style="max-width:280px;">
-            <span class="ps-search-icon">🔍</span>
-            <input type="text" id="fin-search" class="ps-search-input" placeholder="Buscar projeto..." autocomplete="off" />
-            <button type="button" class="ps-clear-btn" id="fin-clear-search" style="display:none;">×</button>
+      <!-- Elementos legados mantidos ocultos p/ o JS existente não quebrar (chips populadas em background) -->
+      <div style="display:none;" aria-hidden="true">
+        <div class="ps-filter-chips" id="fin-diretoria-chips"></div>
+        <div class="ps-filter-chips" id="fin-status-chips"></div>
+        <div class="fin-multiselect" id="fin-project-multiselect">
+          <button type="button" class="fin-multiselect-btn" id="fin-project-ms-btn"><span id="fin-project-ms-label">Todos os projetos</span></button>
+          <div class="fin-multiselect-panel" id="fin-project-ms-panel" hidden>
+            <div class="fin-ms-actions"><button type="button" id="fin-ms-select-all">Selecionar todos</button><button type="button" id="fin-ms-clear-all">Limpar</button></div>
+            <div class="fin-ms-list" id="fin-project-ms-list"></div>
           </div>
         </div>
-        <div class="fin-filter-group">
-          <label class="fin-filter-label">Projeto (seleção múltipla)</label>
-          <div class="fin-multiselect" id="fin-project-multiselect">
-            <button type="button" class="fin-multiselect-btn" id="fin-project-ms-btn">
-              <span id="fin-project-ms-label">Todos os projetos</span>
-              <span class="fin-ms-arrow">▾</span>
-            </button>
-            <div class="fin-multiselect-panel" id="fin-project-ms-panel" hidden>
-              <div class="fin-ms-actions">
-                <button type="button" id="fin-ms-select-all">Selecionar todos</button>
-                <button type="button" id="fin-ms-clear-all">Limpar</button>
-              </div>
-              <div class="fin-ms-list" id="fin-project-ms-list"></div>
-            </div>
-          </div>
-        </div>
-        <div class="fin-filter-group">
-          <label class="fin-filter-label">Diretoria</label>
-          <div class="ps-filter-chips" id="fin-diretoria-chips"></div>
-        </div>
-        <div class="fin-filter-group">
-          <label class="fin-filter-label">Status</label>
-          <div class="ps-filter-chips" id="fin-status-chips"></div>
-        </div>
-      </div>
-      <div class="fin-filter-bar" id="fin-active-filters-bar">
-        <span style="font-size:11px;color:#6B7280;font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Filtros ativos:</span>
         <div id="fin-filter-display"></div>
       </div>
 
@@ -8509,12 +8591,29 @@ body:not([data-tab]) .ps-toolbar { display:flex; }
       }
 
       // ── Filtering ─────────────────────────────────────────────────────────
+      // ─── Sets multi-select (aditivo, retrocompatível com filtros string legados) ───
+      // Quando o Set tem 0 itens → filtro inativo (vale o legado se houver)
+      // Quando tem 1 item → pode ser tratado igual ao legado (sincronizado)
+      // Quando tem 2+ → OR entre valores; o legado deixa de valer
+      const msRespSet      = new Set();
+      const msDiretoriaSet = new Set();
+      const msStatusSet    = new Set();
+      const msProjectSet   = new Set(); // aba Financeiro (Projeto)
+
       function _matchesResp(p) {
+        // Modo multi (novo)
+        if (msRespSet.size > 0) {
+          const resp = p.extra ? (p.extra.responsavel || '') : '';
+          for (const r of msRespSet) {
+            if (resp && _matchesRespFixo2(resp, r)) return true;
+            for (const rr of p.responsaveisSet) { if (_matchesRespFixo2(rr, r)) return true; }
+          }
+          return false;
+        }
+        // Modo legado (fallback)
         if (!currentRespFilter) return true;
-        // Usa o responsável do projeto (ListarProjetos) como fonte primária
         const resp = p.extra ? (p.extra.responsavel || '') : '';
         if (resp && _matchesRespFixo2(resp, currentRespFilter)) return true;
-        // Fallback: responsável principal dos itens
         for (const r of p.responsaveisSet) { if (_matchesRespFixo2(r, currentRespFilter)) return true; }
         return false;
       }
@@ -8539,9 +8638,10 @@ body:not([data-tab]) .ps-toolbar { display:flex; }
         return p.nome.toLowerCase().includes(searchQuery.toLowerCase());
       }
       function _matchesStatus(p) {
+        const st = p.extra ? (p.extra.status || '').trim() : '';
+        if (msStatusSet.size > 0) return msStatusSet.has(st);
         if (!currentStatusFilter) return true;
-        const st = p.extra ? (p.extra.status || '') : '';
-        return st.trim() === currentStatusFilter;
+        return st === currentStatusFilter;
       }
       function _matchesKpi(p) {
         if (!currentKpiFilter) return true;
@@ -8550,11 +8650,218 @@ body:not([data-tab]) .ps-toolbar { display:flex; }
         return (apiStatus || _projetoStatusNorm(p)) === currentKpiFilter;
       }
       function _matchesDiretoria(p) {
-        if (!currentDiretoriaFilter) return true;
         const t = String((p.extra && p.extra.diretoria) || '').trim();
+        if (msDiretoriaSet.size > 0) {
+          for (const v of msDiretoriaSet) {
+            if (v === '__branco__') { if (t === '') return true; }
+            else if (t === v) return true;
+          }
+          return false;
+        }
+        if (!currentDiretoriaFilter) return true;
         if (currentDiretoriaFilter === '__branco__') return t === '';
         return t === currentDiretoriaFilter;
       }
+      // ═══════════════════════════════════════════════════════════════════
+      // Multiselect genérico — usado por Responsável, Diretoria, Status,
+      // Projeto. Renderiza dropdown com busca, seleção múltipla, "Todos"/
+      // "Limpar", contador dinâmico. Todos os slots ficam sincronizados.
+      // ═══════════════════════════════════════════════════════════════════
+      const _msRegistry = {}; // key -> { title, getOptions, targetSet, allSlots: [] }
+
+      function _msRegister(key, cfg) {
+        if (!_msRegistry[key]) _msRegistry[key] = { ...cfg, allSlots: [] };
+        else Object.assign(_msRegistry[key], cfg);
+      }
+
+      function _msMountSlot(slotEl) {
+        const key   = slotEl.dataset.msk;
+        const title = slotEl.dataset.mstitle || key;
+        const reg = _msRegistry[key];
+        if (!reg) return;
+
+        slotEl.classList.add('ms-mounted');
+        slotEl.innerHTML =
+          '<button type="button" class="ms-btn" aria-haspopup="listbox" aria-expanded="false">' +
+            '<span class="ms-btn-label">' + escapeText(title) + '</span>' +
+            '<span class="ms-btn-value">Todas</span>' +
+            '<span class="ms-btn-caret">▾</span>' +
+          '</button>' +
+          '<div class="ms-panel" hidden>' +
+            '<div class="ms-panel-search">' +
+              '<span class="ms-search-icon">🔍</span>' +
+              '<input type="text" class="ms-search-input" placeholder="Buscar..." />' +
+            '</div>' +
+            '<div class="ms-panel-actions">' +
+              '<button type="button" class="ms-act ms-act-all">Selecionar todos</button>' +
+              '<button type="button" class="ms-act ms-act-none">Limpar</button>' +
+            '</div>' +
+            '<div class="ms-panel-list" role="listbox" aria-multiselectable="true"></div>' +
+          '</div>';
+
+        if (!reg.allSlots.includes(slotEl)) reg.allSlots.push(slotEl);
+
+        const btn      = slotEl.querySelector('.ms-btn');
+        const panel    = slotEl.querySelector('.ms-panel');
+        const search   = slotEl.querySelector('.ms-search-input');
+        const listEl   = slotEl.querySelector('.ms-panel-list');
+        const btnValue = slotEl.querySelector('.ms-btn-value');
+        const actAll   = slotEl.querySelector('.ms-act-all');
+        const actNone  = slotEl.querySelector('.ms-act-none');
+
+        const rerenderList = () => {
+          const q = (search.value || '').toLowerCase().trim();
+          const opts = reg.getOptions();
+          const filtered = q ? opts.filter(o => (o.label + ' ' + (o.value || '')).toLowerCase().includes(q)) : opts;
+          if (filtered.length === 0) {
+            listEl.innerHTML = '<div class="ms-empty">Nenhum resultado</div>';
+            return;
+          }
+          listEl.innerHTML = filtered.map(o => {
+            const checked = reg.targetSet.has(o.value);
+            return '<label class="ms-item' + (checked ? ' checked' : '') + '">' +
+              '<input type="checkbox" data-msv="' + escapeAttr(o.value) + '" ' + (checked ? 'checked' : '') + ' />' +
+              '<span class="ms-item-label">' + escapeText(o.label) + '</span>' +
+              (o.count != null ? '<span class="ms-item-count">' + o.count + '</span>' : '') +
+            '</label>';
+          }).join('');
+          listEl.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+            cb.addEventListener('change', () => {
+              const val = cb.dataset.msv;
+              if (cb.checked) reg.targetSet.add(val);
+              else reg.targetSet.delete(val);
+              _msSyncLegacy(key);
+              _msRefreshAllForKey(key);
+              updateActiveFiltersIndicator();
+              if (typeof renderAll === 'function') renderAll();
+            });
+          });
+        };
+
+        const updateBtnValue = () => {
+          const size = reg.targetSet.size;
+          if (size === 0) btnValue.textContent = 'Todas';
+          else if (size === 1) {
+            const only = Array.from(reg.targetSet)[0];
+            const opts = reg.getOptions();
+            const opt = opts.find(o => o.value === only);
+            btnValue.textContent = opt ? opt.label : only;
+          } else btnValue.textContent = size + ' selecionados';
+          btn.classList.toggle('ms-btn-active', size > 0);
+        };
+
+        const openPanel = () => {
+          panel.hidden = false;
+          btn.setAttribute('aria-expanded', 'true');
+          rerenderList();
+          setTimeout(() => search.focus(), 20);
+        };
+        const closePanel = () => {
+          panel.hidden = true;
+          btn.setAttribute('aria-expanded', 'false');
+          search.value = '';
+        };
+
+        btn.addEventListener('click', e => {
+          e.stopPropagation();
+          // Fechar outros abertos
+          document.querySelectorAll('.ms-panel:not([hidden])').forEach(p => {
+            if (p !== panel) { p.hidden = true; p.parentElement.querySelector('.ms-btn')?.setAttribute('aria-expanded','false'); }
+          });
+          if (panel.hidden) openPanel(); else closePanel();
+        });
+        search.addEventListener('input', rerenderList);
+        actAll.addEventListener('click', () => {
+          reg.targetSet.clear();
+          reg.getOptions().forEach(o => reg.targetSet.add(o.value));
+          _msSyncLegacy(key); _msRefreshAllForKey(key); rerenderList(); updateActiveFiltersIndicator();
+          if (typeof renderAll === 'function') renderAll();
+        });
+        actNone.addEventListener('click', () => {
+          reg.targetSet.clear();
+          _msSyncLegacy(key); _msRefreshAllForKey(key); rerenderList(); updateActiveFiltersIndicator();
+          if (typeof renderAll === 'function') renderAll();
+        });
+
+        // Fechar ao clicar fora
+        document.addEventListener('click', ev => {
+          if (!panel.hidden && !slotEl.contains(ev.target)) closePanel();
+        });
+        document.addEventListener('keydown', ev => { if (ev.key === 'Escape' && !panel.hidden) closePanel(); });
+
+        updateBtnValue();
+        slotEl._msUpdate = updateBtnValue;
+      }
+
+      function _msRefreshAllForKey(key) {
+        const reg = _msRegistry[key];
+        if (!reg) return;
+        reg.allSlots.forEach(s => { if (s._msUpdate) s._msUpdate(); });
+      }
+
+      // Sincroniza Set → variável legada (permite retrocompatibilidade quando 0 ou 1 selecionado)
+      function _msSyncLegacy(key) {
+        if (key === 'resp') {
+          if (msRespSet.size === 1) currentRespFilter = Array.from(msRespSet)[0];
+          else if (msRespSet.size === 0) currentRespFilter = '';
+          else currentRespFilter = ''; // com múltiplos, legado zera (o Set assume o comando)
+        } else if (key === 'diretoria') {
+          if (msDiretoriaSet.size === 1) currentDiretoriaFilter = Array.from(msDiretoriaSet)[0];
+          else if (msDiretoriaSet.size === 0) currentDiretoriaFilter = '';
+          else currentDiretoriaFilter = '';
+        } else if (key === 'status') {
+          if (msStatusSet.size === 1) currentStatusFilter = Array.from(msStatusSet)[0];
+          else if (msStatusSet.size === 0) currentStatusFilter = '';
+          else currentStatusFilter = '';
+        } else if (key === 'fin-project') {
+          // Sincroniza com o finProjectFilter legado usado pelo renderFinanceiro
+          if (typeof finProjectFilter !== 'undefined') {
+            finProjectFilter.clear();
+            msProjectSet.forEach(v => finProjectFilter.add(v));
+          }
+        }
+      }
+
+      function _msInitAll() {
+        // Registrar Responsável
+        _msRegister('resp', {
+          targetSet: msRespSet,
+          getOptions: () => {
+            const set = new Set();
+            Object.values(projectsMap).forEach(p => { const r = p.extra?.responsavel; if (r && r.trim()) set.add(r.trim()); });
+            return Array.from(set).sort((a,b)=>a.localeCompare(b,'pt-BR')).map(v => ({ value:v, label:v }));
+          }
+        });
+        // Registrar Diretoria
+        _msRegister('diretoria', {
+          targetSet: msDiretoriaSet,
+          getOptions: () => {
+            const set = new Set(); let temBranco = false;
+            Object.values(projectsMap).forEach(p => { const d = String(p.extra?.diretoria || '').trim(); if (d) set.add(d); else temBranco = true; });
+            const arr = Array.from(set).sort((a,b)=>a.localeCompare(b,'pt-BR')).map(v => ({ value:v, label:v }));
+            if (temBranco) arr.push({ value:'__branco__', label:'— Sem diretoria' });
+            return arr;
+          }
+        });
+        // Registrar Status
+        _msRegister('status', {
+          targetSet: msStatusSet,
+          getOptions: () => {
+            const set = new Set();
+            Object.values(projectsMap).forEach(p => { const s = p.extra?.status; if (s && s.trim()) set.add(s.trim()); });
+            return Array.from(set).sort((a,b)=>a.localeCompare(b,'pt-BR')).map(v => ({ value:v, label:v }));
+          }
+        });
+        // Registrar Projeto (usado só na aba Financeiro; sincroniza com o finProjectFilter existente)
+        _msRegister('fin-project', {
+          targetSet: msProjectSet,
+          getOptions: () => Object.values(projectsMap).map(p => ({ value:p.nome, label:p.nome })).sort((a,b)=>a.label.localeCompare(b.label,'pt-BR'))
+        });
+
+        // Montar todos os slots presentes no DOM
+        document.querySelectorAll('.ms-slot').forEach(_msMountSlot);
+      }
+
       function getFiltered() {
         return Object.values(projectsMap)
           .filter(p => _matchesResp(p) && _matchesMeta(p) && _matchesSearch(p) && _matchesStatus(p) && _matchesDiretoria(p) && _matchesKpi(p))
@@ -8644,6 +8951,10 @@ body:not([data-tab]) .ps-toolbar { display:flex; }
         searchQuery             = '';
         currentGanttPeriod      = '2026'; // volta ao padrão da tela
         if (typeof finProjectFilter !== 'undefined') finProjectFilter.clear();
+
+        // Limpar Sets do multi-select genérico e atualizar todos os slots montados
+        msRespSet.clear(); msDiretoriaSet.clear(); msStatusSet.clear(); msProjectSet.clear();
+        ['resp','diretoria','status','fin-project'].forEach(k => _msRefreshAllForKey(k));
 
         // Resetar chips de período do Gantt
         document.querySelectorAll('[data-period]').forEach(b => b.classList.toggle('active', b.dataset.period === '2026'));
@@ -9134,10 +9445,124 @@ body:not([data-tab]) .ps-toolbar { display:flex; }
         try { localStorage.removeItem(CACHE_KEY_ITENS); localStorage.removeItem(CACHE_KEY_PROJETOS); } catch(e) {}
       }
 
+      // ── Cache compartilhado (item 4): detecta automaticamente se o Worker
+      //    já expõe as rotas /cache e /refresh. Se sim, usa. Se não (fallback),
+      //    segue o fluxo legado com localStorage. Isso permite deploy gradual.
+      const SHARED_CACHE_BASE = 'https://goobee-proxy.7lucasfernandes.workers.dev';
+      let sharedCacheAvailable = null; // null=desconhecido, true/false após primeira tentativa
+      let sharedCacheLastTs    = null; // timestamp da última versão que já carregamos
+      let sharedCachePollTimer = null;
+
+      async function _sharedCacheGet() {
+        try {
+          const r = await fetch(SHARED_CACHE_BASE + '/cache', { headers: { 'Accept':'application/json' } });
+          if (!r.ok) return null;
+          const body = await r.json();
+          if (!body || !body.ok || !Array.isArray(body.projetos) || !Array.isArray(body.itens)) return null;
+          return body; // { ok, projetos, itens, ts }
+        } catch (e) { return null; }
+      }
+      async function _sharedCacheRefresh() {
+        try {
+          const r = await fetch(SHARED_CACHE_BASE + '/refresh', { method:'POST' });
+          if (!r.ok) return null;
+          const body = await r.json();
+          if (!body || !body.ok) return null;
+          return body;
+        } catch (e) { return null; }
+      }
+      async function _sharedCacheStatus() {
+        try {
+          const r = await fetch(SHARED_CACHE_BASE + '/status', { headers: { 'Accept':'application/json' } });
+          if (!r.ok) return null;
+          return await r.json(); // { ts }
+        } catch (e) { return null; }
+      }
+      // Polling silencioso (30s) — só compara timestamp, NÃO recarrega dados.
+      // Se houver versão nova, exibe toast opt-in para o usuário decidir quando aplicar.
+      function _startSharedCachePolling() {
+        if (sharedCachePollTimer) return;
+        sharedCachePollTimer = setInterval(async () => {
+          if (sharedCacheAvailable !== true) return;
+          const s = await _sharedCacheStatus();
+          if (!s || !s.ts) return;
+          _updateCacheHeader(s.ts);
+          if (sharedCacheLastTs && s.ts > sharedCacheLastTs) {
+            // Nova versão detectada — notificar o usuário sem interromper
+            if (typeof showToast === 'function' && !document.getElementById('_shared_cache_toast_flag')) {
+              const flag = document.createElement('div'); flag.id = '_shared_cache_toast_flag'; flag.style.display = 'none'; document.body.appendChild(flag);
+              showToast({
+                type:'info',
+                title:'📊 Dados atualizados por outro usuário',
+                message:'Clique em "Atualizar" quando quiser carregar a nova versão.',
+                duration:8000
+              });
+            }
+          }
+        }, 30000);
+      }
+      function _updateCacheHeader(ts) {
+        if (!ts) return;
+        const el = document.getElementById('ps-cache-time');
+        if (!el) return;
+        const diffMin = Math.round((Date.now() - ts) / 60000);
+        el.textContent = diffMin < 1 ? 'agora mesmo'
+          : diffMin === 1 ? 'há 1 min'
+          : diffMin < 60 ? 'há ' + diffMin + ' min'
+          : 'há ' + Math.round(diffMin/60) + 'h';
+        const wrap = document.getElementById('ps-cache-info');
+        if (wrap) wrap.style.display = '';
+      }
+
       // ── Load ───────────────────────────────────────────────────────────────
       async function loadFromApi(forceRefresh) {
         showState('loading');
         if (forceRefresh) _cacheClear();
+
+        // Modo cache compartilhado (tenta detectar)
+        // - forceRefresh=true → chama /refresh (força busca na API pelo Worker)
+        // - forceRefresh=false → chama /cache (rápido, dado do KV)
+        try {
+          updateLoadingMsg(forceRefresh ? 'Atualizando dados para todos os usuários...' : 'Carregando cache compartilhado...');
+          const shared = forceRefresh ? await _sharedCacheRefresh() : await _sharedCacheGet();
+          if (shared && shared.projetos && shared.itens) {
+            sharedCacheAvailable = true;
+            sharedCacheLastTs    = shared.ts || Date.now();
+            projectsApiList = shared.projetos;
+            allItems        = shared.itens;
+            buildProjectsExtraByName();
+            buildProjectsMap();
+            buildMetas();
+            buildStatusChips();
+            populateDiretoriaChips();
+            _wireKpiFilters();
+            _msInitAll();
+            renderAll();
+            initGanttsResize();
+            _updateCacheHeader(sharedCacheLastTs);
+            _startSharedCachePolling();
+            return;
+          }
+          // Se /cache retornou null e não é forceRefresh, tenta popular via /refresh
+          if (!forceRefresh) {
+            const filled = await _sharedCacheRefresh();
+            if (filled && filled.projetos && filled.itens) {
+              sharedCacheAvailable = true;
+              sharedCacheLastTs    = filled.ts || Date.now();
+              projectsApiList = filled.projetos;
+              allItems        = filled.itens;
+              buildProjectsExtraByName(); buildProjectsMap(); buildMetas();
+              buildStatusChips(); populateDiretoriaChips(); _wireKpiFilters(); _msInitAll();
+              renderAll(); initGanttsResize();
+              _updateCacheHeader(sharedCacheLastTs); _startSharedCachePolling();
+              return;
+            }
+          }
+          sharedCacheAvailable = false;
+        } catch (e) {
+          console.warn('[PS] Cache compartilhado indisponível; caindo para modo legado:', e);
+          sharedCacheAvailable = false;
+        }
 
         try {
           // Tentar cache primeiro
@@ -9155,6 +9580,7 @@ body:not([data-tab]) .ps-toolbar { display:flex; }
             buildStatusChips();
             populateDiretoriaChips();
             _wireKpiFilters();
+            _msInitAll();
             renderAll();
             initGanttsResize();
             return;
@@ -9193,6 +9619,7 @@ body:not([data-tab]) .ps-toolbar { display:flex; }
           buildStatusChips();
           populateDiretoriaChips();
           _wireKpiFilters();
+          _msInitAll();
           renderAll();
           initGanttsResize();
         } catch(err) {
