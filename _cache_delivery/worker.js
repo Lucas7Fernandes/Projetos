@@ -31,7 +31,7 @@ const TIME_ID   = '8c1d119a-3f48-408f-a62a-9d0433099442';
 
 // TTL do cache no edge (segundos). Depois disso, se ninguém apertar
 // "Atualizar", a próxima leitura força um refresh automático.
-const CACHE_TTL_SECONDS = 6 * 60 * 60; // 6 horas
+const CACHE_TTL_SECONDS = 48 * 60 * 60; // 48 horas — dias sem acesso ao portal são normais
 
 // URLs canônicas usadas como CHAVES do cache no edge.
 // Precisam ser URLs absolutas HTTP GET pra caches.default aceitar.
