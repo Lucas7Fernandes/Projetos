@@ -3497,6 +3497,124 @@ body:not([data-tab]) .ps-toolbar { display:flex; }
     #pp-content-vg #ps-filter-toggle { display:none; }
     #pp-content-vg #ps-extra-filters { display:none !important; }
 
+
+    /* ═══════════════════════════════════════════════════════
+       PATCH: Resumo Executivo redesenhado (One Pager)
+       — Hero 2col (Situação + Progresso), metadados em faixa,
+         descrição em coluna única full, governança como rodapé
+    ═══════════════════════════════════════════════════════ */
+
+    /* Hero: 2 colunas com situação e progresso lado a lado */
+    .op-hero-grid {
+      display:grid; grid-template-columns:1fr 1fr; gap:12px;
+      margin:12px 0 16px;
+    }
+    .op-hero-item {
+      padding:14px 16px; border-radius:10px;
+      background:rgba(27,42,74,.03); border:1px solid rgba(27,42,74,.10);
+    }
+    .op-hero-label {
+      font-size:10px; font-weight:700; text-transform:uppercase;
+      letter-spacing:.5px; color:#6B7280; margin-bottom:8px;
+    }
+    /* Hero: pill de status sem margem extra (já tem estilo próprio herdado) */
+    .op-hero-status .status-pill {
+      display:inline-flex; margin:0; padding:6px 14px;
+      font-size:13px; font-weight:600;
+    }
+    /* Hero: progresso — número grande + barra fina */
+    .op-hero-progress-num {
+      font-family:'DM Serif Display', serif;
+      font-size:30px; line-height:1; color:#1B2A4A;
+      margin-bottom:6px;
+    }
+    .op-hero-progress-bar {
+      height:6px; margin:0; background:rgba(27,42,74,.08);
+    }
+    .op-hero-progress-bar .progress-bar-inner {
+      height:100%; border-radius:3px;
+    }
+
+    /* Faixa de metadados: datas concentradas */
+    .op-metadata-row {
+      display:grid; grid-template-columns:1fr 1fr; gap:14px;
+      padding:12px 16px; margin-bottom:16px;
+      background:rgba(27,42,74,.02); border:1px solid var(--border, #E5E1DA);
+      border-radius:10px;
+    }
+    .op-meta-item {
+      display:flex; flex-direction:column; gap:3px;
+    }
+    .op-meta-label {
+      font-size:10px; font-weight:700; text-transform:uppercase;
+      letter-spacing:.5px; color:#6B7280;
+    }
+    .op-meta-value {
+      font-size:14px; font-weight:700; color:#1B2A4A;
+    }
+
+    /* Descrição em coluna única (Ganhos removido — pega toda a vertical) */
+    .op-description-wrap {
+      padding:14px 16px; margin-bottom:16px;
+      background:#ffffff; border:1px solid var(--border, #E5E1DA);
+      border-radius:10px;
+    }
+    .op-section-label {
+      font-size:10px; font-weight:700; text-transform:uppercase;
+      letter-spacing:.5px; color:#6B7280; margin-bottom:8px;
+    }
+    .op-description-text {
+      font-size:13px; line-height:1.7; color:#1e293b;
+      white-space:pre-line;
+    }
+
+    /* Governança como rodapé fino (não mais bloco central grande) */
+    .op-gov-footer {
+      display:flex !important; gap:16px !important;
+      padding:10px 14px !important;
+      background:rgba(27,42,74,.02) !important;
+      border:1px solid var(--border, #E5E1DA) !important;
+      border-radius:10px !important;
+      margin-top:8px !important; margin-bottom:0 !important;
+      grid-template-columns:none !important;
+    }
+    .op-gov-footer .project-gov-item {
+      flex:1; padding:0 !important; background:transparent !important;
+      border:none !important;
+    }
+    .op-gov-footer .gov-label {
+      font-size:9px !important; margin-bottom:2px !important;
+    }
+    .op-gov-footer .gov-value {
+      font-size:12px !important;
+    }
+
+    /* Elimina o wrapper de card padding do progress-wrapper legado que estava sobrando */
+    .op-exec-card .op-hero-item .status-pill {
+      background:rgba(21,128,61,.08); color:#065F46; border-radius:20px;
+    }
+
+    /* Impressão: empilhar hero/metadados de volta pra caber em A4 retrato */
+    @media print {
+      .op-hero-grid, .op-metadata-row {
+        grid-template-columns:1fr !important;
+      }
+      .op-gov-footer {
+        flex-direction:row !important;
+      }
+    }
+
+    /* Responsividade */
+    @media (max-width: 700px) {
+      .op-hero-grid, .op-metadata-row {
+        grid-template-columns:1fr;
+      }
+      .op-gov-footer {
+        flex-direction:column !important;
+        gap:8px !important;
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -4090,21 +4208,44 @@ body:not([data-tab]) .ps-toolbar { display:flex; }
     <!-- Linha 1: Resumo Executivo (esq) + Marcos / Riscos (dir empilhados) -->
     <div class="layout">
       <div>
-        <div class="card">
+        <div class="card op-exec-card">
           <div class="section-title"><span class="emoji">🎯</span>Resumo Executivo</div>
-          <div class="status-pill" id="status-pill"><span class="status-dot" id="status-geral-dot"></span><span id="status-geral-text">Aguardando importação...</span></div>
-          <div class="project-description">
-            <span class="label">Descrição do Projeto:</span>
-            <span id="project-description-text" style="white-space:pre-line;">Clique em "Atualizar" e carregue a planilha extraída do sistema.</span>
-            <span class="ganhos-title" id="ganhos-title" style="display:none;">Ganhos do Projeto:</span>
-            <span id="project-ganhos-text"></span>
+
+          <!-- HERO: Situação (semáforo) + Progresso lado a lado -->
+          <div class="op-hero-grid">
+            <div class="op-hero-item op-hero-status">
+              <div class="op-hero-label">🚦 Situação do Projeto</div>
+              <div class="status-pill" id="status-pill"><span class="status-dot" id="status-geral-dot"></span><span id="status-geral-text">Aguardando importação...</span></div>
+            </div>
+            <div class="op-hero-item op-hero-progress">
+              <div class="op-hero-label">📈 Progresso Geral</div>
+              <div class="op-hero-progress-num" id="project-progress-percent">0%</div>
+              <div class="progress-bar op-hero-progress-bar"><div class="progress-bar-inner" id="progress"></div></div>
+            </div>
           </div>
+
+          <!-- FAIXA DE DATAS: metadados concentrados -->
+          <div class="op-metadata-row">
+            <div class="op-meta-item"><span class="op-meta-label">📅 Início</span><span class="op-meta-value" id="project-start-date">--/--/----</span></div>
+            <div class="op-meta-item"><span class="op-meta-label">🎯 Previsão de Conclusão</span><span class="op-meta-value" id="project-end-date">--/--/----</span></div>
+          </div>
+
+          <!-- DESCRIÇÃO em coluna única full (Ganhos removido) -->
+          <div class="op-description-wrap">
+            <div class="op-section-label">Descrição do Projeto</div>
+            <div class="op-description-text" id="project-description-text">Clique em "Atualizar" e carregue a planilha extraída do sistema.</div>
+            <!-- Elementos legados mantidos ocultos para retrocompatibilidade do JS applyMeta -->
+            <span class="ganhos-title" id="ganhos-title" style="display:none;">Ganhos do Projeto:</span>
+            <span id="project-ganhos-text" style="display:none;"></span>
+          </div>
+
+          <!-- FINANCEIRO: 3 cards limpos -->
           <div class="project-receita-wrap" id="project-receita-wrap" style="display:none;">
-            <span class="project-receita-label">💰 Resumo Financeiro do Projeto</span>
+            <span class="project-receita-label">💰 Situação Financeira</span>
           </div>
           <div class="project-fin-grid" id="project-fin-grid">
             <div class="project-fin-item pfi-receita">
-              <div class="pfi-label">Orçamento Total (Receita)</div>
+              <div class="pfi-label">Orçamento Total</div>
               <div class="pfi-value" id="pfi-orcamento">—</div>
             </div>
             <div class="project-fin-item pfi-custo">
@@ -4112,12 +4253,13 @@ body:not([data-tab]) .ps-toolbar { display:flex; }
               <div class="pfi-value" id="pfi-custo">—</div>
             </div>
             <div class="project-fin-item pfi-pct">
-              <div class="pfi-label">% do Orçamento Consumido</div>
+              <div class="pfi-label">% Consumido</div>
               <div class="pfi-value" id="pfi-pct-consumido">—</div>
             </div>
           </div>
-          <!-- Governança do projeto: Líder de TI · Diretoria · Líder de Negócios -->
-          <div class="project-gov-grid" id="project-gov-grid">
+
+          <!-- GOVERNANÇA: rodapé fino (Líder TI · Diretoria · Líder Negócios) -->
+          <div class="project-gov-grid op-gov-footer" id="project-gov-grid">
             <div class="project-gov-item gov-liderti">
               <div class="gov-label">👨‍💼 Líder de TI</div>
               <div class="gov-value" id="gov-lider-ti">—</div>
@@ -4131,13 +4273,17 @@ body:not([data-tab]) .ps-toolbar { display:flex; }
               <div class="gov-value" id="gov-lider-negocios">—</div>
             </div>
           </div>
-          <div class="project-dates">
-            <div class="date-box"><span class="label">Data de Início</span><span class="value" id="project-start-date">--/--/----</span></div>
-            <div class="date-box"><span class="label">Previsão de Conclusão</span><span class="value" id="project-end-date">--/--/----</span></div>
-          </div>
-          <div class="progress-wrapper">
-            <div class="progress-label"><span>Progresso Geral do Projeto</span><span class="percentage" id="project-progress-percent">0%</span></div>
-            <div class="progress-bar"><div class="progress-bar-inner" id="progress"></div></div>
+
+          <!-- Elementos legados ocultos (progress-wrapper duplicado) para não quebrar seletores existentes -->
+          <div style="display:none;" aria-hidden="true">
+            <div class="project-dates">
+              <div class="date-box"><span class="label">Data de Início</span><span class="value">--/--/----</span></div>
+              <div class="date-box"><span class="label">Previsão de Conclusão</span><span class="value">--/--/----</span></div>
+            </div>
+            <div class="progress-wrapper">
+              <div class="progress-label"><span>Progresso Geral do Projeto</span><span class="percentage">0%</span></div>
+              <div class="progress-bar"><div class="progress-bar-inner"></div></div>
+            </div>
           </div>
         </div>
       </div>
