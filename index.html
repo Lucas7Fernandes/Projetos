@@ -3443,6 +3443,9 @@ body:not([data-tab]) .ps-toolbar { display:flex; }
       box-shadow:0 8px 24px rgba(27,42,74,.14); z-index:100;
       overflow:hidden; display:flex; flex-direction:column;
     }
+    /* Garante que o atributo [hidden] vença o display:flex acima
+       (sem isso, o painel abre sozinho ao carregar a página) */
+    .ms-panel[hidden] { display:none !important; }
     .ms-panel-search {
       position:relative; padding:8px 10px; border-bottom:1px solid #F4F3F0;
     }
