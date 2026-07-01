@@ -25,7 +25,7 @@ curl -X POST https://goobee-proxi.7lucasfernandes.workers.dev/refresh
 ## Como funciona (resumo)
 
 - **`caches.default`** é o cache de edge do Cloudflare, compartilhado entre todos os visitantes que caem no mesmo data center. Como praticamente todo mundo do Brasil cai no edge de São Paulo, o cache é efetivamente único para toda a P&P.
-- **TTL de 6 horas** — se ninguém apertar "Atualizar" nesse período, a próxima leitura retorna 404 e o cliente automaticamente força um refresh (não precisa intervenção humana).
+- **TTL de 48 horas** — se ninguém apertar "Atualizar" nesse período, a próxima leitura força um refresh automático. Como dias sem acesso ao portal são normais no fluxo da P&P, esse TTL longo garante que quase sempre a primeira pessoa a abrir já pega dado quente do cache.
 - **Rotas expostas:**
   - `GET /cache` → dados atuais + timestamp (rápido, ~30ms)
   - `POST /refresh` → força busca na Goobee, atualiza cache para todos (~2s)
@@ -50,4 +50,4 @@ Se algo der errado: no Cloudflare, aba "Deployments" do Worker → escolher a ve
 ## Limitações honestas
 
 - **Inconsistência entre regiões**: usuários em cidades diferentes podem cair em data centers diferentes e ver timestamps ligeiramente distintos por alguns minutos. Na prática, com usuários todos no Brasil, isso não é problema real.
-- **TTL fixo de 6h**: se ninguém abrir o portal por 6h, a primeira pessoa a abrir vai pagar o tempo de ~2s do refresh automático. Ajustável no código (constante `CACHE_TTL_SECONDS`).
+- **TTL fixo de 48h**: se o portal ficar sem uso por mais de 48h, a próxima pessoa a abrir vai pagar ~2s de refresh automático. Ajustável no código (constante `CACHE_TTL_SECONDS`).
